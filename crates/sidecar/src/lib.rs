@@ -42,7 +42,7 @@ use audit::{
     AuditEntry, AuditLogger, AuditResult, Decision, TransactionDetails, current_timestamp,
     hash_transaction_payload,
 };
-use bastion_arcium::{ArcumPolicyEvaluator, NoopArciumClient, MxeConfig};
+use bastion_arcium::{ArcumPolicyEvaluator, MxeConfig, NoopArciumClient};
 use bastion_core::transaction::TxType;
 use grond_oracle::GrondOracle;
 use policy::{
@@ -271,7 +271,10 @@ async fn well_known_api_catalog() -> impl IntoResponse {
 }
 
 async fn well_known_agent_skills() -> impl IntoResponse {
-    ([(header::CONTENT_TYPE, "application/json")], AGENT_SKILLS_JSON)
+    (
+        [(header::CONTENT_TYPE, "application/json")],
+        AGENT_SKILLS_JSON,
+    )
 }
 
 async fn well_known_mcp_card() -> impl IntoResponse {
@@ -290,7 +293,10 @@ async fn serve_auth_md() -> impl IntoResponse {
 
 async fn serve_webmcp_js() -> impl IntoResponse {
     (
-        [(header::CONTENT_TYPE, "application/javascript; charset=utf-8")],
+        [(
+            header::CONTENT_TYPE,
+            "application/javascript; charset=utf-8",
+        )],
         WEBMCP_JS,
     )
 }
@@ -820,16 +826,34 @@ async fn simulate(
     // is plugged in, this will evaluate through the MXE before simulation.
     let arcium_decision = {
         let arcium_tx = bastion_core::NormalizedTransaction::new(
-            tx.signatures.first().map(|s| s.to_string()).unwrap_or_default(),
-            format!("{:?}", tx.message.account_keys.first().unwrap_or(&solana_sdk::pubkey::Pubkey::default())),
-            format!("{:?}", tx.message.account_keys.get(1).unwrap_or(&solana_sdk::pubkey::Pubkey::default())),
+            tx.signatures
+                .first()
+                .map(|s| s.to_string())
+                .unwrap_or_default(),
+            format!(
+                "{:?}",
+                tx.message
+                    .account_keys
+                    .first()
+                    .unwrap_or(&solana_sdk::pubkey::Pubkey::default())
+            ),
+            format!(
+                "{:?}",
+                tx.message
+                    .account_keys
+                    .get(1)
+                    .unwrap_or(&solana_sdk::pubkey::Pubkey::default())
+            ),
             0,
             "SOL".to_string(),
             TxType::Transfer,
             bastion_core::transaction::Chain::Solana,
         );
         let policy_set = bastion_core::PolicySet::new();
-        state.arcium_evaluator.evaluate(&arcium_tx, &policy_set).await
+        state
+            .arcium_evaluator
+            .evaluate(&arcium_tx, &policy_set)
+            .await
     };
 
     if arcium_decision.is_blocked() {
@@ -2137,7 +2161,10 @@ pub fn build_app(
             "/.well-known/agent-skills/index.json",
             get(well_known_agent_skills),
         )
-        .route("/.well-known/mcp/server-card.json", get(well_known_mcp_card))
+        .route(
+            "/.well-known/mcp/server-card.json",
+            get(well_known_mcp_card),
+        )
         .route("/health", get(health))
         .route("/events", get(events_handler))
         .route("/auth/nonce", post(auth_nonce))
