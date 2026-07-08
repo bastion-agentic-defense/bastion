@@ -1,4 +1,4 @@
-Sitemap: https://bastionagenticdefense.netlify.app/sitemap.xml
+Sitemap: https://bastionagentique.com/sitemap.xml
 
 # ── AI Crawlers ──────────────────────────────────────────────
 # Allow responsible AI crawlers with rate limits.

@@ -1,7 +1,7 @@
 {
-  "resource": "https://bastionagenticdefense.netlify.app",
+  "resource": "https://bastionagentique.com",
   "authorization_servers": [
-    "https://bastionagenticdefense.netlify.app/.well-known/oauth-authorization-server.json"
+    "https://bastionagentique.com"
   ],
   "scopes_supported": [
     "bastion:simulate",

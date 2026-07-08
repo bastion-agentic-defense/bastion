@@ -8,8 +8,8 @@
 (function() {
   if (typeof navigator === 'undefined' || !navigator.modelContext) return;
 
-  const SIDECAR_URL = 'https://bastion-agentique.fly.dev/';
-  const MCP_URL = 'https://bastion-agentique.fly.dev/';
+  const SIDECAR_URL = 'https://bastion-agentique.fly.dev';
+  const MCP_URL = 'https://bastion-agentique.fly.dev';
 
   navigator.modelContext.provideContext({
     tools: [
