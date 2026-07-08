@@ -2,10 +2,10 @@ use axum::{
     Json, Router,
     body::Body,
     extract::{Path, Query, Request as AxumRequest, State},
-    http::StatusCode,
+    http::{StatusCode, header},
     middleware::{self, Next},
     response::{
-        IntoResponse,
+        Html, IntoResponse,
         sse::{Event, KeepAlive, Sse},
     },
     routing::{any, get, post},
@@ -212,8 +212,87 @@ struct ErrorResponse {
     block_id: Option<String>,
 }
 
-async fn hello() -> &'static str {
-    "Hello, world!"
+// ── Agent-discovery surface (mirrors the Netlify/Vercel site) ──
+//
+// Served so the sidecar origin (bastion-agentique.fly.dev) passes the same
+// isitagentready.com checks as the website: RFC 8288 Link headers on `/`,
+// extension-less OAuth metadata, an api-catalog, auth.md, and the WebMCP loader.
+// Content is embedded from the canonical copies under apps/web/public/.
+
+const DISCOVERY_LINK_HEADER: &str = "</.well-known/api-catalog>; rel=\"api-catalog\", </.well-known/agent-skills/index.json>; rel=\"agent-skills\", </.well-known/mcp/server-card.json>; rel=\"mcp-server-card\", </auth.md>; rel=\"service-doc\", </.well-known/oauth-authorization-server>; rel=\"http://openid.net/specs/connect/1.0/issuer\", </.well-known/oauth-protected-resource>; rel=\"resource-protected\", </webmcp.js>; rel=\"webmcp\"";
+
+const HELLO_HTML: &str = r#"<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bastion Sidecar</title>
+</head>
+<body>
+<h1>Bastion Sidecar</h1>
+<p>Multichain AI agent firewall API. See
+<a href="/auth.md">/auth.md</a>,
+<a href="/.well-known/api-catalog">/.well-known/api-catalog</a>, and
+<a href="/health">/health</a>.</p>
+<script src="/webmcp.js"></script>
+</body>
+</html>
+"#;
+
+const OAUTH_AS_JSON: &str =
+    include_str!("../../../apps/web/public/.well-known/oauth-authorization-server");
+const OAUTH_PR_JSON: &str =
+    include_str!("../../../apps/web/public/.well-known/oauth-protected-resource");
+const API_CATALOG_JSON: &str = include_str!("../../../apps/web/public/.well-known/api-catalog");
+const AGENT_SKILLS_JSON: &str =
+    include_str!("../../../apps/web/public/.well-known/agent-skills/index.json");
+const MCP_SERVER_CARD_JSON: &str =
+    include_str!("../../../apps/web/public/.well-known/mcp/server-card.json");
+const AUTH_MD: &str = include_str!("../../../apps/web/public/auth.md");
+const WEBMCP_JS: &str = include_str!("../../../apps/web/public/webmcp.js");
+
+async fn hello() -> impl IntoResponse {
+    ([(header::LINK, DISCOVERY_LINK_HEADER)], Html(HELLO_HTML))
+}
+
+async fn well_known_oauth_as() -> impl IntoResponse {
+    ([(header::CONTENT_TYPE, "application/json")], OAUTH_AS_JSON)
+}
+
+async fn well_known_oauth_pr() -> impl IntoResponse {
+    ([(header::CONTENT_TYPE, "application/json")], OAUTH_PR_JSON)
+}
+
+async fn well_known_api_catalog() -> impl IntoResponse {
+    (
+        [(header::CONTENT_TYPE, "application/linkset+json")],
+        API_CATALOG_JSON,
+    )
+}
+
+async fn well_known_agent_skills() -> impl IntoResponse {
+    ([(header::CONTENT_TYPE, "application/json")], AGENT_SKILLS_JSON)
+}
+
+async fn well_known_mcp_card() -> impl IntoResponse {
+    (
+        [(header::CONTENT_TYPE, "application/json")],
+        MCP_SERVER_CARD_JSON,
+    )
+}
+
+async fn serve_auth_md() -> impl IntoResponse {
+    (
+        [(header::CONTENT_TYPE, "text/markdown; charset=utf-8")],
+        AUTH_MD,
+    )
+}
+
+async fn serve_webmcp_js() -> impl IntoResponse {
+    (
+        [(header::CONTENT_TYPE, "application/javascript; charset=utf-8")],
+        WEBMCP_JS,
+    )
 }
 
 // ── MCP Reverse Proxy ──────────────────────────────────────────
@@ -2042,6 +2121,23 @@ pub fn build_app(
         .route_layer(axum::extract::Extension(did_auth_state.clone()))
         // === Unprotected routes ===
         .route("/", get(hello))
+        // Agent-discovery surface (mirrors the website).
+        .route("/auth.md", get(serve_auth_md))
+        .route("/webmcp.js", get(serve_webmcp_js))
+        .route(
+            "/.well-known/oauth-authorization-server",
+            get(well_known_oauth_as),
+        )
+        .route(
+            "/.well-known/oauth-protected-resource",
+            get(well_known_oauth_pr),
+        )
+        .route("/.well-known/api-catalog", get(well_known_api_catalog))
+        .route(
+            "/.well-known/agent-skills/index.json",
+            get(well_known_agent_skills),
+        )
+        .route("/.well-known/mcp/server-card.json", get(well_known_mcp_card))
         .route("/health", get(health))
         .route("/events", get(events_handler))
         .route("/auth/nonce", post(auth_nonce))

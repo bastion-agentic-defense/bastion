@@ -177,7 +177,7 @@ fn json_request_with_method(method: &str, path: &str, payload: serde_json::Value
 }
 
 #[tokio::test]
-async fn healthcheck_returns_hello_world() {
+async fn homepage_serves_html_with_discovery_link_header() {
     let (app, _tmp_dir) = test_app(vec![]);
 
     let response = app
@@ -191,10 +191,25 @@ async fn healthcheck_returns_hello_world() {
         .expect("response");
 
     assert_eq!(response.status(), StatusCode::OK);
+
+    // RFC 8288 Link header advertising the agent-discovery resources (checked
+    // by isitagentready.com on the homepage).
+    let link = response
+        .headers()
+        .get("link")
+        .expect("link header present")
+        .to_str()
+        .expect("link header is valid UTF-8");
+    assert!(link.contains("rel=\"api-catalog\""));
+    assert!(link.contains("/.well-known/oauth-authorization-server"));
+    assert!(link.contains("/webmcp.js"));
+
     let body = to_bytes(response.into_body(), usize::MAX)
         .await
         .expect("body bytes");
-    assert_eq!(body, "Hello, world!");
+    let body = String::from_utf8(body.to_vec()).expect("body is valid UTF-8");
+    // WebMCP detection needs an HTML homepage that loads the loader script.
+    assert!(body.contains("<script src=\"/webmcp.js\"></script>"));
 }
 
 #[tokio::test]

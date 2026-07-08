@@ -5,14 +5,14 @@
       "name": "bastion",
       "type": "security",
       "description": "High-performance Rust firewall for AI Agents. Intercepts, simulates, and validates transactions before signing. Protects against prompt injection, balance drain, and unauthorized program access on Solana.",
-      "url": "https://bastionagenticdefense.netlify.app/SKILL.md",
+      "url": "https://bastionagentique.com/SKILL.md",
       "sha256": "placeholder"
     },
     {
       "name": "bastion-how-to-use",
       "type": "documentation",
       "description": "Guide for agent developers on integrating Bastion AI Agent Firewall for Solana. Covers SDK usage, REST API endpoints, policy configuration, and on-chain audit.",
-      "url": "https://bastionagenticdefense.netlify.app/docs/bastion-how-to-use",
+      "url": "https://bastionagentique.com/docs/bastion-how-to-use",
       "sha256": "placeholder"
     }
   ]

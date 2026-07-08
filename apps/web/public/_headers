@@ -1,5 +1,19 @@
-# index.html: never cache — browser must always fetch fresh so it picks up
-# the latest Vite content-hashed asset filenames.
+# Homepage (/) and the SPA entry document (/index.html): never cache — the
+# browser must always fetch fresh so it picks up the latest Vite content-hashed
+# asset filenames. Both carry the agent-discovery Link headers (RFC 8288); the
+# scanner requests "/", so the rule must exist for that exact path.
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+  Link: </.well-known/api-catalog>; rel="api-catalog"
+  Link: </.well-known/agent-skills/index.json>; rel="agent-skills"
+  Link: </.well-known/mcp/server-card.json>; rel="mcp-server-card"
+  Link: </auth.md>; rel="service-doc"
+  Link: </.well-known/oauth-authorization-server>; rel="http://openid.net/specs/connect/1.0/issuer"
+  Link: </.well-known/oauth-protected-resource>; rel="resource-protected"
+  Link: </webmcp.js>; rel="webmcp"
+
 /index.html
   Cache-Control: no-cache, no-store, must-revalidate
   Pragma: no-cache
@@ -8,8 +22,8 @@
   Link: </.well-known/agent-skills/index.json>; rel="agent-skills"
   Link: </.well-known/mcp/server-card.json>; rel="mcp-server-card"
   Link: </auth.md>; rel="service-doc"
-  Link: </.well-known/oauth-authorization-server.json>; rel="http://openid.net/specs/connect/1.0/issuer"
-  Link: </.well-known/oauth-protected-resource.json>; rel="resource-protected"
+  Link: </.well-known/oauth-authorization-server>; rel="http://openid.net/specs/connect/1.0/issuer"
+  Link: </.well-known/oauth-protected-resource>; rel="resource-protected"
   Link: </webmcp.js>; rel="webmcp"
 
 # Vite-hashed JS/CSS assets: cache forever — filename changes on every build.
@@ -21,7 +35,8 @@
   Content-Type: application/xml; charset=UTF-8
   Cache-Control: public, max-age=86400
 
-# Well-known endpoints
+# Well-known endpoints. OAuth metadata is served at the extension-less RFC 8414
+# / RFC 9728 paths (the scanner probes these without a .json suffix).
 /.well-known/api-catalog
   Content-Type: application/linkset+json
   Cache-Control: public, max-age=3600
@@ -34,11 +49,11 @@
   Content-Type: application/json
   Cache-Control: public, max-age=3600
 
-/.well-known/oauth-authorization-server.json
+/.well-known/oauth-authorization-server
   Content-Type: application/json
   Cache-Control: public, max-age=3600
 
-/.well-known/oauth-protected-resource.json
+/.well-known/oauth-protected-resource
   Content-Type: application/json
   Cache-Control: public, max-age=3600
 

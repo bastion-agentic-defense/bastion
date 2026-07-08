@@ -1,22 +1,22 @@
 {
   "linkset": [
     {
-      "anchor": "https://bastionagenticdefense.netlify.app/simulate",
-      "service-desc": "https://bastionagenticdefense.netlify.app/docs/api",
-      "service-doc": "https://bastionagenticdefense.netlify.app/docs/api",
-      "status": "https://bastionagenticdefense.netlify.app/health",
+      "anchor": "https://bastionagentique.com/simulate",
+      "service-desc": "https://bastionagentique.com/docs/api",
+      "service-doc": "https://bastionagentique.com/docs/api",
+      "status": "https://bastionagentique.com/health",
       "profile": "transaction-firewall"
     },
     {
-      "anchor": "https://bastionagenticdefense.netlify.app/logs",
-      "service-desc": "https://bastionagenticdefense.netlify.app/docs/api",
-      "service-doc": "https://bastionagenticdefense.netlify.app/docs/api",
+      "anchor": "https://bastionagentique.com/logs",
+      "service-desc": "https://bastionagentique.com/docs/api",
+      "service-doc": "https://bastionagentique.com/docs/api",
       "profile": "audit-logging"
     },
     {
-      "anchor": "https://bastionagenticdefense.netlify.app/policy",
-      "service-desc": "https://bastionagenticdefense.netlify.app/docs/api",
-      "service-doc": "https://bastionagenticdefense.netlify.app/docs/api",
+      "anchor": "https://bastionagentique.com/policy",
+      "service-desc": "https://bastionagentique.com/docs/api",
+      "service-doc": "https://bastionagentique.com/docs/api",
       "profile": "policy-management"
     }
   ]
