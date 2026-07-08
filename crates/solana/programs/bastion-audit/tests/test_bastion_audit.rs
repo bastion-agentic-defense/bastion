@@ -114,11 +114,7 @@ async fn do_initialize(
     .unwrap();
 }
 
-async fn do_pause(
-    banks: &mut solana_program_test::BanksClient,
-    payer: &Keypair,
-    as_pda: &Pubkey,
-) {
+async fn do_pause(banks: &mut solana_program_test::BanksClient, payer: &Keypair, as_pda: &Pubkey) {
     send(
         banks,
         payer,
@@ -165,18 +161,9 @@ async fn test_initialize() {
     let o = 8;
     assert_eq!(Pubkey::try_from(&d[o..o + 32]).unwrap(), payer.pubkey());
     assert!(d[o + 32] > 0, "bump must be non-zero");
-    assert_eq!(
-        u64::from_le_bytes(d[o + 33..o + 41].try_into().unwrap()),
-        0
-    );
-    assert_eq!(
-        u64::from_le_bytes(d[o + 41..o + 49].try_into().unwrap()),
-        0
-    );
-    assert_eq!(
-        u64::from_le_bytes(d[o + 49..o + 57].try_into().unwrap()),
-        0
-    );
+    assert_eq!(u64::from_le_bytes(d[o + 33..o + 41].try_into().unwrap()), 0);
+    assert_eq!(u64::from_le_bytes(d[o + 41..o + 49].try_into().unwrap()), 0);
+    assert_eq!(u64::from_le_bytes(d[o + 49..o + 57].try_into().unwrap()), 0);
     assert_eq!(d[paused_offset()], 0);
 }
 
@@ -199,15 +186,17 @@ async fn test_initialize_twice() {
         vec![],
     );
 
-    send(&mut banks, &payer, vec![ix.clone()])
-        .await
-        .unwrap();
+    send(&mut banks, &payer, vec![ix.clone()]).await.unwrap();
     // Second initialize should fail — account already exists
     // Verify via account state: authority should still be the original payer
     let _ = send(&mut banks, &payer, vec![ix]).await;
     let acct = banks.get_account(as_pda).await.unwrap().unwrap();
     let authority = Pubkey::try_from(&acct.data[8..40]).unwrap();
-    assert_eq!(authority, payer.pubkey(), "second initialize must not change authority");
+    assert_eq!(
+        authority,
+        payer.pubkey(),
+        "second initialize must not change authority"
+    );
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -332,7 +321,10 @@ async fn test_log_audit_unauthorized() {
 
     // Verify via account state — audit_entry should not have been created
     let entry_exists = banks.get_account(e0).await.unwrap().is_some();
-    assert!(!entry_exists, "unauthorized signer must not create audit entry");
+    assert!(
+        !entry_exists,
+        "unauthorized signer must not create audit entry"
+    );
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -649,7 +641,10 @@ async fn test_emergency_pause_resume() {
 
     let po = paused_offset();
 
-    assert_eq!(banks.get_account(as_pda).await.unwrap().unwrap().data[po], 0);
+    assert_eq!(
+        banks.get_account(as_pda).await.unwrap().unwrap().data[po],
+        0
+    );
 
     do_pause(&mut banks, &payer, &as_pda).await;
     let d1 = &banks.get_account(as_pda).await.unwrap().unwrap().data;
@@ -679,7 +674,10 @@ async fn test_emergency_pause_resume() {
     .await;
     // Verify paused flag did NOT change (transaction was rejected)
     let d_after = banks.get_account(as_pda).await.unwrap().unwrap().data;
-    assert_eq!(d_after[po], paused_before, "paused flag must not change on double pause");
+    assert_eq!(
+        d_after[po], paused_before,
+        "paused flag must not change on double pause"
+    );
 
     send(
         &mut banks,
@@ -721,7 +719,10 @@ async fn test_emergency_pause_resume() {
     )
     .await;
     let d_after_resume = banks.get_account(as_pda).await.unwrap().unwrap().data;
-    assert_eq!(d_after_resume[po], paused_before_resume, "paused flag must not change on double resume");
+    assert_eq!(
+        d_after_resume[po], paused_before_resume,
+        "paused flag must not change on double resume"
+    );
 }
 
 // ══════════════════════════════════════════════════════════════════

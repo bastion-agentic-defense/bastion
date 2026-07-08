@@ -4,10 +4,10 @@ mod tests {
         ArciumClient, ArciumError, ArcumPolicyEvaluator, MxeConfig, MxeResult, NoopArciumClient,
     };
     use bastion_core::{
-        FirewallDecision, NormalizedTransaction, PolicyEvaluator, PolicyRule, PolicySet, TxType,
+        Address, FirewallDecision, NormalizedTransaction, PolicyEvaluator, PolicyRule, PolicySet,
+        TxType,
+        risk::{RiskOracle, RiskOracleError, RiskScore},
         transaction::Chain,
-        risk::{RiskOracle, RiskScore, RiskOracleError},
-        Address,
     };
 
     /// Mock risk oracle for testing.
@@ -171,7 +171,10 @@ mod tests {
     fn arcium_error_display() {
         let err = ArciumError::Timeout(5000);
         assert!(err.to_string().contains("5000"));
-        let err = ArciumError::InsufficientNodes { required: 3, available: 1 };
+        let err = ArciumError::InsufficientNodes {
+            required: 3,
+            available: 1,
+        };
         assert!(err.to_string().contains("3"));
         let err = ArciumError::CircuitError("test failure".into());
         assert!(err.to_string().contains("test failure"));
@@ -182,7 +185,15 @@ mod tests {
     #[test]
     fn chain_enum_has_all_variants() {
         assert_eq!(
-            [Chain::Solana, Chain::Base, Chain::Ethereum, Chain::Polygon, Chain::Arbitrum, Chain::Celo].len(),
+            [
+                Chain::Solana,
+                Chain::Base,
+                Chain::Ethereum,
+                Chain::Polygon,
+                Chain::Arbitrum,
+                Chain::Celo
+            ]
+            .len(),
             6
         );
     }
@@ -193,11 +204,17 @@ mod tests {
         assert!(!FirewallDecision::Pass.is_blocked());
         assert!(!FirewallDecision::Pass.is_pending_hitl());
 
-        let block = FirewallDecision::Block { reason: "test".into(), policy_id: None };
+        let block = FirewallDecision::Block {
+            reason: "test".into(),
+            policy_id: None,
+        };
         assert!(!block.is_allowed());
         assert!(block.is_blocked());
 
-        let hitl = FirewallDecision::PendingHITL { approval_id: "123".into(), reason: "review".into() };
+        let hitl = FirewallDecision::PendingHITL {
+            approval_id: "123".into(),
+            reason: "review".into(),
+        };
         assert!(hitl.is_pending_hitl());
     }
 
@@ -229,8 +246,7 @@ mod tests {
     async fn arcium_timeout_falls_back_to_local() {
         let failing = FailingArciumClient;
         let evaluator: ArcumPolicyEvaluator<FailingArciumClient, MockRiskOracle> =
-            ArcumPolicyEvaluator::new(failing, test_config())
-            .with_fallback(true);
+            ArcumPolicyEvaluator::new(failing, test_config()).with_fallback(true);
         let tx = test_tx(); // 0.5 SOL — passes local eval
         let policy = test_policy();
         let decision = evaluator.evaluate(&tx, &policy).await;
@@ -242,8 +258,7 @@ mod tests {
     async fn arcium_timeout_blocks_without_fallback() {
         let failing = FailingArciumClient;
         let evaluator: ArcumPolicyEvaluator<FailingArciumClient, MockRiskOracle> =
-            ArcumPolicyEvaluator::new(failing, test_config())
-            .with_fallback(false);
+            ArcumPolicyEvaluator::new(failing, test_config()).with_fallback(false);
         let tx = test_tx();
         let policy = test_policy();
         let decision = evaluator.evaluate(&tx, &policy).await;
