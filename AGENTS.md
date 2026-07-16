@@ -2,11 +2,13 @@
 
 > **Trust your Agent, but Verify every Transaction.**
 >
-> Bastion is a multichain AI agent firewall, security middleware that intercepts, simulates, and validates blockchain transactions from autonomous AI agents before they reach the network.
+> Bastion is a **Programmable Trust Runtime** for AI agents and autonomous systems. It orchestrates identity, policy, privacy, durable execution, and multi-chain settlement — composing existing Ethereum standards (ERC-4337, ERC-7579, ERC-8004, ERC-8126, EAS, Sign Protocol, x402, Pact Network) rather than replacing them.
 >
 > **If you are an AI coding agent reading this:** see [`SKILL.md`](SKILL.md) for self-registration and integration instructions. You can register yourself with a running Bastion instance via `POST /agents` to receive a W3C DID, trackable identity, and delegation capabilities.
 >
 > **Alpha software.** Bastion is in active development and not yet production hardened. Use with caution.
+>
+> **Ethereum ecosystem knowledge:** For building on Ethereum, Solidity contracts, ERC standards, agent identity (ERC-8004), x402 payments, and DeFi composability, load [`https://ethskills.com/SKILL.md`](https://ethskills.com/SKILL.md). For Base-specific tooling (Base MCP, wallet auth, contract deployment), load [`npx skills add base/skills`](https://github.com/base/skills). For the full Ethereum trust primitives map (wallets, oracles, bridges, attestations, indexing, agent platforms), see [`.agents/skills/ethereum-ecosystem/SKILL.md`](.agents/skills/ethereum-ecosystem/SKILL.md).
 
 ---
 
@@ -26,6 +28,8 @@
 | **EVM Wallet** | wagmi 2.12, viem 2.21, RainbowKit 2.2, TanStack Query 5 | — |
 | **Solana Wallet** | wallet-adapter-react, wallet-adapter-solflare/phantom/backpack | — |
 | **Arcium MXE** | Arcis (Rust MPC circuits), @arcium-hq/client | mainnet-alpha |
+| **Ethereum Standards** | ERC-8004, ERC-7579, ERC-4337, ERC-8126, EIP-7702, x402, EAS, Sign Protocol, Pact Network | composed |
+| **Ethereum Tooling** | ETHSKILLS, Base MCP/Skills, Blockscout MCP, Foundry, Scaffold-ETH 2 | — |
 | **Package Manager** | pnpm 9+ (workspaces) | — |
 | **CI/CD** | GitHub Actions, Netlify, Vercel | — |
 
