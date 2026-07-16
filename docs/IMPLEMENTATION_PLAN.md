@@ -19,6 +19,7 @@
 | F | General-Purpose Policy | OPA/Rego | **High** | ✅ Native only | Enterprise adoption |
 | G | EigenLayer AVS | EigenLayer | **Low** | ❌ Absent | Operator trust |
 | H | Post-Production Backlog | — | **Low** | Open | — |
+| I | Starknet ZK-Verified Execution | — | **Medium** | 🚧 Planned | Provable execution + native AA |
 
 ---
 
@@ -280,6 +281,47 @@ PolicyEvaluator
 
 **Depends on:** Phase 1 (operator tasks are Activities within durable workflows).
 
+---
+
+## Phase 8: Starknet ZK-Verified Execution — Epic I (~700 LOC, 1-2 weeks)
+
+**Goal:** Add Starknet as an execution layer in Bastion's multi-chain planner. Starknet is an Ethereum ZK-rollup with native account abstraction (every account is a smart account), STARK proofs for provably correct execution, and L1-L2 messaging for trust anchoring to Ethereum.
+
+**Why Starknet + Arcium together:**
+- Arcium (Solana) = confidential computation (private policy evaluation via MPC)
+- Starknet (Ethereum) = ZK-verified public execution (provably correct + native AA agent wallets)
+- They serve different purposes and both are needed for a complete multi-chain runtime.
+
+**Key Starknet properties Bastion leverages:**
+
+| Property | How Bastion Uses It |
+|----------|---------------------|
+| Native Account Abstraction | Agent wallets are smart accounts by default — no ERC-4337 bundler, no paymaster complexity |
+| STARK validity proofs | Policy enforcement on Starknet is provably correct by cryptographic proof, not trust |
+| L1-L2 messaging | Execute on Starknet, settle trust records to Ethereum L1 via native bridge |
+| Cairo VM | ZK-optimized VM — different from EVM, requires Cairo language for contracts |
+| Starkzap SDK | TypeScript SDK with explicit LLM integration docs for AI agents |
+
+**Requirements:**
+
+| Task | Files | Effort |
+|------|-------|--------|
+| Starknet chain config + RPC integration | `crates/sidecar/src/simulation_starknet.rs` | ~150 LOC |
+| Cairo agent wallet contract (native AA) | `crates/starknet/contracts/` | ~150 LOC |
+| Per-chain simulator for Starknet transactions | `crates/sidecar/src/simulation_starknet.rs` | ~150 LOC |
+| SDK: `settlement: "starknet"` + `settlement: "starknet_sepolia"` | `packages/sdk/src/execute.ts` | ~100 LOC |
+| Starkzap SDK integration for agent wallet management | `packages/sdk/src/starknet.ts` | ~100 LOC |
+| L1-L2 messaging for trust settlement | `crates/starknet/src/messaging.rs` | ~50 LOC |
+
+**Depends on:** Phase 4 (Settlement Router — Starknet becomes a routing target in the cross-chain planner).
+
+**Acceptance criteria:**
+- [ ] `execute({ settlement: "starknet_sepolia", transaction })` simulates against Starknet Sepolia
+- [ ] Cairo agent wallet contract deploys and accepts policy-gated transactions
+- [ ] L1 → L2 message lands trust record on Ethereum from Starknet
+- [ ] Settlement router includes Starknet as a routing option in cross-chain plans
+- [ ] `/health` reports `starknet_connected: true` when RPC is reachable
+
 | Task | Files | Effort |
 |------|-------|--------|
 | Operator registry: register, remove, query | `crates/eigenlayer/src/registry.rs` | ~150 LOC |
@@ -324,9 +366,10 @@ These are independent improvements. All are Phase 0 candidates.
 | 5 | D — Pact Network | ~300 | 3-5 days | **Independent** |
 | 6 | B — Real Arcium MPC | ~600 | 1-2 weeks | Audit gate |
 | 7 | G — EigenLayer AVS | ~500 | 1-2 weeks | Phase 1 |
-| **Total** | | **~5,780 LOC** | **8-12 weeks sequential** | |
+| 8 | I — Starknet ZK Execution | ~700 | 1-2 weeks | Phase 4 |
+| **Total** | | **~6,480 LOC** | **10-14 weeks sequential** | |
 
-**Parallelism opportunity:** Phases 2+3 can run in parallel after Phase 1. Phases 5 and 6 can run in parallel at any time. Phase 7 can run in parallel with Phase 4.
+**Parallelism opportunity:** Phases 2+3 can run in parallel after Phase 1. Phases 5 and 6 can run in parallel at any time. Phases 7 and 8 can run in parallel with Phase 4 (all depend on Phase 1 + Phase 4).
 
 ---
 
