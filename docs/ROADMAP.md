@@ -243,6 +243,31 @@ decompose an intent into an ordered, chain-spanning execution plan — the minim
 - **Promotion path** — grow the Phase-4 minimal router in `packages/sdk/src/execute.ts` into a real
   planner without changing the `execute()` call signature (declarative in stays the same).
 
+### Epic D — Pact Network Payment Guarantees (🚧 planned)
+
+**Status today:** No Pact integration exists. This is a net-new integration epic.
+
+**Why:** Pact Network provides on-chain chargebacks for x402 agent payments — when an agent pays
+an API and it fails, Pact refunds principal + premium from a coverage pool. Bastion's Web2 firewall
+already intercepts outbound API calls; wrapping them with Pact insurance closes the economic trust
+loop (policy decides whether to call, Pact guarantees the outcome).
+
+**What Pact is:**
+- Solana mainnet Pinocchio program (`5bCJcdWdKLJ7arrMVMFh3z99rQDxV785fnD9XGcr3xwc`)
+- USDC-denominated coverage pools with per-endpoint premium rates
+- Deterministic classifier: `success` → Pact earns premium, `server_error` → agent refunded
+- Batched on-chain settlement via `settle_batch` instruction (up to 50 calls/tx)
+- Currently in private beta; upgrade authority and settler are protocol-team-held (v1 centralization is acknowledged)
+
+**Requirements:**
+- **CLI integration** — auto-wrap `pay curl` → `pact pay curl` in Bastion's Web2 proxy for covered endpoints
+- **SDK surface** — `bastion.execute({ ..., coverage: { provider: "pact", tier: "standard" } })`
+- **Policy integration** — policy rules can require Pact coverage for specific endpoints
+- **Audit trail** — ingest Pact `settle_batch` events + `CallRecord` PDAs into Bastion's audit log
+- **Market integration** — route covered calls through `market.pactnetwork.io` for curated endpoints
+
+**Gate:** pact-network mainnet is in private beta. Integration follows Pact's public beta milestone.
+
 ---
 
 ## Invariants (don't break these)

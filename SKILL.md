@@ -1,9 +1,9 @@
 ---
 name: bastion
-description: "High-performance Rust firewall for AI Agents. Intercepts, simulates, and validates transactions before signing."
+description: "Programmable Trust Runtime for Autonomous Systems. Orchestrates identity, policy, privacy, durable execution, and multi-chain settlement."
 homepage: "https://github.com/zkos-labs/bastion"
 metadata: {
-  "category": "security",
+  "category": "trust-runtime",
   "emoji": "🛡️",
   "requires": {
     "bins": ["bastion"]
@@ -14,7 +14,9 @@ metadata: {
 
 # Bastion 🛡️
 
-Bastion is an autonomous security middleware that sits between an Agent's Brain and its Wallet.
+Bastion is a **Programmable Trust Runtime** for AI agents, autonomous systems, and enterprise applications. Rather than building security, policy, and blockchain logic into every application, Bastion provides a unified runtime that orchestrates identity, policy, privacy, durable execution, and verifiable trust across multiple execution environments.
+
+Developers define **trust requirements**. Bastion determines **how those requirements are enforced**.
 
 ## Installation
 
@@ -45,6 +47,7 @@ Bastion integrates with these agent skill packages:
 - **Arcium Docs** (`arcium-docs`): MXE (Multi-party Execution) confidential computing on Solana. Covers threshold encryption, MPC key management, and encrypted on-chain state for privacy-preserving agent transactions.
 - **Base Docs** (`base-docs`): Base L2 (EVM hub-and-spoke). Covers cross-chain settlement, bridging, and EVM-compatible smart contract deployment for multi-chain agent workflows.
 - **Solana Agent Skills** (`solana-agent-skills`): Foundation-maintained Solana skills for wallet management, transaction building, program interaction, and on-chain state queries.
+- **Pact Network**: On-chain refund protocol for x402 agent payments. Provides money-back guarantees when agent API calls fail — chargebacks for the agent economy. Composes with Bastion's Web2 firewall for insured outbound API calls.
 
 ## Staking (AgentStake PDA)
 
