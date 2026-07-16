@@ -2,7 +2,8 @@
 
 > This document describes the **north-star vision** for Bastion as a Programmable Trust Runtime.
 > It is intentionally aspirational. For what ships today vs. what is planned, see the root
-> [`README.md`](../README.md) status markers and [`ROADMAP.md`](ROADMAP.md).
+> [`README.md`](../README.md) status markers, [`ROADMAP.md`](ROADMAP.md), and the
+> [`COMPETITIVE_LANDSCAPE.md`](COMPETITIVE_LANDSCAPE.md) for ecosystem positioning.
 
 ## The thesis
 
@@ -32,13 +33,68 @@ await bastion.execute({
 Instead of choosing infrastructure, developers declare the desired trust guarantees. Behind the
 facade, Bastion coordinates specialized runtimes:
 
-- **Identity Runtime** — agent identity, delegation, and credentials.
-- **Policy Runtime** — rules, approvals, limits, and governance.
+- **Identity Runtime** — agent identity, delegation, and credentials via ERC-8004, ERC-8126, DID.
+- **Policy Runtime** — rules, approvals, limits, and governance powered by OPA and runtime rules.
+- **Wallet Runtime** — composable smart accounts via ERC-4337, EIP-7702, ERC-7579.
+- **Evidence Runtime** — verifiable attestations via EAS, Sign Protocol, zkTLS/Reclaim.
 - **Durable Workflow Engine** — execution that survives failures and prevents duplicate actions.
-- **Privacy Runtime** — confidential computation where required.
+- **Privacy Runtime** — confidential computation via Arcium MXE.
 - **Trust Ledger** — verifiable, auditable records of every action.
-- **Execution Planner** — multi-chain routing.
-- **Settlement Router** — anchoring and settlement on the right network.
+- **Execution Planner** — multi-chain routing (Solana, EVM, Arcium, Midnight).
+- **Settlement Router** — anchoring and settlement on Ethereum, with payment guarantees via Pact Network.
+
+## What Bastion owns vs. what it composes
+
+Bastion orchestrates existing Ethereum standards — it does not compete with them.
+
+| Standard | Purpose | How Bastion Uses It |
+|----------|---------|-------------------|
+| **ERC-4337** | Smart Account / Account Abstraction | Execute programmable agent wallets, sponsored transactions, recovery, and spending policies |
+| **EIP-7702** | Temporary smart account for EOAs | Support users who want programmable behavior without permanently migrating |
+| **ERC-7579** | Modular smart account architecture | Plug Bastion's policy validator, firewall, or execution modules into compatible smart accounts |
+| **ERC-8004** | AI agent identity, discovery, and reputation | Register agents, discover capabilities, retrieve reputation before execution |
+| **ERC-8126** | AI Agent Verification | Consume standardized verification results and risk scores during policy evaluation |
+| **EAS** | Ethereum Attestation Service | Store execution approvals, compliance attestations, human approvals, policy outcomes |
+| **Sign Protocol** | Cross-chain attestations | Emit portable trust records verifiable across ecosystems |
+| **ERC-20 / ERC-721 / ERC-1155** | Assets | Apply runtime policy to token interactions |
+| **x402** | Machine-native HTTP payments | Monetize APIs and enable autonomous agent-to-agent payments |
+| **Pact Network** | On-chain payment refunds | Insure agent API calls with automatic refunds when upstreams fail |
+
+## What Bastion should NOT build
+
+Avoid reimplementing capabilities that already have strong ecosystem support:
+
+- ❌ Another agent identity registry → use **ERC-8004**
+- ❌ Another attestation protocol → use **EAS** or **Sign Protocol**
+- ❌ Another smart account → build on **ERC-4337** / **ERC-7579**
+- ❌ Another MPC network → integrate **Arcium**
+- ❌ Another reputation protocol → consume **ERC-8004**
+- ❌ Another ZK identity protocol → integrate existing solutions
+- ❌ Another payment insurance protocol → integrate **Pact Network**
+
+## Runtime architecture
+
+```
+                    Applications
+        AI Agents · Enterprises · DAEMON
+
+                          │
+
+                   Bastion Runtime
+────────────────────────────────────────────────────
+
+Identity                Policy              Evidence
+├── ERC-8004            ├── OPA             ├── EAS
+├── ERC-8126            ├── Runtime Rules   ├── Sign Protocol
+├── ERC-7579            ├── Human Approval  ├── zkTLS / Reclaim
+├── Privado ID                              └── Sigil
+└── DID / VC
+
+Wallet                  Execution           Settlement
+├── ERC-4337            ├── Solana          ├── Ethereum
+├── EIP-7702            ├── Arcium          ├── Pact Network
+└── ERC-7579            └── Midnight        └── EigenLayer
+```
 
 ## Multi-chain by design
 
@@ -62,6 +118,7 @@ and policy-compliant.
 - Zero-knowledge policy enforcement
 - Decentralized identity integration
 - A trust marketplace for AI agents
+- Pact Network integration — auto-insured outbound API calls
 
 ---
 

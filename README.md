@@ -60,7 +60,28 @@ Bastion provides the runtime that makes autonomous systems safe to deploy in pro
 | MCP server | 🟡 |
 | Dashboard & monitoring | 🟡 |
 | Durable workflow execution | 🚧 |
-| Confidential computation | 🚧 |
+| Confidential computation (Arcium) | 🚧 |
+| Payment guarantees (Pact Network) | 🚧 |
+
+---
+
+## How Bastion Composes Existing Standards
+
+Bastion orchestrates — it does not replace — the Ethereum ecosystem's trust primitives.
+
+| Standard | Provides | Bastion Adds |
+|----------|---------|-------------|
+| ERC-4337 | Smart accounts | Policy-aware execution, recovery, multi-chain routing |
+| ERC-7579 | Wallet modules | Trust modules, policy validators, execution planning |
+| ERC-8004 | Agent identity | Runtime authorization and cross-standard orchestration |
+| ERC-8126 | Agent verification | Automatic policy decisions from verification results |
+| EAS | Attestations | Lifecycle orchestration and execution evidence |
+| Sign Protocol | Cross-chain attestations | Runtime-generated portable trust records |
+| Lit Protocol | Key management | Confidential execution policies |
+| EigenLayer | Shared trust | Runtime coordination using cryptoeconomic trust |
+| Pact Network | Payment refunds | Auto-insured outbound API calls for agent payments |
+
+See [`docs/COMPETITIVE_LANDSCAPE.md`](docs/COMPETITIVE_LANDSCAPE.md) for the full competitive analysis.
 
 ---
 
@@ -72,16 +93,17 @@ Applications
 AI Agents · DAEMON · Enterprise Systems
     │
 ──────────── Bastion Runtime ────────────
-Identity Runtime            🟡
-Policy Runtime              ✅
+Identity Runtime            🟡  ERC-8004, ERC-8126, DID/VC
+Policy Runtime              ✅  OPA + Runtime Rules
+Wallet Runtime              🚧  ERC-4337, EIP-7702, ERC-7579
 Durable Workflow Engine     🚧
-Privacy Runtime             🚧
-Trust Ledger                ✅
-Execution Planner           🟡
-Settlement Router           🚧
+Privacy Runtime             🚧  Arcium MXE
+Trust Ledger                ✅  EAS, Sign Protocol
+Execution Planner           🟡  Solana, EVM, Arcium
+Settlement Router           🚧  Ethereum, Pact Network
 ─────────────────────────────────────────
     │
-Solana · Arcium · Ethereum · Midnight
+Solana · Arcium · Ethereum · Midnight · Pact Network
 ```
 
 Bastion presents a single runtime while coordinating specialized infrastructure behind the scenes.
@@ -99,6 +121,7 @@ Different execution environments serve different purposes.
 | Trust anchoring & settlement  | Ethereum | 🟡 per-chain sim wired (`settlement:"ethereum"`); contracts written & tested; testnet-only, mainnet 🚧 behind audit gate |
 | Privacy-preserving execution  | Midnight | 🚧 planned |
 | Provenance & attestations     | Sigil    | 🚧 planned |
+| Payment guarantees            | Pact Network | 🚧 planned — on-chain refunds for x402 agent payments |
 
 Applications interact with Bastion—not individual blockchains.
 
@@ -221,7 +244,7 @@ still minimal (chain selection + simulation); true execution planning remains �
 * 🚧 Ethereum trust anchoring & settlement router (post-audit)
 * 🚧 Zero-knowledge policy enforcement · decentralized identity · trust marketplace
 
-See [`docs/ROADMAP.md`](docs/ROADMAP.md) for detail and [`docs/VISION.md`](docs/VISION.md) for the long-form vision.
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for detail, [`docs/VISION.md`](docs/VISION.md) for the long-form vision, and [`docs/COMPETITIVE_LANDSCAPE.md`](docs/COMPETITIVE_LANDSCAPE.md) for the ecosystem analysis.
 
 ---
 
