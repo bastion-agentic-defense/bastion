@@ -21,10 +21,15 @@ import type {
 /** Privacy guarantee requested for an action. */
 export type Privacy = "public" | "confidential";
 
-/** Settlement network for an action. */
-export type Settlement = "solana" | "ethereum" | "base" | "celo";
+/** Settlement network for an action. `"sepolia"` is the Ethereum testnet. */
+export type Settlement = "solana" | "ethereum" | "base" | "celo" | "sepolia";
 
-const EVM_SETTLEMENTS: readonly Settlement[] = ["ethereum", "base", "celo"];
+const EVM_SETTLEMENTS: readonly Settlement[] = [
+  "ethereum",
+  "base",
+  "celo",
+  "sepolia",
+];
 
 export interface BastionRuntimeConfig {
   /** Sidecar client used for policy evaluation, simulation, and audit. */

@@ -12,7 +12,9 @@ import { IBastionAudit } from "../src/interfaces/IBastionAudit.sol";
 
 /// @title DeployBastion
 /// @notice Deploy the full Bastion protocol to any EVM chain.
-/// Usage:
+/// Testnet-only until the external audit clears (see docs/EVM_READINESS.md §6).
+/// Usage (load env first: `source .env`):
+///   forge script script/DeployBastion.s.sol --rpc-url ethereum_sepolia --broadcast --verify
 ///   forge script script/DeployBastion.s.sol --rpc-url celo_testnet --broadcast --verify
 ///   forge script script/DeployBastion.s.sol --rpc-url celo --broadcast --verify
 ///   forge script script/DeployBastion.s.sol --rpc-url base --broadcast --verify

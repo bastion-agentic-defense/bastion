@@ -56,7 +56,7 @@ Stack: Solidity 0.8.28, Foundry, OpenZeppelin + Solady, `via_ir`. Contracts:
 
 | Item | Status | Notes |
 |---|---|---|
-| Generalize simulator beyond Celo | ⬜ | Today only `CeloSimulator` (`crates/sidecar/src/simulation_evm.rs`, `eth_call` + balance diff). Drive per-chain RPC from the `Chain` enum (`crates/core/src/transaction/normalized.rs` — Base/Celo/Ethereum already present). |
+| Generalize simulator beyond Celo | ✅ | `EvmSimulator` (`crates/sidecar/src/simulation_evm.rs`) is now chain-agnostic; the handler routes by the request's `chain` to a per-chain simulator keyed in `AppState.evm_simulators`, each enabled by its own RPC env var (`ETH_RPC_URL` / `BASE_RPC_URL` / `CELO_RPC_URL` / `ETH_SEPOLIA_RPC_URL`). An unconfigured chain returns **503** naming the missing var rather than silently using Celo. |
 | Real state-change prediction | ⬜ | Add `debug_traceCall` / state-override where the RPC supports it, not just balance delta. |
 | Populate frontend EVM RPC config | ⬜ | `apps/web/src/lib/chains.ts` EVM entry has empty `rpcUrl`/`explorer`. |
 | `/api/v2/simulate-evm` auth | ✅ | Now behind the sidecar auth layer (see `docs/MAINNET_READINESS.md` §5). |
@@ -88,14 +88,21 @@ Stack: Solidity 0.8.28, Foundry, OpenZeppelin + Solady, `via_ir`. Contracts:
 
 ## 7. Deployed addresses (fill in per chain post-deploy)
 
-| Contract | Base | Celo | Ethereum |
-|---|---|---|---|
-| BastionAudit | — | — | — |
-| BastionPolicy | — | — | — |
-| BastionRegistry | — | — | — |
-| BastionERC8004Registry | — | — | — |
-| BastionFirewall | — | — | — |
-| Owner (Safe) | — | — | — |
+Testnet (ETH Sepolia) is deployed first and is **not** gated. Mainnet columns stay
+empty until the §6 audit clears.
+
+| Contract | ETH Sepolia (testnet) | Base | Celo | Ethereum (mainnet) |
+|---|---|---|---|---|
+| BastionAudit | — (pending deploy) | — | — | 🚧 audit-gated |
+| BastionPolicy | — (pending deploy) | — | — | 🚧 audit-gated |
+| BastionRegistry | — (pending deploy) | — | — | 🚧 audit-gated |
+| BastionERC8004Registry | — (pending deploy) | — | — | 🚧 audit-gated |
+| BastionFirewall | — (pending deploy) | — | — | 🚧 audit-gated |
+| Owner (Safe) | — (pending deploy) | — | — | 🚧 audit-gated |
+
+After deploying to Sepolia, paste the five contract addresses here **and** into the
+dashboard env (`apps/web/.env.local`: `VITE_BASTION_AUDIT_ADDRESS`, `…_POLICY_…`,
+`…_FIREWALL_…`, `…_REGISTRY_…`, `…_ERC8004_…`).
 
 ---
 

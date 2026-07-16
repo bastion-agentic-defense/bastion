@@ -9,6 +9,7 @@ import { useBastionProgram, type AuditEntryData, type PolicyData, type StatsData
 import { useSidecar } from '../hooks/useSidecar';
 import { useAgents, type TrackedAgent } from '../hooks/useAgents';
 import AgentFloor from '../components/AgentFloor';
+import EvmStatusPanel from '../components/EvmStatusPanel';
 import { useAgentEvents } from '../hooks/useAgentEvents';
 
 const DECISION_COLORS: Record<string, string> = { ALLOWED: '#22c55e', BLOCKED: '#ef4444', PENDING: '#f59e0b' };
@@ -304,6 +305,9 @@ export default function Dashboard() {
       </nav>
 
       <main className="pt-32 px-4 pb-8">
+        {/* EVM (Ethereum Sepolia) live status — read-only, shown in EVM mode */}
+        {chain === 'evm' && <EvmStatusPanel />}
+
         {/* Row 1: Gauges */}
         <div className="grid grid-cols-5 gap-3 mb-4 max-w-7xl mx-auto">
           <StatWidget label="Active Agents" value={trackedAgents.length || agentEntities.length} color="#3b82f6" sub={trackedAgents.length > 0 ? `${trackedAgents.length} registered` : 'from events'} />
@@ -538,7 +542,7 @@ export default function Dashboard() {
 
         {/* Footer */}
         <footer className="max-w-7xl mx-auto pt-6 border-t border-white/[0.06] text-center">
-          <p className="font-sans text-[10px] text-zinc-600">Built on Daemon BlockInt Technologies. Bastion v0.3.0. Apache 2.0. Auto-refresh: 30s. Powered by <span className="text-purple-500">Solana</span> + <span className="text-emerald-400">Arcium</span>.</p>
+          <p className="font-sans text-[10px] text-zinc-600">Built on Daemon BlockInt Technologies. Bastion v0.3.0. Apache 2.0. Auto-refresh: 30s. Dual-chain: <span className="text-purple-500">Solana</span> + <span style={{ color: '#627EEA' }}>Ethereum</span> <span className="text-zinc-700">(Sepolia testnet)</span> + <span className="text-emerald-400">Arcium</span>.</p>
         </footer>
       </main>
     </div>

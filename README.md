@@ -96,7 +96,7 @@ Different execution environments serve different purposes.
 | ----------------------------- | -------- | ------ |
 | Durable workflow coordination | Solana   | ✅ on-chain audit program (devnet) |
 | Confidential computation      | Arcium   | 🚧 integration stubbed (no-op MPC client today) |
-| Trust anchoring & settlement  | Ethereum | 🟡 contracts written & tested, not audited/deployed |
+| Trust anchoring & settlement  | Ethereum | 🟡 per-chain sim wired (`settlement:"ethereum"`); contracts written & tested; testnet-only, mainnet 🚧 behind audit gate |
 | Privacy-preserving execution  | Midnight | 🚧 planned |
 | Provenance & attestations     | Sigil    | 🚧 planned |
 

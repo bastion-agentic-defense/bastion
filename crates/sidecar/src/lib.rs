@@ -51,7 +51,7 @@ use policy::{
 };
 use program_client::OnChainClient;
 use simulation::{Simulate, SimulationResult};
-use simulation_evm::{CeloSimulator, EvmSimulate, EvmSimulateRequest, EvmSimulateResponse};
+use simulation_evm::{EvmSimulate, EvmSimulateRequest, EvmSimulateResponse, EvmSimulator};
 
 #[derive(Clone, serde::Serialize)]
 struct PendingApproval {
@@ -80,7 +80,10 @@ struct AppState {
     on_chain: Arc<OnChainClient>,
     pending_approvals: Arc<RwLock<HashMap<String, PendingApproval>>>,
     grond_oracle: GrondOracle,
-    celo_simulator: Option<Arc<CeloSimulator>>,
+    /// EVM simulators keyed by normalized lowercase chain name ("ethereum",
+    /// "base", "celo", "sepolia"). Populated from per-chain RPC env vars; a chain
+    /// absent from the map has no configured RPC and yields a 503 on request.
+    evm_simulators: Arc<HashMap<String, Arc<EvmSimulator>>>,
     alchemy_sim: Option<Arc<crate::simulation::AlchemySimulator>>,
     event_tx: broadcast::Sender<String>,
     started_at: std::time::Instant,
@@ -1413,20 +1416,31 @@ async fn simulate_evm_handler(
     State(state): State<AppState>,
     Json(req): Json<EvmSimulateRequest>,
 ) -> impl IntoResponse {
-    let sim = match &state.celo_simulator {
+    // Route to the simulator for the requested chain. Defaults to "celo" for
+    // back-compat with callers that omit `chain`. A chain with no configured RPC
+    // returns 503 rather than silently simulating against a different network.
+    let chain = req
+        .chain
+        .as_deref()
+        .unwrap_or("celo")
+        .trim()
+        .to_ascii_lowercase();
+    let sim = match state.evm_simulators.get(&chain) {
         Some(s) => s.clone(),
         None => {
+            let env_var = simulation_evm::evm_rpc_env_var(&chain);
             return (
                 StatusCode::SERVICE_UNAVAILABLE,
                 Json(serde_json::json!({
-                    "error": "EVM simulation not configured. Set CELO_RPC_URL to enable."
+                    "error": format!(
+                        "EVM simulation for chain '{chain}' not configured (set {env_var} to enable)."
+                    )
                 })),
             )
                 .into_response();
         }
     };
 
-    let chain = req.chain.as_deref().unwrap_or("celo");
     let agent_id = req.agent_id.clone();
     let intent = req.intent.clone();
 
@@ -2132,7 +2146,7 @@ pub fn build_app(
     logger: Arc<AuditLogger>,
     on_chain: OnChainClient,
     grond_oracle: GrondOracle,
-    celo_simulator: Option<Arc<CeloSimulator>>,
+    evm_simulators: Arc<HashMap<String, Arc<EvmSimulator>>>,
     alchemy_sim: Option<Arc<crate::simulation::AlchemySimulator>>,
     agent_store_path: &str,
 ) -> Router {
@@ -2202,7 +2216,7 @@ pub fn build_app(
         on_chain: Arc::new(on_chain),
         pending_approvals: Arc::new(RwLock::new(HashMap::new())),
         grond_oracle,
-        celo_simulator,
+        evm_simulators,
         alchemy_sim,
         event_tx,
         started_at: std::time::Instant::now(),
