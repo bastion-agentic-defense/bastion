@@ -175,10 +175,11 @@ the vision has an honest home and the README markers reconcile against a real ba
 **behind the mainnet/EVM external-audit hard gate** (`docs/MAINNET_READINESS.md` §7,
 `docs/EVM_READINESS.md` §6); none ships to mainnet real-value traffic before that gate clears.
 
-### Epic A — Durable Workflow Engine (🚧 absent)
+### Epic A — Durable Workflow Engine (🚧 design phase)
 
 **Status today:** No workflow / orchestration / state-machine code exists anywhere in the repo. This
-is the **largest net-new subsystem** on the roadmap.
+is the **largest net-new subsystem** on the roadmap. A detailed architecture spec exists at
+[`docs/WORKFLOW_ENGINE_DESIGN.md`](WORKFLOW_ENGINE_DESIGN.md).
 
 **Why:** `execute()` today is a single synchronous decision (policy → simulate → decide). A durable
 engine is what turns Bastion from a firewall into a *runtime* — multi-step agent actions that
@@ -198,7 +199,7 @@ survive process restarts, retry deterministically, and resume where they left of
 
 **Shape:** likely a new `crates/workflow` crate (chain-agnostic, like `crates/core`) plus sidecar
 routes to start / query / resume runs, and an SDK surface (`bastion.workflow(...)`) composing
-`execute()` per step.
+`execute()` per step. Full design: [`docs/WORKFLOW_ENGINE_DESIGN.md`](WORKFLOW_ENGINE_DESIGN.md).
 
 ### Epic B — Real Arcium Confidential Compute (🚧 stubbed)
 
