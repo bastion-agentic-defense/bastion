@@ -44,7 +44,7 @@ bastion/
 │   │   ├── abi/               ← EVM contract ABIs (JSON, on main branch)
 │   │   └── idl.json           ← Solana Anchor IDL
 │   └── dist/                  ← Built output (Netlify/Vercel publish dir)
-├── packages/sdk/              ← @bastion-agentique/sdk (TypeScript)
+├── packages/sdk/              ← @zkos-labs/sdk (TypeScript)
 │   └── src/
 │       ├── index.ts           ← BastionClient class
 │       ├── types.ts           ← AuditState, AuditEntry, Agent, Policy types
@@ -88,7 +88,7 @@ bastion/
 ### Quick Setup
 
 ```bash
-git clone --recurse-submodules https://github.com/bastion-agentique/bastion.git
+git clone --recurse-submodules https://github.com/zkos-labs/bastion.git
 cd bastion
 
 # Install JS dependencies
@@ -127,7 +127,7 @@ For the sidecar, `HELIUS_API_KEY` is required. Set via `config.toml` or environm
 | **All JS** | `pnpm build` | Recursive across workspaces |
 | **Dashboard** | `pnpm --filter bastion-dashboard build` | Vite production build → `apps/web/dist/` |
 | **Dashboard dev** | `pnpm --filter bastion-dashboard dev` | Vite dev server on port 3000 |
-| **SDK** | `pnpm --filter @bastion-agentique/sdk build` | `tsc` → `packages/sdk/dist/` |
+| **SDK** | `pnpm --filter @zkos-labs/sdk build` | `tsc` → `packages/sdk/dist/` |
 | **All Rust** | `cargo build` | From workspace root |
 | **Rust release** | `cargo build --release` | Optimized binary in `target/release/` |
 | **Rust check** | `cargo check` | Fast type-check only |
@@ -209,7 +209,7 @@ Agent Operator (policy config, HITL review)
 
 5. **`apps/web/`**, React dashboard with Solana (wallet-adapter) and EVM (RainbowKit) wallet connections. Shows audit logs, policy settings, stats. Supports chain switching between Solana and Celo.
 
-6. **`packages/sdk/`**, TypeScript SDK (`@bastion-agentique/sdk`) wrapping the Solana Anchor program. Exposes `BastionClient` with typed methods for all on-chain operations.
+6. **`packages/sdk/`**, TypeScript SDK (`@zkos-labs/sdk`) wrapping the Solana Anchor program. Exposes `BastionClient` with typed methods for all on-chain operations.
 
 ---
 
@@ -355,7 +355,7 @@ Triggers on push/PR to `main` (ignoring `.md` and `docs/`).
 | `fmt` | `cargo fmt --all -- --check` |
 | `evm` | Checkout submodules, `forge build`, `forge test -vvv` |
 | `web` | `pnpm install`, `pnpm --filter bastion-dashboard build` |
-| `sdk` | `pnpm install`, `pnpm --filter @bastion-agentique/sdk build` |
+| `sdk` | `pnpm install`, `pnpm --filter @zkos-labs/sdk build` |
 
 ---
 
@@ -441,7 +441,7 @@ cd evm && forge build && forge test -vvv && forge fmt --check
 pnpm --filter bastion-dashboard build
 
 # SDK
-pnpm --filter @bastion-agentique/sdk build
+pnpm --filter @zkos-labs/sdk build
 ```
 
 ### PR Process

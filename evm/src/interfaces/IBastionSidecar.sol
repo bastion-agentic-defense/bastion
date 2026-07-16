@@ -15,9 +15,9 @@ interface IBastionSidecar {
         bytes32 indexed requestId,
         address indexed agent,
         address target,
-        uint256 value,
-        uint256 chainId,
-        uint256 timestamp
+        uint value,
+        uint chainId,
+        uint timestamp
     );
 
     /// @notice Emitted when the sidecar fulfills an evaluation request.
@@ -26,9 +26,6 @@ interface IBastionSidecar {
     /// @param reason Human-readable reason if blocked or pending HITL.
     /// @param decision 0=Pass, 1=Block, 2=PendingHITL
     event EvaluationFulfilled(
-        bytes32 indexed requestId,
-        bool allowed,
-        string reason,
-        uint8 decision
+        bytes32 indexed requestId, bool allowed, string reason, uint8 decision
     );
 }

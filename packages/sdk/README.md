@@ -2,19 +2,23 @@
 
 TypeScript SDK for interacting with the Bastion on-chain audit program and REST API.
 
+> **Package moved:** this package was previously published as `@bastion-agentique/sdk`.
+> It now ships as **`@zkos-labs/sdk`** following the move to the zkOS Labs org. Update your
+> imports and `package.json` dependency; the `@bastion-agentique/*` packages are deprecated.
+
 ## Installation
 
 ```bash
-npm install @bastion-agentique/sdk
-pnpm add @bastion-agentique/sdk
-yarn add @bastion-agentique/sdk
+npm install @zkos-labs/sdk
+pnpm add @zkos-labs/sdk
+yarn add @zkos-labs/sdk
 ```
 
 ## Quick Start
 
 ```typescript
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
-import { BastionClient, AGENT_CAPABILITIES, DECISION } from "@bastion-agentique/sdk";
+import { BastionClient, AGENT_CAPABILITIES, DECISION } from "@zkos-labs/sdk";
 
 const connection = new Connection("https://api.devnet.solana.com");
 const client = new BastionClient({ connection });
@@ -113,7 +117,7 @@ await connection.sendTransaction(pauseTx, [wallet]);
 A29V5MUVs73y7XBHHxPpPcAW7h4gGHupbDdwYSwA2n9D
 ```
 
-Deployed on Solana devnet. Program source at [github.com/bastion-agentique/bastion](https://github.com/bastion-agentique/bastion).
+Deployed on Solana devnet. Program source at [github.com/zkos-labs/bastion](https://github.com/zkos-labs/bastion).
 
 ## Delegation
 

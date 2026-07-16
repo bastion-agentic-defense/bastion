@@ -16,7 +16,7 @@ import { IBastionAudit } from "../src/interfaces/IBastionAudit.sol";
 ///   forge script script/DeployBastion.s.sol --rpc-url celo_testnet --broadcast --verify
 ///   forge script script/DeployBastion.s.sol --rpc-url celo --broadcast --verify
 ///   forge script script/DeployBastion.s.sol --rpc-url base --broadcast --verify
-///   forge script script/DeployBastion.s.sol --rpc-url polygon --broadcast --verify
+///   forge script script/DeployBastion.s.sol --rpc-url ethereum --broadcast --verify
 contract DeployBastion is Script {
     function run() external {
         uint deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -27,8 +27,8 @@ contract DeployBastion is Script {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        // 1. Deploy Audit
-        BastionAudit audit = new BastionAudit();
+        // 1. Deploy Audit (owner wires the firewall after it is deployed)
+        BastionAudit audit = new BastionAudit(deployer);
         console.log("BastionAudit deployed at:", address(audit));
 
         // 2. Deploy Policy
@@ -48,6 +48,10 @@ contract DeployBastion is Script {
             IBastionPolicy(address(policy)), IBastionAudit(address(audit)), deployer
         );
         console.log("BastionFirewall deployed at:", address(firewall));
+
+        // 5. Authorize the firewall as the sole audit-log writer.
+        audit.setFirewall(address(firewall));
+        console.log("Audit firewall wired to:", address(firewall));
 
         vm.stopBroadcast();
 

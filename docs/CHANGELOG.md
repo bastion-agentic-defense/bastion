@@ -8,7 +8,7 @@ All notable changes to Bastion will be documented in this file.
 - **SDK: simulateEvm() method**, `POST /api/v2/simulate-evm` for EVM transaction simulation
 - **SDK: events() method**, SSE stream for real-time audit events via `BastionEventStream`
 - **Web2 API firewall crate** (`crates/web2-firewall`), proxy engine, policy rules, OpenAPI parser, provider adapters (OpenAI, Stripe, Slack, GitHub)
-- **Web2 SDK** (`@bastion-agentique/web2-sdk` v0.1.0), BastionWeb2Client with TDD (9 tests)
+- **Web2 SDK** (`@zkos-labs/web2-sdk` v0.1.0), BastionWeb2Client with TDD (9 tests)
 - **Web2 agent skill**, `web2-api-firewall-administrator` for proxy policy configuration
 - **docs/WEB2_EXPANSION_PLAN.md**, phased rollout, pricing, GTM, repo positioning rule
 - **SDK tests**, jest infrastructure, 6 tests for BastionSidecar
@@ -106,7 +106,7 @@ All notable changes to Bastion will be documented in this file.
 - Policy engine with Solana-native transaction validation
 - Helius simulation integration
 - On-chain audit program (Anchor, Solana devnet)
-- TypeScript SDK (`@bastion-agentique/sdk`)
+- TypeScript SDK (`@zkos-labs/sdk`)
 - React dashboard with agent fleet visualizer
 - EVM contracts (Solidity, Foundry), under development
 - Arcium MXE confidentiality engine (MPC circuits)

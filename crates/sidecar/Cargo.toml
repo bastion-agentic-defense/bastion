@@ -27,9 +27,12 @@ sha2 = "0.10"
 bastion-core = { path = "../core" }
 bastion-correlation = { path = "../correlation" }
 bastion-arcium = { path = "../arcium" }
+bastion-web2-firewall = { path = "../web2-firewall" }
 chrono = { version = "0.4", features = ["serde"] }
 async-trait = "0.1"
 async-stream = "0.3"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 
 [dev-dependencies]
 tempfile = "3"

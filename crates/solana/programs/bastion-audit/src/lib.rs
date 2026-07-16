@@ -4,18 +4,33 @@ declare_id!("A29V5MUVs73y7XBHHxPpPcAW7h4gGHupbDdwYSwA2n9D");
 
 pub const AUDIT_SEED: &str = "bastion_audit";
 pub const AGENT_SEED: &str = "bastion_agent";
+pub const POLICY_SEED: &str = "bastion_policy";
 
 const MAX_REASONING_LEN: usize = 256;
 const MAX_NAME_LEN: usize = 64;
 const MAX_ALLOWED_PROGRAMS: usize = 20;
 
+/// Reputation is bounded to [0, MAX_REPUTATION]. Updates that would move a score
+/// outside this range are rejected (see `update_agent_reputation`).
+pub const MAX_REPUTATION: u64 = 100;
+
 #[program]
 pub mod bastion_audit {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+    /// Initialize the global audit state.
+    ///
+    /// SECURITY: `admin` becomes the authority for `log_audit`, `emergency_pause`,
+    /// and `emergency_resume`. On mainnet this MUST be the governance multisig
+    /// (Squads) vault, and `initialize` MUST be invoked by the deploy script in the
+    /// same operational step immediately after `anchor deploy`. The one-time `init`
+    /// constraint plus deploy+initialize in a single step closes the front-run
+    /// window on the global authority. See `docs/MAINNET_READINESS.md` for the
+    /// upgrade-authority-gated hardening recommended before real-value traffic.
+    pub fn initialize(ctx: Context<Initialize>, admin: Pubkey) -> Result<()> {
+        require!(admin != Pubkey::default(), BastionError::Unauthorized);
         let audit_state = &mut ctx.accounts.audit_state;
-        audit_state.authority = ctx.accounts.authority.key();
+        audit_state.authority = admin;
         audit_state.bump = ctx.bumps.audit_state;
         audit_state.total_audits = 0;
         audit_state.allowed_count = 0;
@@ -44,11 +59,20 @@ pub mod bastion_audit {
 
         let audit_state = &mut ctx.accounts.audit_state;
         if decision == 0 {
-            audit_state.allowed_count += 1;
+            audit_state.allowed_count = audit_state
+                .allowed_count
+                .checked_add(1)
+                .ok_or(BastionError::MathOverflow)?;
         } else {
-            audit_state.blocked_count += 1;
+            audit_state.blocked_count = audit_state
+                .blocked_count
+                .checked_add(1)
+                .ok_or(BastionError::MathOverflow)?;
         }
-        audit_state.total_audits += 1;
+        audit_state.total_audits = audit_state
+            .total_audits
+            .checked_add(1)
+            .ok_or(BastionError::MathOverflow)?;
 
         Ok(())
     }
@@ -83,7 +107,12 @@ pub mod bastion_audit {
             .map_err(|_| BastionError::InvalidReputation)?
             .checked_add(delta)
             .ok_or(BastionError::InvalidReputation)?;
-        require!(new_score >= 0, BastionError::InvalidReputation);
+        // Reputation is bounded to [0, MAX_REPUTATION]; reject out-of-range updates
+        // rather than silently clamping so callers observe the rejection.
+        require!(
+            (0..=MAX_REPUTATION as i64).contains(&new_score),
+            BastionError::InvalidReputation
+        );
 
         agent.reputation_score = new_score as u64;
 
@@ -212,7 +241,7 @@ pub struct UpdateReputation<'info> {
 pub struct SetPolicy<'info> {
     #[account(
         init_if_needed,
-        seeds = [b"bastion_policy".as_ref()],
+        seeds = [POLICY_SEED.as_bytes()],
         bump,
         payer = signer,
         space = 8 + 32 + 4 + (MAX_ALLOWED_PROGRAMS * 32) + 8 + 4 + 1,
@@ -330,4 +359,6 @@ pub enum BastionError {
     AlreadyPaused,
     #[msg("Unauthorized")]
     Unauthorized,
+    #[msg("Arithmetic overflow")]
+    MathOverflow,
 }

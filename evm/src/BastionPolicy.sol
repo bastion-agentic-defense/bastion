@@ -26,6 +26,16 @@ contract BastionPolicy is IBastionPolicy, Ownable {
 
     uint private constant _WINDOW_DURATION = 1 days;
 
+    /// @notice Upper bounds on policy array sizes. The allowlist is rebuilt as a
+    /// targets x selectors matrix on every {setPolicy}, so both dimensions are
+    /// capped to keep that O(n*m) work well within block gas limits and prevent
+    /// a griefing policy that can never be updated or removed.
+    uint private constant _MAX_TARGETS = 32;
+    uint private constant _MAX_SELECTORS = 32;
+
+    /// @notice Thrown when a policy exceeds {_MAX_TARGETS} or {_MAX_SELECTORS}.
+    error TooManyEntries(uint targets, uint selectors);
+
     constructor(
         address _owner
     ) Ownable(_owner) { }
@@ -40,6 +50,12 @@ contract BastionPolicy is IBastionPolicy, Ownable {
         Policy calldata policy
     ) external override onlyOwner {
         if (policy.agent == address(0)) revert AgentNotRegistered(address(0));
+        if (
+            policy.allowedTargets.length > _MAX_TARGETS
+                || policy.allowedSelectors.length > _MAX_SELECTORS
+        ) {
+            revert TooManyEntries(policy.allowedTargets.length, policy.allowedSelectors.length);
+        }
 
         // Clear existing allowlist
         Policy storage old = _policies[agent];

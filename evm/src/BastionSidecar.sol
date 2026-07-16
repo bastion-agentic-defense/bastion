@@ -31,12 +31,16 @@ contract BastionSidecar is IBastionSidecar, Ownable {
     /// @notice Prevents re-requesting the same transaction.
     mapping(bytes32 => bool) private _requested;
 
-    constructor(address _owner) Ownable(_owner) {
+    constructor(
+        address _owner
+    ) Ownable(_owner) {
         verifier = _owner;
     }
 
     /// @notice Set the verifier address (only owner).
-    function setVerifier(address _verifier) external onlyOwner {
+    function setVerifier(
+        address _verifier
+    ) external onlyOwner {
         verifier = _verifier;
     }
 
@@ -47,22 +51,14 @@ contract BastionSidecar is IBastionSidecar, Ownable {
     function requestEvaluate(
         address agent,
         address target,
-        uint256 value
+        uint value
     ) external returns (bytes32 requestId) {
-        requestId = keccak256(
-            abi.encodePacked(agent, target, value, block.timestamp, block.chainid)
-        );
+        requestId =
+            keccak256(abi.encodePacked(agent, target, value, block.timestamp, block.chainid));
         require(!_requested[requestId], "already requested");
         _requested[requestId] = true;
 
-        emit EvaluationRequested(
-            requestId,
-            agent,
-            target,
-            value,
-            block.chainid,
-            block.timestamp
-        );
+        emit EvaluationRequested(requestId, agent, target, value, block.chainid, block.timestamp);
     }
 
     /// @notice Fulfill an evaluation request with the sidecar's result.
@@ -90,10 +86,7 @@ contract BastionSidecar is IBastionSidecar, Ownable {
         bytes32 requestId
     ) external view returns (bool allowed, string memory reason, uint8 decision) {
         require(_requested[requestId], "not requested");
-        return (
-            evaluations[requestId],
-            evaluationReasons[requestId],
-            evaluationDecisions[requestId]
-        );
+        return
+            (evaluations[requestId], evaluationReasons[requestId], evaluationDecisions[requestId]);
     }
 }

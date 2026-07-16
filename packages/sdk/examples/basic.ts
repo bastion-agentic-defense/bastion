@@ -1,5 +1,11 @@
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
-import { BastionClient, AGENT_CAPABILITIES, DECISION } from "./src";
+import {
+  BastionClient,
+  BastionSidecar,
+  Bastion,
+  AGENT_CAPABILITIES,
+  DECISION,
+} from "./src";
 
 const DEMO_WALLET = Keypair.generate();
 const DEMO_PROGRAM_ID = new PublicKey("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4");
@@ -58,6 +64,21 @@ async function main() {
   console.log("\n=== Example: Build Emergency Pause Transaction ===");
   const pauseTx = await client.emergencyPause(DEMO_WALLET);
   console.log("Pause transaction instructions:", pauseTx.instructions.length);
+
+  console.log("\n=== Example: Unified execute() facade ===");
+  // The runtime facade composes policy + simulation + audit behind one call.
+  // Point it at a running sidecar to get a real Pass / Block / PendingHITL.
+  const sidecar = new BastionSidecar({
+    baseUrl: "https://bastion-agentique.fly.dev",
+  });
+  const bastion = new Bastion({ sidecar, client });
+  console.log(
+    "Constructed unified runtime. Example call (requires a live sidecar + a real\n" +
+      "base64 transaction):\n" +
+      '  await bastion.execute({ action: "swap", settlement: "solana",\n' +
+      '                          privacy: "public", transaction: <base64> });'
+  );
+  void bastion; // demo construction only; uncomment the call above with a real tx
 
   console.log("\n✅ SDK ready! Run 'npm run build' to build the SDK.");
 }

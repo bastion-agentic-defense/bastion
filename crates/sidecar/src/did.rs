@@ -97,7 +97,10 @@ pub fn build_did_document(
 }
 
 /// Resolve a `did:bastion:solana:*` identifier by looking up the AgentStore.
-/// Falls back to a stub document for unknown DIDs.
+///
+/// Only **registered** agents resolve to a document. Unknown DIDs return `None`
+/// (surfaced as a 404) rather than a fabricated stub — an unregistered agent must
+/// not appear as a fully-reputable identity.
 pub async fn resolve_did(
     did: &str,
     agent_store: &crate::agents::AgentStore,
@@ -110,25 +113,8 @@ pub async fn resolve_did(
     let chain = parts[2];
 
     match chain {
-        "solana" => {
-            // Try the agent store first (real registered agents)
-            if let Some(result) = agent_store.build_did_document(did) {
-                return Some(result);
-            }
-            // Fallback: return stub document for unregistered DIDs
-            let identifier = parts[3];
-            Some(DidResolveResult {
-                did_document: build_did_document(did, identifier, 0b00000001, 100, "Bastion Agent"),
-                metadata: DidResolutionMetadata {
-                    content_type: "application/did+ld+json".to_string(),
-                    retrieved: std::time::SystemTime::now()
-                        .duration_since(std::time::UNIX_EPOCH)
-                        .unwrap_or_default()
-                        .as_secs()
-                        .to_string(),
-                },
-            })
-        }
+        // Only registered agents resolve; unregistered DIDs are not found.
+        "solana" => agent_store.build_did_document(did),
         _ => None,
     }
 }

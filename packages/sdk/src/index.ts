@@ -10,6 +10,15 @@ import type {
 
 export { AGENT_CAPABILITIES, DECISION, BastionEventStream } from "./types";
 export { BastionSidecar } from "./sidecar";
+export { Bastion } from "./execute";
+export type {
+  BastionRuntimeConfig,
+  ExecuteRequest,
+  ExecuteResult,
+  ExecuteDecision,
+  Privacy,
+  Settlement,
+} from "./execute";
 
 export const BASTION_PROGRAM_ID = new PublicKey(idl.address);
 
@@ -46,13 +55,20 @@ export class BastionClient {
     this.program = new anchor.Program(idl as unknown as anchor.Idl, provider);
   }
 
-  async initialize(authority: Signer): Promise<Transaction> {
+  /**
+   * Initialize the global audit state.
+   * @param authority Fee payer / signer for the init transaction.
+   * @param admin The account that becomes the program authority (log_audit,
+   *   emergency_pause/resume). On mainnet this MUST be the governance multisig
+   *   vault. Defaults to `authority.publicKey`.
+   */
+  async initialize(authority: Signer, admin?: PublicKey): Promise<Transaction> {
     const [auditState] = PublicKey.findProgramAddressSync(
       [Buffer.from(AUDIT_SEED)],
       this.program.programId
     );
     return this.program.methods
-      .initialize()
+      .initialize(admin ?? authority.publicKey)
       .accounts({
         auditState,
         authority: authority.publicKey,

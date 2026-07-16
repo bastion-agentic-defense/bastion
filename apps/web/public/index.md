@@ -32,7 +32,7 @@ an agent's non-deterministic logic and its wallet.
 ## Quick Start
 
 ```bash
-git clone https://github.com/bastion-agentique/bastion.git
+git clone https://github.com/zkos-labs/bastion.git
 cd bastion
 cargo build --release
 export HELIUS_API_KEY="your-api-key"
@@ -42,7 +42,7 @@ cargo run --release
 
 ## Links
 
-- **GitHub**: https://github.com/bastion-agentique/bastion
-- **Docs**: https://github.com/bastion-agentique/bastion#readme
-- **SDK**: https://www.npmjs.com/package/@bastion-agentique/sdk
+- **GitHub**: https://github.com/zkos-labs/bastion
+- **Docs**: https://github.com/zkos-labs/bastion#readme
+- **SDK**: https://www.npmjs.com/package/@zkos-labs/sdk
 - **Grond OSINT**: https://github.com/daemon-blockint-tech/Grond

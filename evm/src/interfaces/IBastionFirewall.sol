@@ -13,7 +13,18 @@ interface IBastionFirewall {
     function validateUserOp(
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
-    ) external returns (uint validationData);
+    ) external view returns (uint validationData);
+
+    /// @notice Execution-phase enforcement. Re-checks the policy, records the audit
+    /// entry, and reverts if the transaction is not allowed. Called by the smart
+    /// account during execution (where external state writes are permitted).
+    /// @param userOp The user operation being executed.
+    /// @return target Decoded call target.
+    /// @return value Decoded call value.
+    /// @return selector Decoded call selector.
+    function enforce(
+        PackedUserOperation calldata userOp
+    ) external returns (address target, uint value, bytes4 selector);
 
     /// @notice Check whether this validator is valid for a given account.
     /// @param account The smart account address.

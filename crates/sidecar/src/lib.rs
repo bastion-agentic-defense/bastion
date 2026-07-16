@@ -90,6 +90,7 @@ struct AppState {
     agent_store: Arc<agents::AgentStore>,
     did_auth_state: auth::DidAuthState,
     arcium_evaluator: Arc<ArcumPolicyEvaluator<NoopArciumClient, GrondOracle>>,
+    web2_engine: Arc<bastion_web2_firewall::ProxyEngine>,
 }
 
 fn emit_event(tx: &broadcast::Sender<String>, event_type: &str, json_payload: &str) {
@@ -171,6 +172,10 @@ struct HealthResponse {
     uptime_seconds: u64,
     db_healthy: bool,
     db_size_bytes: u64,
+    /// Whether genuine confidential (Arcium MPC) evaluation is active. Reports
+    /// `false` while only the no-op client is configured, so clients never treat
+    /// evaluation as confidential when it is not.
+    confidential_compute: bool,
 }
 
 #[derive(serde::Serialize)]
@@ -529,6 +534,7 @@ async fn health(State(state): State<AppState>) -> Json<HealthResponse> {
         uptime_seconds: state.started_at.elapsed().as_secs(),
         db_healthy: state.logger.is_healthy(),
         db_size_bytes: state.logger.size_on_disk(),
+        confidential_compute: state.arcium_evaluator.confidential_active(),
     })
 }
 
@@ -1314,6 +1320,95 @@ async fn evaluate_v2(
     Json(core_adapter::evaluate_core(req, grond).await)
 }
 
+/// Incoming Web2 API call to evaluate against the gateway firewall. Matches the
+/// `ProxyRequest` shape emitted by `@zkos-labs/web2-sdk` (camelCase JSON).
+#[derive(serde::Deserialize)]
+struct Web2ProxyRequest {
+    id: String,
+    method: String,
+    url: String,
+    #[serde(default)]
+    headers: HashMap<String, String>,
+    #[serde(default)]
+    body: Option<String>,
+    provider: String,
+    #[serde(default, rename = "agentId")]
+    agent_id: Option<String>,
+    #[serde(default)]
+    timestamp: u64,
+    /// Optional attributed cost (US cents) for budget / cost-cap accounting.
+    #[serde(default, rename = "costUsdCents")]
+    cost_usd_cents: Option<u64>,
+}
+
+/// Web2 firewall decision, matching the SDK's `ProxyDecision` shape.
+#[derive(serde::Serialize)]
+struct Web2ProxyDecisionResponse {
+    decision: &'static str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reason: Option<String>,
+    #[serde(rename = "ruleId", skip_serializing_if = "Option::is_none")]
+    rule_id: Option<String>,
+    #[serde(rename = "approvalId", skip_serializing_if = "Option::is_none")]
+    approval_id: Option<String>,
+}
+
+fn map_web2_decision(
+    decision: bastion_web2_firewall::ProxyDecision,
+) -> Web2ProxyDecisionResponse {
+    use bastion_web2_firewall::ProxyDecision as PD;
+    match decision {
+        PD::Pass => Web2ProxyDecisionResponse {
+            decision: "pass",
+            reason: None,
+            rule_id: None,
+            approval_id: None,
+        },
+        PD::LogOnly => Web2ProxyDecisionResponse {
+            decision: "log_only",
+            reason: None,
+            rule_id: None,
+            approval_id: None,
+        },
+        PD::Block { reason, rule_id } => Web2ProxyDecisionResponse {
+            decision: "block",
+            reason: Some(reason),
+            rule_id,
+            approval_id: None,
+        },
+        PD::PendingHITL {
+            approval_id,
+            reason,
+        } => Web2ProxyDecisionResponse {
+            decision: "pending_hitl",
+            reason: Some(reason),
+            rule_id: None,
+            approval_id: Some(approval_id),
+        },
+    }
+}
+
+/// Evaluate a Web2 API call against the gateway firewall rules (no forwarding).
+async fn evaluate_web2(
+    State(state): State<AppState>,
+    Json(req): Json<Web2ProxyRequest>,
+) -> Json<Web2ProxyDecisionResponse> {
+    let event = bastion_web2_firewall::ApiEvent {
+        id: req.id,
+        method: req.method,
+        url: req.url,
+        headers: req.headers.into_iter().collect(),
+        body: req.body.unwrap_or_default(),
+        provider: req.provider,
+        agent_id: req.agent_id.unwrap_or_default(),
+        timestamp: req.timestamp,
+    };
+    let decision = state
+        .web2_engine
+        .evaluate_with_cost(&event, req.cost_usd_cents.unwrap_or(0));
+    Json(map_web2_decision(decision))
+}
+
 async fn simulate_evm_handler(
     State(state): State<AppState>,
     Json(req): Json<EvmSimulateRequest>,
@@ -1542,7 +1637,7 @@ async fn resolve_did_handler(
         }
     }
 
-    // Resolve using agent store (registered agents get real docs, unregistered get stubs)
+    // Resolve using agent store: only registered agents resolve; unknown DIDs → 404.
     let result = did::resolve_did(&full_did, &state.agent_store)
         .await
         .ok_or(axum::http::StatusCode::NOT_FOUND)?;
@@ -2085,6 +2180,21 @@ pub fn build_app(
             .with_fallback(policy.arcium_fallback),
     );
 
+    // Web2 API gateway firewall with a safe default rule set: block requests that
+    // leak secrets in the body and strip credential-bearing headers. Callers can
+    // supply richer rules via the Web2 SDK / OpenAPI import in future revisions.
+    let web2_engine = Arc::new(bastion_web2_firewall::ProxyEngine::new(vec![
+        bastion_web2_firewall::ApiPolicyRule::ContentInspection {
+            detect_pii: false,
+            detect_secrets: true,
+            detect_prompt_injection: false,
+        },
+        bastion_web2_firewall::ApiPolicyRule::HeaderFilter {
+            allow_headers: vec![],
+            block_headers: vec!["authorization".to_string(), "x-api-key".to_string()],
+        },
+    ]));
+
     let app_state = AppState {
         policy_engine: Arc::new(RwLock::new(PolicyEngine::new(policy))),
         simulator,
@@ -2102,6 +2212,7 @@ pub fn build_app(
         agent_store,
         did_auth_state: did_auth_state.clone(),
         arcium_evaluator,
+        web2_engine,
     };
 
     async fn markdown_middleware(req: AxumRequest<Body>, next: Next) -> impl IntoResponse {
@@ -2141,6 +2252,19 @@ pub fn build_app(
         .route("/cases/:id", axum::routing::patch(patch_case))
         .route("/cases/:id/evidence", post(post_case_evidence))
         .route("/agents", post(register_agent_handler))
+        // State-changing evaluation + agent mutation endpoints are auth-protected.
+        .route("/simulate", post(simulate))
+        .route("/api/v2/evaluate", post(evaluate_v2))
+        .route("/api/v2/evaluate-web2", post(evaluate_web2))
+        .route("/api/v2/simulate-evm", post(simulate_evm_handler))
+        .route("/agents/:did/delegate", post(post_agent_delegate))
+        .route(
+            "/agents/:did/delegation/:child_did",
+            axum::routing::delete(delete_agent_delegation),
+        )
+        .route("/agents/:did/stake/unstake", post(post_agent_unstake))
+        .route("/agents/:did/stake/claim", post(post_agent_claim))
+        .route("/robots/:did/telemetry", post(post_robot_telemetry))
         .route_layer(middleware::from_fn(auth::require_did_auth))
         .route_layer(axum::extract::Extension(did_auth_state.clone()))
         // === Unprotected routes ===
@@ -2170,23 +2294,13 @@ pub fn build_app(
         .route("/auth/nonce", post(auth_nonce))
         .route("/auth/verify", post(auth_verify))
         .route("/did/generate", post(generate_did))
-        .route("/api/v2/evaluate", post(evaluate_v2))
-        .route("/api/v2/simulate-evm", post(simulate_evm_handler))
-        .route("/simulate", post(simulate))
         .route("/agents", get(get_agents))
         .route("/agents/:did", get(get_agent))
         .route("/agents/:did/audit", get(get_agent_audit))
         .route("/agents/:did/stake", get(get_agent_stake))
         .route("/agents/:did/stake", post(post_agent_stake))
-        .route("/agents/:did/stake/unstake", post(post_agent_unstake))
-        .route("/agents/:did/stake/claim", post(post_agent_claim))
         .route("/agents/:did/children", get(get_agent_children))
         .route("/agents/:did/tree", get(get_agent_tree))
-        .route("/agents/:did/delegate", post(post_agent_delegate))
-        .route(
-            "/agents/:did/delegation/:child_did",
-            axum::routing::delete(delete_agent_delegation),
-        )
         .route("/logs", get(get_logs))
         .route("/logs/tx/:transaction_id", get(get_logs_by_transaction_id))
         .route("/logs/signature/:signature", get(get_logs_by_signature))
@@ -2202,7 +2316,6 @@ pub fn build_app(
         .route("/pending", get(get_pending))
         .route("/did/resolve/:did", get(resolve_did_handler))
         .route("/token-balances", get(get_token_balances))
-        .route("/robots/:did/telemetry", post(post_robot_telemetry))
         // === MCP reverse proxy (Node.js backend on :3001) ===
         .route("/mcp/*path", any(proxy_mcp))
         .route("/sse", any(proxy_mcp))

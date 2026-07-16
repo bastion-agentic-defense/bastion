@@ -1,16 +1,16 @@
 import { useState } from 'react';
 
-const SOLANA_INSTALL = `npm install @bastion-agentique/sdk @solana/web3.js @coral-xyz/anchor`;
+const SOLANA_INSTALL = `npm install @zkos-labs/sdk @solana/web3.js @coral-xyz/anchor`;
 const SOLANA_DEPS = `# or
-pnpm add @bastion-agentique/sdk @solana/web3.js @coral-xyz/anchor
+pnpm add @zkos-labs/sdk @solana/web3.js @coral-xyz/anchor
 # or
-yarn add @bastion-agentique/sdk @solana/web3.js @coral-xyz/anchor`;
+yarn add @zkos-labs/sdk @solana/web3.js @coral-xyz/anchor`;
 
-const WEB2_INSTALL = `npm install @bastion-agentique/web2-sdk`;
+const WEB2_INSTALL = `npm install @zkos-labs/web2-sdk`;
 const WEB2_DEPS = `# or
-pnpm add @bastion-agentique/web2-sdk
+pnpm add @zkos-labs/web2-sdk
 # or
-yarn add @bastion-agentique/web2-sdk`;
+yarn add @zkos-labs/web2-sdk`;
 
 export default function InstallSection() {
   const [copied, setCopied] = useState(false);
@@ -98,7 +98,7 @@ export default function InstallSection() {
           <span className="font-sans text-xs" style={{ color: 'var(--text-muted)' }}>EVM SDK (Solidity + TypeScript)</span>
         </div>
         <code className="font-mono text-xs" style={{ color: '#6B7280' }}>
-          # npm install @bastion-agentique/sdk-evm viem
+          # npm install @zkos-labs/sdk-evm viem
         </code>
       </div>
     </section>

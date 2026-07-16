@@ -300,7 +300,7 @@ export default function ApiReference() {
       </div>
 
       {/* SDK Methods */}
-      <p className="font-sans text-xs font-medium mb-3" style={{ color: 'var(--accent)' }}>TypeScript SDK (@bastion-agentique/sdk)</p>
+      <p className="font-sans text-xs font-medium mb-3" style={{ color: 'var(--accent)' }}>TypeScript SDK (@zkos-labs/sdk)</p>
 
       <div className="space-y-2">
         {METHODS.map((m) => (

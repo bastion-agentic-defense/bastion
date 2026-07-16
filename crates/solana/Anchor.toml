@@ -9,6 +9,16 @@ wallet = "~/.config/solana/dev.json"
 [programs.devnet]
 bastion_audit = "A29V5MUVs73y7XBHHxPpPcAW7h4gGHupbDdwYSwA2n9D"
 
+# Mainnet deployment. Generate a fresh program keypair before go-live
+# (`solana-keygen new -o target/deploy/bastion_audit-keypair.json`), update this ID
+# and `declare_id!` in src/lib.rs, then deploy with:
+#   anchor deploy --provider.cluster mainnet-beta
+# and transfer the upgrade authority to the Squads multisig.
+# See docs/MAINNET_READINESS.md. The value below is a PLACEHOLDER (currently the
+# devnet ID) and MUST be replaced with the generated mainnet program ID.
+[programs.mainnet]
+bastion_audit = "A29V5MUVs73y7XBHHxPpPcAW7h4gGHupbDdwYSwA2n9D"
+
 [scripts]
 test = "cargo test --features devnet"
 build = "cargo build --features devnet"

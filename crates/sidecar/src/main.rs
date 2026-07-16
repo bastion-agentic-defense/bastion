@@ -17,8 +17,31 @@ async fn shutdown_signal() {
     eprintln!("shutdown signal received");
 }
 
+/// Initialize structured logging. Emits JSON logs when `BASTION_LOG_JSON=1`
+/// (recommended for mainnet/Fly.io log ingestion), otherwise human-readable.
+/// Verbosity is controlled by `RUST_LOG` (default `info`).
+fn init_tracing() {
+    use tracing_subscriber::{EnvFilter, fmt};
+    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+    let json = matches!(
+        env::var("BASTION_LOG_JSON").as_deref(),
+        Ok("1") | Ok("true")
+    );
+    if json {
+        fmt()
+            .with_env_filter(filter)
+            .json()
+            .flatten_event(true)
+            .init();
+    } else {
+        fmt().with_env_filter(filter).init();
+    }
+}
+
 #[tokio::main]
 async fn main() {
+    init_tracing();
+    tracing::info!("bastion sidecar starting");
     let config_text = fs::read_to_string("config.toml").expect("read config.toml");
     let policy: Policy = toml::from_str(&config_text).expect("parse config.toml");
     let simulator: Arc<dyn Simulate + Send + Sync> = Arc::new(

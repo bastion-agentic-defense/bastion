@@ -28,7 +28,6 @@ number_underscore = "preserve"
 
 [rpc_endpoints]
 base = "${BASE_RPC_URL}"
-polygon = "${POLYGON_RPC_URL}"
 ethereum = "${ETH_RPC_URL}"
 celo = "${CELO_RPC_URL}"
 celo_testnet = "${CELO_TESTNET_RPC_URL}"

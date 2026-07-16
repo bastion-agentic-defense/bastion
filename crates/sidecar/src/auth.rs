@@ -134,27 +134,50 @@ pub async fn require_did_auth(req: Request<Body>, next: Next) -> Response {
             .into_response();
     }
 
-    // Fallback: API key auth (legacy)
-    let expected = match std::env::var("BASTION_API_KEY") {
-        Ok(k) if !k.is_empty() => k,
-        _ => return next.run(req).await,
-    };
+    // Fallback: API key auth.
+    match std::env::var("BASTION_API_KEY") {
+        Ok(expected) if !expected.is_empty() => {
+            let provided = req
+                .headers()
+                .get("X-API-Key")
+                .and_then(|v| v.to_str().ok())
+                .unwrap_or("");
 
-    let provided = req
-        .headers()
-        .get("X-API-Key")
-        .and_then(|v| v.to_str().ok())
-        .unwrap_or("");
+            if provided != expected {
+                return (
+                    StatusCode::UNAUTHORIZED,
+                    Json(json!({ "error": "Invalid or missing X-API-Key header" })),
+                )
+                    .into_response();
+            }
 
-    if provided != expected {
-        return (
-            StatusCode::UNAUTHORIZED,
-            Json(json!({ "error": "Invalid or missing X-API-Key header" })),
-        )
-            .into_response();
+            next.run(req).await
+        }
+        // No API key configured. Fail CLOSED when auth is required (mainnet posture):
+        // a request with neither valid DID auth nor an API key must be rejected.
+        // Only local/dev deployments (BASTION_REQUIRE_AUTH unset) fall open.
+        _ => {
+            if auth_required() {
+                return (
+                    StatusCode::UNAUTHORIZED,
+                    Json(json!({
+                        "error": "Authentication required. Provide DID auth headers or configure BASTION_API_KEY."
+                    })),
+                )
+                    .into_response();
+            }
+            next.run(req).await
+        }
     }
+}
 
-    next.run(req).await
+/// Whether the sidecar must fail closed on unauthenticated requests.
+/// Set `BASTION_REQUIRE_AUTH=1` in every non-local deployment (mainnet, staging).
+pub fn auth_required() -> bool {
+    matches!(
+        std::env::var("BASTION_REQUIRE_AUTH").as_deref(),
+        Ok("1") | Ok("true")
+    )
 }
 
 /// Shared state for DID auth verification.

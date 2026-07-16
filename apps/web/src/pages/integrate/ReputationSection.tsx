@@ -48,7 +48,7 @@ export default function ReputationSection() {
             <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>agent-reputation.ts</span>
           </div>
           <pre className="p-4 font-mono text-xs overflow-x-auto" style={{ color: 'var(--text-primary)' }}>
-{`import { BastionClient } from "@bastion-agentique/sdk";
+{`import { BastionClient } from "@zkos-labs/sdk";
 
 const client = new BastionClient({ connection });
 

@@ -396,6 +396,107 @@ fn header_filter_strips_authorization() {
     assert!(rule.matches_any_blocked_header(&event));
 }
 
+// ── Stateful Enforcement Tests (rate / budget / cost / time) ──
+
+fn github_event() -> ApiEvent {
+    ApiEvent {
+        id: "1".to_string(),
+        method: "GET".to_string(),
+        url: "https://api.github.com/repos/zkos-labs/bastion".to_string(),
+        headers: vec![],
+        body: "".to_string(),
+        provider: "github".to_string(),
+        agent_id: "a".to_string(),
+        timestamp: 0,
+    }
+}
+
+#[test]
+fn rate_limit_blocks_after_threshold() {
+    let engine = ProxyEngine::new(vec![ApiPolicyRule::RateLimitPerProvider {
+        provider: "github".to_string(),
+        max_requests_per_minute: 3,
+    }]);
+    let event = github_event();
+
+    // First 3 requests pass, 4th within the same minute is blocked.
+    assert!(engine.evaluate(&event).is_allowed());
+    assert!(engine.evaluate(&event).is_allowed());
+    assert!(engine.evaluate(&event).is_allowed());
+    assert!(engine.evaluate(&event).is_blocked());
+}
+
+#[test]
+fn rate_limit_ignores_other_providers() {
+    let engine = ProxyEngine::new(vec![ApiPolicyRule::RateLimitPerProvider {
+        provider: "github".to_string(),
+        max_requests_per_minute: 1,
+    }]);
+    let mut event = github_event();
+    event.provider = "openai".to_string();
+
+    // Different provider is unaffected by github's limit.
+    assert!(engine.evaluate(&event).is_allowed());
+    assert!(engine.evaluate(&event).is_allowed());
+}
+
+#[test]
+fn provider_budget_blocks_when_cost_exceeds_window() {
+    let engine = ProxyEngine::new(vec![ApiPolicyRule::ProviderBudget {
+        provider: "openai".to_string(),
+        max_usd_cents_per_window: 100,
+        window_minutes: 1440,
+    }]);
+    let mut event = github_event();
+    event.provider = "openai".to_string();
+
+    // 60¢ + 60¢ = 120¢ > 100¢ cap.
+    assert!(engine.evaluate_with_cost(&event, 60).is_allowed());
+    assert!(engine.evaluate_with_cost(&event, 60).is_blocked());
+}
+
+#[test]
+fn provider_budget_ignored_without_cost() {
+    let engine = ProxyEngine::new(vec![ApiPolicyRule::ProviderBudget {
+        provider: "openai".to_string(),
+        max_usd_cents_per_window: 1,
+        window_minutes: 1440,
+    }]);
+    let mut event = github_event();
+    event.provider = "openai".to_string();
+
+    // No cost supplied → budget rule cannot bite.
+    assert!(engine.evaluate(&event).is_allowed());
+}
+
+#[test]
+fn cost_cap_blocks_over_monthly_limit() {
+    let engine = ProxyEngine::new(vec![ApiPolicyRule::CostCap {
+        max_usd_cents_per_month: 150,
+    }]);
+    let event = github_event();
+
+    assert!(engine.evaluate_with_cost(&event, 100).is_allowed());
+    assert!(engine.evaluate_with_cost(&event, 100).is_blocked());
+}
+
+#[test]
+fn time_of_day_restriction_enforced() {
+    // A window that excludes every hour (min > max is impossible to satisfy).
+    let engine = ProxyEngine::new(vec![ApiPolicyRule::TimeOfDayRestriction {
+        min_hour_utc: 25,
+        max_hour_utc: 25,
+    }]);
+    assert!(engine.evaluate(&github_event()).is_blocked());
+
+    // A window covering all hours always passes.
+    let engine_open = ProxyEngine::new(vec![ApiPolicyRule::TimeOfDayRestriction {
+        min_hour_utc: 0,
+        max_hour_utc: 23,
+    }]);
+    assert!(engine_open.evaluate(&github_event()).is_allowed());
+}
+
 // ── Provider Detection Test ──
 
 #[test]

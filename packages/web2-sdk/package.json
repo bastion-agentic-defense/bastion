@@ -1,13 +1,13 @@
 {
-  "name": "@bastion-agentique/web2-sdk",
-  "version": "0.1.0",
+  "name": "@zkos-labs/web2-sdk",
+  "version": "0.2.0",
   "description": "Web2 proxy/firewall SDK for Bastion. Protect AI agents calling external REST/gRPC/GraphQL APIs.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": ["dist/", "README.md"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/bastion-agentique/bastion.git",
+    "url": "https://github.com/zkos-labs/bastion.git",
     "directory": "packages/web2-sdk"
   },
   "publishConfig": {

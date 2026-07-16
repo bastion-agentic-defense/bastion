@@ -12,14 +12,14 @@ contract BastionERC8004RegistryTest is Test {
     address public agentOwner1 = makeAddr("agentOwner1");
     address public agentOwner2 = makeAddr("agentOwner2");
     address public agentWallet;
-    uint256 public agentWalletKey;
+    uint public agentWalletKey;
 
     string constant TEST_AGENT_URI = "ipfs://QmTestAgentUri";
 
-    event Registered(uint256 indexed agentId, string agentURI, address indexed owner);
-    event URIUpdated(uint256 indexed agentId, string newURI, address indexed updatedBy);
+    event Registered(uint indexed agentId, string agentURI, address indexed owner);
+    event URIUpdated(uint indexed agentId, string newURI, address indexed updatedBy);
     event MetadataSet(
-        uint256 indexed agentId,
+        uint indexed agentId,
         string indexed indexedMetadataKey,
         string metadataKey,
         bytes metadataValue
@@ -27,7 +27,7 @@ contract BastionERC8004RegistryTest is Test {
 
     function setUp() public {
         registry = new BastionERC8004Registry(admin);
-        agentWalletKey = uint256(keccak256(abi.encode("agentWallet")));
+        agentWalletKey = uint(keccak256(abi.encode("agentWallet")));
         agentWallet = vm.addr(agentWalletKey);
     }
 
@@ -39,7 +39,7 @@ contract BastionERC8004RegistryTest is Test {
         vm.prank(agentOwner1);
         vm.expectEmit();
         emit Registered(0, TEST_AGENT_URI, agentOwner1);
-        uint256 agentId = registry.register(TEST_AGENT_URI);
+        uint agentId = registry.register(TEST_AGENT_URI);
 
         assertEq(agentId, 0);
         assertEq(registry.ownerOf(0), agentOwner1);
@@ -51,7 +51,7 @@ contract BastionERC8004RegistryTest is Test {
         vm.prank(agentOwner1);
         vm.expectEmit();
         emit Registered(0, "", agentOwner1);
-        uint256 agentId = registry.register();
+        uint agentId = registry.register();
 
         assertEq(agentId, 0);
         assertEq(registry.ownerOf(0), agentOwner1);
@@ -60,12 +60,12 @@ contract BastionERC8004RegistryTest is Test {
 
     function test_Register_SequentialAgentIds() public {
         vm.startPrank(agentOwner1);
-        uint256 id0 = registry.register("ipfs://agent0");
-        uint256 id1 = registry.register("ipfs://agent1");
+        uint id0 = registry.register("ipfs://agent0");
+        uint id1 = registry.register("ipfs://agent1");
         vm.stopPrank();
 
         vm.prank(agentOwner2);
-        uint256 id2 = registry.register("ipfs://agent2");
+        uint id2 = registry.register("ipfs://agent2");
 
         assertEq(id0, 0);
         assertEq(id1, 1);
@@ -77,7 +77,7 @@ contract BastionERC8004RegistryTest is Test {
         // Create a URI that exceeds reasonable bounds
         string memory longURI = new string(5000);
         bytes memory longBytes = bytes(longURI);
-        for (uint256 i = 0; i < longBytes.length; i++) {
+        for (uint i = 0; i < longBytes.length; i++) {
             longBytes[i] = "a";
         }
         longURI = string(longBytes);
@@ -112,9 +112,7 @@ contract BastionERC8004RegistryTest is Test {
         vm.prank(agentOwner2);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IERC721Errors.ERC721InsufficientApproval.selector,
-                agentOwner2,
-                0
+                IERC721Errors.ERC721InsufficientApproval.selector, agentOwner2, 0
             )
         );
         registry.setAgentURI(0, "ipfs://hacked");
@@ -176,9 +174,7 @@ contract BastionERC8004RegistryTest is Test {
         vm.prank(agentOwner2);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IERC721Errors.ERC721InsufficientApproval.selector,
-                agentOwner2,
-                0
+                IERC721Errors.ERC721InsufficientApproval.selector, agentOwner2, 0
             )
         );
         registry.setMetadata(0, "key", abi.encode("value"));
@@ -192,10 +188,9 @@ contract BastionERC8004RegistryTest is Test {
         vm.prank(agentOwner1);
         registry.register(TEST_AGENT_URI);
 
-        uint256 deadline = block.timestamp + 1 hours;
-        (uint8 v, bytes32 r, bytes32 s) = _signSetAgentWallet(
-            agentWalletKey, 0, agentWallet, deadline, address(registry)
-        );
+        uint deadline = block.timestamp + 1 hours;
+        (uint8 v, bytes32 r, bytes32 s) =
+            _signSetAgentWallet(agentWalletKey, 0, agentWallet, deadline, address(registry));
         bytes memory signature = abi.encodePacked(r, s, v);
 
         vm.prank(agentOwner1);
@@ -208,10 +203,9 @@ contract BastionERC8004RegistryTest is Test {
         vm.prank(agentOwner1);
         registry.register(TEST_AGENT_URI);
 
-        uint256 deadline = block.timestamp - 1; // already expired
-        (uint8 v, bytes32 r, bytes32 s) = _signSetAgentWallet(
-            agentWalletKey, 0, agentWallet, deadline, address(registry)
-        );
+        uint deadline = block.timestamp - 1; // already expired
+        (uint8 v, bytes32 r, bytes32 s) =
+            _signSetAgentWallet(agentWalletKey, 0, agentWallet, deadline, address(registry));
         bytes memory signature = abi.encodePacked(r, s, v);
 
         vm.warp(block.timestamp + 1);
@@ -224,12 +218,11 @@ contract BastionERC8004RegistryTest is Test {
         vm.prank(agentOwner1);
         registry.register(TEST_AGENT_URI);
 
-        uint256 deadline = block.timestamp + 1 hours;
+        uint deadline = block.timestamp + 1 hours;
         // Sign with a different key than the wallet address
-        uint256 wrongKey = 0xDEADBEEF;
-        (uint8 v, bytes32 r, bytes32 s) = _signSetAgentWallet(
-            wrongKey, 0, agentWallet, deadline, address(registry)
-        );
+        uint wrongKey = 0xDEADBEEF;
+        (uint8 v, bytes32 r, bytes32 s) =
+            _signSetAgentWallet(wrongKey, 0, agentWallet, deadline, address(registry));
         bytes memory signature = abi.encodePacked(r, s, v);
 
         vm.prank(agentOwner1);
@@ -241,10 +234,9 @@ contract BastionERC8004RegistryTest is Test {
         vm.prank(agentOwner1);
         registry.register(TEST_AGENT_URI);
 
-        uint256 deadline = block.timestamp + 1 hours;
-        (uint8 v, bytes32 r, bytes32 s) = _signSetAgentWallet(
-            agentWalletKey, 0, agentWallet, deadline, address(registry)
-        );
+        uint deadline = block.timestamp + 1 hours;
+        (uint8 v, bytes32 r, bytes32 s) =
+            _signSetAgentWallet(agentWalletKey, 0, agentWallet, deadline, address(registry));
 
         vm.prank(agentOwner1);
         registry.setAgentWallet(0, agentWallet, deadline, abi.encodePacked(r, s, v));
@@ -259,10 +251,9 @@ contract BastionERC8004RegistryTest is Test {
         vm.prank(agentOwner1);
         registry.register(TEST_AGENT_URI);
 
-        uint256 deadline = block.timestamp + 1 hours;
-        (uint8 v, bytes32 r, bytes32 s) = _signSetAgentWallet(
-            agentWalletKey, 0, agentWallet, deadline, address(registry)
-        );
+        uint deadline = block.timestamp + 1 hours;
+        (uint8 v, bytes32 r, bytes32 s) =
+            _signSetAgentWallet(agentWalletKey, 0, agentWallet, deadline, address(registry));
 
         vm.prank(agentOwner1);
         registry.setAgentWallet(0, agentWallet, deadline, abi.encodePacked(r, s, v));
@@ -346,17 +337,15 @@ contract BastionERC8004RegistryTest is Test {
     // ──────────────────────────────────────────────────────────────
 
     function _signSetAgentWallet(
-        uint256 privateKey,
-        uint256 agentId,
+        uint privateKey,
+        uint agentId,
         address newWallet,
-        uint256 deadline,
+        uint deadline,
         address verifyingContract
     ) internal view returns (uint8 v, bytes32 r, bytes32 s) {
         bytes32 structHash = keccak256(
             abi.encode(
-                keccak256(
-                    "SetAgentWallet(uint256 agentId,address newWallet,uint256 deadline)"
-                ),
+                keccak256("SetAgentWallet(uint256 agentId,address newWallet,uint256 deadline)"),
                 agentId,
                 newWallet,
                 deadline
@@ -365,7 +354,9 @@ contract BastionERC8004RegistryTest is Test {
 
         bytes32 domainSeparator = keccak256(
             abi.encode(
-                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+                keccak256(
+                    "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+                ),
                 keccak256(bytes("ERC8004")),
                 keccak256(bytes("1")),
                 block.chainid,
@@ -373,22 +364,19 @@ contract BastionERC8004RegistryTest is Test {
             )
         );
 
-        bytes32 digest = keccak256(
-            abi.encodePacked("\x19\x01", domainSeparator, structHash)
-        );
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
 
         (v, r, s) = vm.sign(privateKey, digest);
     }
 
-    function _startsWith(string memory str, string memory prefix)
-        internal
-        pure
-        returns (bool)
-    {
+    function _startsWith(
+        string memory str,
+        string memory prefix
+    ) internal pure returns (bool) {
         bytes memory strBytes = bytes(str);
         bytes memory prefixBytes = bytes(prefix);
         if (strBytes.length < prefixBytes.length) return false;
-        for (uint256 i = 0; i < prefixBytes.length; i++) {
+        for (uint i = 0; i < prefixBytes.length; i++) {
             if (strBytes[i] != prefixBytes[i]) return false;
         }
         return true;

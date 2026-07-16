@@ -1,6 +1,6 @@
 {
-  "name": "@bastion/mcp-server",
-  "version": "0.1.0",
+  "name": "@zkos-labs/mcp-server",
+  "version": "0.2.0",
   "description": "Bastion MCP Server — Model Context Protocol tools for agent security",
   "type": "module",
   "main": "dist/index.js",

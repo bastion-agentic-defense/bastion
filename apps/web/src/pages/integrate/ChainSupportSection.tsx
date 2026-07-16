@@ -2,7 +2,7 @@ const SOLANA_SUPPORT = {
   wallets: ['Phantom', 'Solflare', 'Backpack'],
   rpc: 'Helius / QuickNode / Triton',
   features: [
-    'Full TypeScript SDK (@bastion-agentique/sdk)',
+    'Full TypeScript SDK (@zkos-labs/sdk)',
     'On-chain audit via Anchor PDA',
     'Helius simulation integration',
     'Program allowlists',
@@ -29,7 +29,7 @@ const WEB2_SUPPORT = {
   providers: ['OpenAI', 'Stripe', 'Slack', 'GitHub', 'AWS'],
   integration: 'Proxy, SDK, Ingest',
   features: [
-    'Full TypeScript SDK (@bastion-agentique/web2-sdk)',
+    'Full TypeScript SDK (@zkos-labs/web2-sdk)',
     'HTTP forward proxy firewall',
     'OpenAPI spec auto-configuration',
     'Provider budget enforcement',

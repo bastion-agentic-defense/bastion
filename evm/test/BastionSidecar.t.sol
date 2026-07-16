@@ -27,8 +27,7 @@ contract BastionSidecarTest is Test {
         vm.prank(VERIFIER);
         sidecar.fulfillEvaluate(requestId, 0, ""); // 0 = Pass
 
-        (bool allowed, string memory reason, uint8 decision) =
-            sidecar.getEvaluation(requestId);
+        (bool allowed, string memory reason, uint8 decision) = sidecar.getEvaluation(requestId);
 
         assertTrue(allowed);
         assertEq(decision, 0);
@@ -42,8 +41,7 @@ contract BastionSidecarTest is Test {
         vm.prank(VERIFIER);
         sidecar.fulfillEvaluate(requestId, 1, "amount exceeds limit"); // 1 = Block
 
-        (bool allowed, string memory reason, uint8 decision) =
-            sidecar.getEvaluation(requestId);
+        (bool allowed, string memory reason, uint8 decision) = sidecar.getEvaluation(requestId);
 
         assertFalse(allowed);
         assertEq(decision, 1);
@@ -56,13 +54,10 @@ contract BastionSidecarTest is Test {
 
         vm.prank(VERIFIER);
         sidecar.fulfillEvaluate(
-            requestId,
-            2,
-            "amount 1000000000000000000000 exceeds HITL threshold"
+            requestId, 2, "amount 1000000000000000000000 exceeds HITL threshold"
         ); // 2 = PendingHITL
 
-        (bool allowed, string memory reason, uint8 decision) =
-            sidecar.getEvaluation(requestId);
+        (bool allowed, string memory reason, uint8 decision) = sidecar.getEvaluation(requestId);
 
         assertFalse(allowed);
         assertEq(decision, 2);
