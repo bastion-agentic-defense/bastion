@@ -4,16 +4,16 @@ import { TechCarousel } from '../components/TechCarousel';
 
 const FEATURES = [
   {
-    title: 'Bastion Firewall',
-    description: 'Autonomous transaction firewall for Solana. Simulates every transaction against live chain state, enforces configurable native token caps, rate limits, program allowlists, and Daemon BlockInt security checks before signing. Fleet-wide circuit breaker pauses all processing with one command.',
+    title: 'Trust Runtime',
+    description: 'Multi-chain transaction validation for Solana and EVM. Simulates every transaction against live chain state, enforces configurable native token caps, rate limits, program allowlists, and blockint security checks before signing. Fleet-wide circuit breaker pauses all processing with one command.',
   },
   {
-    title: 'Bastion Audit',
-    description: 'Immutable on chain audit trail. Every decision allowed, blocked, or pending is recorded on Solana as a verifiable record. Auditable by anyone, at any time, with full decision reasoning preserved.',
+    title: 'Audit Trail',
+    description: 'Immutable on-chain audit trail. Every decision — allowed, blocked, or pending — is recorded on-chain as a verifiable record. Auditable by anyone, at any time, with full decision reasoning preserved.',
   },
   {
-    title: 'Bastion Identity',
-    description: 'On chain agent identity and reputation registry on Solana. Every agent receives a unique PDA identity with verifiable metadata. Reputation accrues in real time, enabling trust-gated marketplaces, agent scoring, and portable identity across the Solana ecosystem.',
+    title: 'Agent Identity',
+    description: 'On-chain agent identity and reputation registry. Every agent receives a unique identity with verifiable metadata and W3C DID compliance. Reputation accrues in real time, enabling trust-gated marketplaces, agent scoring, and portable identity across the multi-chain ecosystem.',
   },
 ];
 
@@ -60,19 +60,19 @@ const FLOW_STEPS = [
 const FAQ_ITEMS = [
   {
     q: 'What is the Bastion ecosystem?',
-    a: 'Bastion is a unified agent security platform built on Daemon BlockInt Technologies. It includes Bastion Firewall (transaction simulation and policy enforcement), Bastion Audit (immutable on chain audit trail), Bastion Identity (Solana native agent identity and reputation registry with W3C DID compliance), and Bastion Circuit (fleet wide circuit breaker with human override). Each component operates independently and shares a common intelligence layer powered by Daemon BlockInt Technologies.',
+    a: 'Bastion is a Programmable Trust Runtime built by ZKOS Labs. It includes a multi-chain policy engine, immutable on-chain audit trail, agent identity and reputation registry with W3C DID compliance, and fleet-wide circuit breaker with human override. Each component operates independently and shares a common intelligence layer.',
   },
   {
     q: 'Which product should I start with?',
-    a: 'Start with Bastion Firewall. Integrate the TypeScript SDK into your agent, configure a policy, and begin simulating transactions against live chain state. The audit trail and identity registry activate automatically when you deploy the on chain program.',
+    a: 'Start with the Trust Runtime. Integrate the TypeScript SDK into your agent, configure a policy, and begin simulating transactions against live chain state across Solana and EVM. The audit trail and identity registry activate automatically when you deploy the on-chain program.',
   },
   {
-    q: 'How does Daemon BlockInt intelligence power Bastion?',
-    a: 'Daemon BlockInt Technologies provides three core assets. GrondOSINT feeds real world threat data into Bastion risk oracle querying Tavily for web search and Shodan for internet infrastructure. The Blockint rules engine detects flash loans, high slippage, authority changes, and risk labeled addresses. The 47 agent skills ecosystem covers blockchain forensics, compliance workflows, and DeFi security auditing. All three pipelines power Bastion security checks before any transaction reaches the chain.',
+    q: 'How does the ZKOS Labs intelligence layer power Bastion?',
+    a: 'ZKOS Labs provides three core pillars. GrondOSINT feeds real-world threat data into Bastion risk oracle — querying Tavily for web search and Shodan for internet infrastructure. The blockint rules engine detects flash loans, high slippage, authority changes, and risk-labeled addresses. The 49 agent skills ecosystem covers blockchain forensics, compliance workflows, and DeFi security auditing. All three pipelines power Bastion security checks before any transaction reaches the chain.',
   },
   {
     q: 'How do I get access?',
-    a: 'Bastion is open source under the Apache 2.0 license. Clone the repository at github.com/zkos-labs/bastion, deploy the Solana Anchor program, start the sidecar, and integrate the SDK. For enterprise deployments and managed infrastructure, contact hello@bastionagentique.com.',
+    a: 'Bastion is open source under the Apache 2.0 license. Clone the repository at github.com/zkos-labs/bastion, deploy the on-chain programs (Solana Anchor or EVM Solidity), start the sidecar, and integrate the SDK. For enterprise deployments and managed infrastructure, contact hello@bastion.zkos.dev.',
   },
 ];
 
@@ -108,7 +108,7 @@ export default function Landing() {
             Trust your Agent,<br />Verify every Transaction.
           </h1>
           <p className="font-sans mt-8 max-w-xl text-base leading-relaxed text-zinc-400">
-            Building infrastructure for brilliant agents, fearless developers, and decentralized protocols. Through the noise, we craft a firewall for pure execution.
+            Bastion is a Programmable Trust Runtime for AI agents and autonomous systems. Orchestrating identity, policy, privacy, durable execution, and multi-chain settlement across Solana, EVM, and Arcium.
           </p>
           <p className="font-sans mt-4 max-w-xl text-sm leading-relaxed text-amber-500/70">
             Bastion is in alpha testing. Use with caution in production environments.
@@ -137,7 +137,7 @@ export default function Landing() {
             className="font-serif text-center max-w-3xl mx-auto px-6 leading-[1.15] text-zinc-400"
             style={{ fontSize: 'clamp(1.1rem, 2.5vw, 1.4rem)', fontWeight: 400 }}
           >
-            Powered by Daemon BlockInt Technologies. The onchain world grew faster than the
+            Powered by ZKOS Labs. The onchain world grew faster than the
             infrastructure built to protect it. Intelligence, security, and execution ended up in
             separate tools, separate vendors, separate contexts. Bastion was built because that gap
             has a cost and no one was closing it as a coherent system.
@@ -192,7 +192,7 @@ export default function Landing() {
           <p className="font-sans text-base text-zinc-400 mb-8 leading-relaxed">
             Enterprise deployments, technical evaluations, or general inquiries reach us directly.
           </p>
-          <a href="mailto:hello@bastionagentique.com" className="inline-flex rounded-full bg-white text-black px-10 py-4 text-sm font-medium font-sans hover:bg-zinc-200 transition-colors no-underline">
+          <a href="mailto:hello@bastion.zkos.dev" className="inline-flex rounded-full bg-white text-black px-10 py-4 text-sm font-medium font-sans hover:bg-zinc-200 transition-colors no-underline">
             Get in Touch
           </a>
         </section>
@@ -202,10 +202,12 @@ export default function Landing() {
           <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between gap-12">
             <div className="flex flex-col gap-6">
               <a href="#main-content" className="font-serif text-xl tracking-tight no-underline text-white">Bastion<span className="text-[10px] align-super ml-px">&reg;</span></a>
-              <p className="font-sans text-xs text-zinc-600 max-w-xs leading-relaxed">Built on Daemon BlockInt Technologies. The first SIEM where the audit trail itself is the product.</p>
+              <p className="font-sans text-xs text-zinc-600 max-w-xs leading-relaxed">Built by ZKOS Labs. The first SIEM where the audit trail itself is the product.</p>
               <div className="flex items-center gap-3">
                 <span className="font-sans text-[10px] text-zinc-600">Powered by</span>
                 <span className="font-mono text-[10px] text-purple-500">◎ Solana</span>
+                <span className="font-sans text-[10px] text-zinc-700">+</span>
+                <span className="font-mono text-[10px] text-blue-400">⟠ Ethereum</span>
                 <span className="font-sans text-[10px] text-zinc-700">+</span>
                 <span className="font-mono text-[10px] text-emerald-400">Arcium</span>
               </div>
@@ -226,15 +228,15 @@ export default function Landing() {
             <div>
               <p className="font-sans text-xs uppercase tracking-widest text-zinc-600 mb-4">Features</p>
               <div className="flex flex-col gap-3">
-                <span className="text-sm text-zinc-400">Bastion Firewall</span>
-                <span className="text-sm text-zinc-400">Bastion Audit</span>
-                <span className="text-sm text-zinc-400">Bastion Identity</span>
-                <span className="text-sm text-zinc-400">Bastion Circuit</span>
+                <span className="text-sm text-zinc-400">Trust Runtime</span>
+                <span className="text-sm text-zinc-400">Audit Trail</span>
+                <span className="text-sm text-zinc-400">Agent Identity</span>
+                <span className="text-sm text-zinc-400">Circuit Breaker</span>
               </div>
             </div>
           </div>
           <div className="max-w-6xl mx-auto px-6 mt-12 pt-8 border-t border-white/[0.06]">
-            <p className="font-sans text-xs text-zinc-600">&copy; 2026 Bastion. Built on Daemon BlockInt Technologies. All rights reserved.</p>
+            <p className="font-sans text-xs text-zinc-600">&copy; 2026 Bastion. Built by ZKOS Labs. All rights reserved.</p>
           </div>
         </footer>
       </main>

@@ -9,7 +9,7 @@ const SOLANA_SUPPORT = {
     'Native token caps',
     'Circuit breaker',
   ],
-  status: 'Production',
+  status: 'Alpha',
 } as const;
 
 const EVM_SUPPORT = {
@@ -93,20 +93,20 @@ export default function ChainSupportSection() {
           </div>
         </div>
 
-        {/* EVM — Coming Soon */}
+        {/* EVM */}
         <div
-          className="rounded-xl p-6 opacity-50 pointer-events-none select-none"
-          style={{ background: 'var(--bg-subtle)', border: '1px dashed var(--border)' }}
+          className="rounded-xl p-6"
+          style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
         >
           <div className="flex items-center gap-3 mb-4">
-            <span style={{ color: '#6B7280', fontSize: '1.5em' }}>⟠</span>
+            <span style={{ color: '#3B82F6', fontSize: '1.5em' }}>⟠</span>
             <div>
-              <h4 className="font-sans font-semibold text-base" style={{ color: 'var(--text-muted)' }}>
+              <h4 className="font-sans font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
                 EVM
               </h4>
               <span
                 className="inline-block font-mono text-xs px-2 py-0.5 rounded-full mt-0.5"
-                style={{ background: 'rgba(107,114,128,0.15)', color: '#6B7280', border: '1px solid rgba(107,114,128,0.25)' }}
+                style={{ background: 'rgba(234,179,8,0.1)', color: '#eab308', border: '1px solid rgba(234,179,8,0.25)' }}
               >
                 {EVM_SUPPORT.status}
               </span>
@@ -115,19 +115,19 @@ export default function ChainSupportSection() {
 
           <div className="space-y-3">
             <div>
-              <span className="font-sans text-xs font-medium" style={{ color: '#6B7280' }}>Wallets</span>
-              <p className="font-sans text-sm mt-1" style={{ color: '#6B7280' }}>{EVM_SUPPORT.wallets.join(', ')}</p>
+              <span className="font-sans text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Wallets</span>
+              <p className="font-sans text-sm mt-1" style={{ color: 'var(--text-primary)' }}>{EVM_SUPPORT.wallets.join(', ')}</p>
             </div>
             <div>
-              <span className="font-sans text-xs font-medium" style={{ color: '#6B7280' }}>RPC</span>
-              <p className="font-sans text-sm mt-1" style={{ color: '#6B7280' }}>{EVM_SUPPORT.rpc}</p>
+              <span className="font-sans text-xs font-medium" style={{ color: 'var(--text-muted)' }}>RPC</span>
+              <p className="font-sans text-sm mt-1" style={{ color: 'var(--text-primary)' }}>{EVM_SUPPORT.rpc}</p>
             </div>
             <div>
-              <span className="font-sans text-xs font-medium" style={{ color: '#6B7280' }}>Features</span>
+              <span className="font-sans text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Features</span>
               <ul className="mt-2 space-y-1">
                 {EVM_SUPPORT.features.map((f) => (
-                  <li key={f} className="font-sans text-sm flex items-center gap-2" style={{ color: '#6B7280' }}>
-                    <span style={{ color: '#6B7280' }}>+</span>
+                  <li key={f} className="font-sans text-sm flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                    <span style={{ color: 'var(--accent)' }}>+</span>
                     {f}
                   </li>
                 ))}
@@ -138,18 +138,18 @@ export default function ChainSupportSection() {
 
         {/* Web2 Proxy */}
         <div
-          className="rounded-xl p-6 opacity-50 pointer-events-none select-none"
-          style={{ background: 'var(--bg-subtle)', border: '1px dashed var(--border)' }}
+          className="rounded-xl p-6"
+          style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
         >
           <div className="flex items-center gap-3 mb-4">
-            <span style={{ color: '#6B7280', fontSize: '1.5em' }}>🛡️</span>
+            <span style={{ color: 'var(--text-primary)', fontSize: '1.5em' }}>🛡️</span>
             <div>
-              <h4 className="font-sans font-semibold text-base" style={{ color: 'var(--text-muted)' }}>
+              <h4 className="font-sans font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
                 Web2 Proxy
               </h4>
               <span
                 className="inline-block font-mono text-xs px-2 py-0.5 rounded-full mt-0.5"
-                style={{ background: 'rgba(107,114,128,0.15)', color: '#6B7280', border: '1px solid rgba(107,114,128,0.25)' }}
+                style={{ background: 'rgba(234,179,8,0.1)', color: '#eab308', border: '1px solid rgba(234,179,8,0.25)' }}
               >
                 {WEB2_SUPPORT.status}
               </span>
@@ -158,19 +158,19 @@ export default function ChainSupportSection() {
 
           <div className="space-y-3">
             <div>
-              <span className="font-sans text-xs font-medium" style={{ color: '#6B7280' }}>Providers</span>
-              <p className="font-sans text-sm mt-1" style={{ color: '#6B7280' }}>{WEB2_SUPPORT.providers.join(', ')}</p>
+              <span className="font-sans text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Providers</span>
+              <p className="font-sans text-sm mt-1" style={{ color: 'var(--text-primary)' }}>{WEB2_SUPPORT.providers.join(', ')}</p>
             </div>
             <div>
-              <span className="font-sans text-xs font-medium" style={{ color: '#6B7280' }}>Integration</span>
-              <p className="font-sans text-sm mt-1" style={{ color: '#6B7280' }}>{WEB2_SUPPORT.integration}</p>
+              <span className="font-sans text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Integration</span>
+              <p className="font-sans text-sm mt-1" style={{ color: 'var(--text-primary)' }}>{WEB2_SUPPORT.integration}</p>
             </div>
             <div>
-              <span className="font-sans text-xs font-medium" style={{ color: '#6B7280' }}>Features</span>
+              <span className="font-sans text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Features</span>
               <ul className="mt-2 space-y-1">
                 {WEB2_SUPPORT.features.map((f) => (
-                  <li key={f} className="font-sans text-sm flex items-center gap-2" style={{ color: '#6B7280' }}>
-                    <span style={{ color: '#6B7280' }}>+</span>
+                  <li key={f} className="font-sans text-sm flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                    <span style={{ color: 'var(--accent)' }}>+</span>
                     {f}
                   </li>
                 ))}

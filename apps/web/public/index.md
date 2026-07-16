@@ -1,15 +1,15 @@
-# Bastion — Multichain AI Agent Firewall
+# Bastion — Programmable Trust Runtime for AI Agents
 
-Bastion is a high-performance security middleware for autonomous AI agents
-on Solana, Celo, and EVM chains. It acts as a deterministic barrier between
-an agent's non-deterministic logic and its wallet.
+Bastion is a **Programmable Trust Runtime** for autonomous AI agents
+on Solana, EVM (Celo, Base, Ethereum, Polygon), and Arcium. It orchestrates
+identity, policy, privacy, durable execution, and multi-chain settlement.
 
 ## What Bastion does
 
 - **Transaction simulation** — Predicts balance changes via Helius before signing
-- **Policy engine** — Program whitelists, SOL caps, rate limits, blockint rules
-- **On-chain audit** — Immutable audit trail on Solana (Anchor program)
-- **Agent registry** — On-chain agent identity and reputation
+- **Policy engine** — Program whitelists, native token caps, rate limits, blockint rules
+- **On-chain audit** — Immutable audit trail on Solana and EVM (Anchor + Solidity)
+- **Agent registry** — On-chain agent identity with W3C DID + reputation
 - **Human-in-the-loop** — Manual override for suspicious transactions
 - **Circuit breaker** — Emergency pause for the entire protocol
 - **GrondOSINT oracle** — Address risk scoring via agentic OSINT pipeline
@@ -45,4 +45,4 @@ cargo run --release
 - **GitHub**: https://github.com/zkos-labs/bastion
 - **Docs**: https://github.com/zkos-labs/bastion#readme
 - **SDK**: https://www.npmjs.com/package/@zkos-labs/sdk
-- **Grond OSINT**: https://github.com/daemon-blockint-tech/Grond
+- **Grond OSINT**: https://github.com/zkos-labs/Grond

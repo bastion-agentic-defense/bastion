@@ -1,7 +1,7 @@
-# Integrate Bastion, SDK & API
+# Integrate Bastion — SDK & API
 
 Bastion provides a TypeScript SDK and REST API for integrating the
-AI agent firewall into your application.
+Programmable Trust Runtime into your application.
 
 ## Install the SDK
 
@@ -14,9 +14,9 @@ npm install @zkos-labs/sdk
 ```typescript
 import { BastionClient } from "@zkos-labs/sdk";
 
-const client = new BastionClient({ baseUrl: "https://bastion-agentique.fly.dev/" });
+const client = new BastionClient({ baseUrl: "https://bastion.zkos.dev/" });
 
-// Simulate a transaction
+// Simulate a Solana transaction
 const result = await client.simulate({
   transaction: base64Tx,
   intent: "Swap 1 SOL for USDC on Jupiter",
@@ -30,32 +30,42 @@ if (result.status === "allowed") {
 }
 ```
 
+## EVM Usage (SDK)
+
+```typescript
+// Simulate an EVM transaction
+const evmResult = await client.simulateEvm({
+  transaction: { to: "0x...", data: "0x...", value: "1000000" },
+  intent: "Swap 0.1 ETH for USDC on Uniswap",
+  chain: "sepolia",
+});
+```
+
 ## REST API
 
 ```bash
 # Simulate a transaction
-curl -X POST https://bastion-agentique.fly.dev//simulate \
+curl -X POST https://bastion.zkos.dev/simulate \
   -H "Content-Type: application/json" \
   -d '{"transaction": "...", "intent": "Swap 1 SOL for USDC"}'
 
 # Get current policy
-curl https://bastion-agentique.fly.dev//policy
+curl https://bastion.zkos.dev/policy
 
 # Get audit logs
-curl https://bastion-agentique.fly.dev//logs?limit=50
+curl https://bastion.zkos.dev/logs?limit=50
 
 # Human override
-curl -X POST https://bastion-agentique.fly.dev//override \
+curl -X POST https://bastion.zkos.dev/override \
   -H "Content-Type: application/json" \
   -d '{"block_id": "...", "action": "ALLOW"}'
 ```
 
 ## Supported Chains
 
-- Solana (primary)
-- Celo (EVM)
+- Solana
+- EVM (Celo, Base, Ethereum, Polygon)
 - Arcium MXE (confidential computing)
-- Base, Ethereum, Polygon, Arbitrum (via chain-agnostic core)
 
 ## Links
 
