@@ -1,73 +1,312 @@
 ---
 name: ethereum-ecosystem
 description: >-
-  Ethiopia's standard-based agent trust infrastructure. Maps ERC-8004 (agent identity),
-  ERC-7579 (modular wallets), ERC-4337 (account abstraction), ERC-8126 (agent verification),
-  EIP-7702 (smart EOAs), x402 (HTTP payments), EAS (attestations), and Sign Protocol.
+  Comprehensive map of Ethereum trust primitives Bastion orchestrates.
+  Covers wallets (Safe, EOA, AA), identity (ERC-8004, ENS, A2A),
+  payments (x402, Pact), attestations (EAS, Sign, zkTLS), shared trust
+  (EigenLayer), oracles (Chainlink, Pyth), bridges (Across, LayerZero),
+  indexing (The Graph, Blockscout MCP), agent platforms (Olas, Virtuals),
+  and developer tooling (ethskills, Base MCP, Foundry, Scaffold-ETH 2).
   Use when building on Ethereum trust standards.
 ---
 
 # Ethereum Ecosystem Standards for Bastion
 
-Bastion is the **Programmable Trust Runtime** — it orchestrates, not replaces, Ethereum's trust primitives. This skill maps the standards Bastion composes.
+Bastion is the **Programmable Trust Runtime** — it orchestrates, not replaces, Ethereum's trust primitives. This skill maps every standard, protocol, and tool Bastion composes.
 
-## ERC-8004 — Agent Identity Registry
+---
 
-**Deployed:** January 29, 2026. On 20+ chains. Same contract addresses everywhere.
+## 1. Agent Identity & Reputation
+
+### ERC-8004 — Agent Identity Registry
+**Deployed:** January 29, 2026. On 20+ chains. Same addresses everywhere.
 
 - **IdentityRegistry:** `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`
 - **ReputationRegistry:** `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`
+- **ValidationRegistry:** Crypto-economic, zkML, TEE attestation models
+- Agent identity = ERC-721 NFT. Multi-dimensional reputation (uptime, quality, success rate).
+- **Resource:** https://www.8004.org | https://eips.ethereum.org/EIPS/eip-8004
 
-Agent identity is an ERC-721 NFT. Registration URI points to JSON with service endpoints (A2A, MCP, x402, etc.). Reputation is multi-dimensional (uptime, quality, success rate) with signed fixed-point feedback. Validation registry supports crypto-economic, zkML, and TEE attestation models.
+### ERC-8126 — AI Agent Verification
+Standardized verification results and risk scores consumed during policy evaluation.
+- **Resource:** https://eips.ethereum.org/EIPS/eip-8126
 
-**Resource:** `https://ethskills.com/standards/SKILL.md` (ERC-8004 section) | https://www.8004.org
+### ENS — Ethereum Name Service
+Human-readable names for agent identities (`agent.eth`). Composable with ERC-8004.
+- **Resource:** https://ens.domains
 
-## ERC-4337 / ERC-7579 — Smart Accounts & Modular Wallets
+### A2A — Agent-to-Agent Protocol (Google)
+Standard for autonomous agent discovery and communication. ERC-8004's service registry maps A2A endpoints.
+- **Resource:** https://github.com/google/A2A
 
-ERC-4337 provides account abstraction (UserOperations, bundlers, paymasters). ERC-7579 defines modular smart account architecture — validators, executors, hooks. Bastion's policy validators plug as ERC-7579 modules.
+### Privado ID / Polygon ID — Decentralized Identity
+Privacy-preserving identity for agents and users. VC-based claims (KYC, credentials).
+- **Resource:** https://privado.id
 
-## ERC-8126 — AI Agent Verification
+---
 
-Consume standardized verification results and risk scores during policy evaluation before allowing an agent to execute.
+## 2. Wallets & Account Abstraction
 
-## EIP-7702 — Smart EOAs
+### ERC-4337 — Account Abstraction
+UserOperations, bundlers, paymasters. EntryPoint v0.7: `0x0000000071727De22E5E9d8BAf0edAc6f37da032`.
+Major implementations: Kernel (ZeroDev), Biconomy, Alchemy Account Kit, Pimlico.
 
-Live since May 2025. EOAs get smart-contract capabilities without migration. Bastion can extend policy enforcement to EOA-based agents.
+### ERC-7579 — Modular Smart Accounts
+Validators, executors, hooks. Bastion's policy validator plugs as an ERC-7579 module.
 
-## x402 — HTTP Payment Protocol
+### EIP-7702 — Smart EOAs (Live May 2025)
+EOAs get smart-contract delegation without migration. Batching, gas sponsorship, session keys.
+Still early for production agents — use standard EOAs or Safe until tooling matures.
 
-Production-ready open standard from Coinbase. Uses HTTP 402 "Payment Required" for internet-native micropayments. Bastion's Web2 firewall proxies x402 calls; Pact Network insures them.
+### Safe (Gnosis Safe) — Multisig Wallets
+**For AI agents:** 2-of-3 Safe (agent hot wallet + human hot wallet + human cold wallet).
+If agent key is compromised, human removes it. Agent can batch transactions.
+- **Singleton:** `0x41675C099F32341bf84BFc5382aF534df5C7461a` (same on all chains)
+- **Resource:** https://docs.safe.global
 
-**SDKs:** `@x402/core @x402/evm @x402/fetch @x402/express` (TS) | `pip install x402` (Python)
+### Coinbase Smart Wallet / Base Account
+Embedded wallet with passkey auth. Used by Base MCP for agent wallets.
+- **Resource:** https://www.smart-wallet.xyz
 
-**Resource:** https://www.x402.org | https://ethskills.com/standards/SKILL.md (x402 section)
+### Privy — Embedded Wallets
+Wallet infrastructure for apps. Embedded wallets, email/social login, user-owned accounts.
+- **Resource:** https://privy.io
 
-## EAS — Ethereum Attestation Service
+### Dynamic — Wallet-Based Auth
+Embedded wallets + multi-wallet auth + smart accounts.
+- **Resource:** https://dynamic.xyz
 
-On-chain attestation registry. Bastion stores execution approvals, compliance attestations, human approvals, and policy outcomes as EAS attestations.
+### wagmi / viem — Frontend Wallet Libraries
+React hooks (wagmi) + low-level primitives (viem). The standard stack for EVM dApp frontends.
+- **Resource:** https://wagmi.sh | https://viem.sh
 
-## Sign Protocol — Cross-Chain Attestations
+---
 
-Portable trust records verifiable across ecosystems. Bastion emits Sign attestations for cross-chain trust decisions.
+## 3. Payments & Settlement
 
-## Pact Network — Payment Refunds
+### x402 — HTTP Payment Protocol (Coinbase)
+Production-ready HTTP 402 micropayments. Server returns 402 Payment Required → client pays via EIP-3009 → server settles onchain. Bastion's Web2 firewall proxies x402 calls.
+- **SDKs:** `@x402/core @x402/evm @x402/fetch @x402/express` (TS) | `pip install x402` (Python)
+- **Resource:** https://www.x402.org
 
-On-chain chargeback protocol for x402 payments. Solana mainnet Pinocchio program (`5bCJcdWdKLJ7arrMVMFh3z99rQDxV785fnD9XGcr3xwc`). Agents pay a premium; if the API fails, Pact refunds principal+premium from a USDC coverage pool.
+### Pact Network — Payment Refunds
+On-chain chargeback for x402. Solana mainnet program `5bCJcdWdKLJ7arrMVMFh3z99rQDxV785fnD9XGcr3xwc`.
+Premium per call → refund (principal+premium) on API failure from USDC coverage pool.
+- **Resource:** https://pactnetwork.io/docs
 
-## Key Ecosystem Skills
+### EIP-3009 — Transfer With Authorization
+Gasless token transfers via signed authorizations. USDC implements it. Powers x402.
+- **Resource:** https://eips.ethereum.org/EIPS/eip-3009
 
-| Skill | Install | Purpose |
-|-------|---------|---------|
-| ETHSKILLS | `/plugin install ethskills@ethskills` | Full Ethereum development knowledge (Claude Code) |
-| Base MCP | `npx skills add base/skills --skill base-mcp` | Wallet + x402 + 20+ DeFi plugins |
-| Base Skills (full) | `npx skills add base/skills --skill build-on-base` | Complete Base development playbook |
+### ERC-2612 — Permit (Gasless Approvals)
+Gasless token approvals via signatures. Widely adopted across DeFi.
+- **Resource:** https://eips.ethereum.org/EIPS/eip-2612
 
-## Resources
+---
 
-- https://ethskills.com/SKILL.md — all 19 Ethereum skills
-- https://github.com/base/skills — Base agent skills
-- https://www.8004.org — ERC-8004 agent identity
-- https://www.x402.org — HTTP payment protocol
-- https://eips.ethereum.org/EIPS/eip-8004 — ERC-8004 spec
-- https://eips.ethereum.org/EIPS/eip-8126 — ERC-8126 spec
-- https://pactnetwork.io/docs — Pact Network docs
+## 4. Attestations & Provenance
+
+### EAS — Ethereum Attestation Service
+On-chain attestation registry. Bastion stores execution approvals, compliance attestations, human approvals, and policy outcomes.
+- **Resource:** https://attest.org
+
+### Sign Protocol — Cross-Chain Attestations
+Portable trust records verifiable across ecosystems. Bastion emits Sign attestations for cross-chain trust.
+- **Resource:** https://sign.global
+
+### zkTLS / Reclaim / zkPass — Verified Web Data
+Cryptographic proofs of web API responses. Bastion uses verified data as policy inputs (e.g., "this agent has a verified GitHub org membership").
+- **Resource:** https://reclaimprotocol.org | https://zkpass.org
+
+### Sigil — On-Chain Provenance
+Verifiable records of agent actions and decisions.
+- **Resource:** https://sigil.sh
+
+---
+
+## 5. Shared Trust & Cryptoeconomic Security
+
+### EigenLayer — Restaking & AVS
+Cryptoeconomic trust for verifiable services. Bastion coordinates workflows against EigenLayer-secured oracles.
+- **Resource:** https://eigenlayer.xyz
+
+### Lit Protocol — Threshold Cryptography
+Programmable key management and threshold decryption. Bastion uses Lit as a trust primitive for confidential execution policies.
+- **Resource:** https://litprotocol.com
+
+---
+
+## 6. Oracles & Data Feeds
+
+### Chainlink — Decentralized Oracle Network
+Price feeds, VRF (verifiable randomness), Automation (keeper network), CCIP (cross-chain).
+Bastion consumes Chainlink price feeds for policy thresholds and VRF for unbiased randomness.
+- **Feed Registry (mainnet):** `0x47Fb2585D2C56Fe188D0E6ec628a38b74fCeeeDf`
+- **Resource:** https://docs.chain.link
+
+### Pyth Network — Low-Latency Oracles
+High-frequency price feeds optimized for Solana and EVM. Pull-based model (cheaper than push).
+- **Resource:** https://pyth.network
+
+### Chronicle — MakerDAO-Backed Oracles
+Verifiable oracle protocol originally built by MakerDAO. Scribe model for gas-efficient updates.
+- **Resource:** https://chroniclelabs.org
+
+---
+
+## 7. Bridges & Interoperability
+
+### Across — Intents-Based Bridging
+Fast cross-chain transfers via relayers and intents. Optimistic oracle for dispute resolution.
+- **Resource:** https://across.to
+
+### LayerZero — Omnichain Messaging
+Arbitrary cross-chain message passing. Powers cross-chain agent actions.
+- **Endpoints deployed on 80+ chains. Resource:** https://layerzero.network
+
+### Wormhole — Cross-Chain Messaging
+Generic message passing + token bridging. Solana-native origins, now multichain.
+- **Resource:** https://wormhole.com
+
+### Hyperlane — Permissionless Interop
+Permissionless cross-chain messaging. Anyone can deploy to new chains without governance.
+- **Resource:** https://hyperlane.xyz
+
+---
+
+## 8. Indexing & Data
+
+### The Graph — Blockchain Indexing
+Subgraph-based indexing for fast on-chain data queries. ERC-8004 agent registrations can be indexed for fast discovery.
+- **Resource:** https://thegraph.com
+
+### Blockscout MCP — AI Agent Blockchain Data
+Model Context Protocol server for structured blockchain data. Multi-chain (mainnet + all major L2s).
+- **Endpoint:** `https://mcp.blockscout.com/mcp`
+- **Resource:** https://docs.blockscout.com
+
+### Dune Analytics — On-Chain SQL
+Query blockchain data with SQL. Dashboards for protocol analytics.
+- **Resource:** https://dune.com
+
+### Dune Sim — Realtime On-Chain APIs
+REST/WebSocket APIs for wallet intelligence, token analytics, and real-time data.
+- **Resource:** https://sim.dune.com
+
+---
+
+## 9. Agent Platforms & Frameworks
+
+### Virtuals Protocol — Agent Economy
+Agent identity, capital formation, tokenized agents, and agent marketplaces.
+- **Resource:** https://virtuals.io
+
+### ElizaOS (ai16z) — Agent Framework
+Multi-chain agent framework with plugin system. Bastion provides the trust runtime for ElizaOS agents.
+- **Resource:** https://elizaos.ai
+
+### Olas (Autonolas) — Autonomous Agent Services
+On-chain agent service registry. Agent bonding, staking, and service composability.
+- **Resource:** https://olas.network
+
+### Wayfinder — Agent Routing
+Agent discovery and routing infrastructure.
+- **Resource:** https://wayfinder.ai
+
+---
+
+## 10. Developer Tooling
+
+### ETHSKILLS
+19 Ethereum skills for AI agents (Solidity, wallets, gas, L2s, standards, DeFi, security, testing, deployment).
+- **Install:** `/plugin install ethskills@ethskills` (Claude Code)
+- **Resource:** https://ethskills.com/SKILL.md
+
+### Base MCP
+Base Account wallet via MCP server. Send, swap, sign, batched calls, x402 payments, 20+ DeFi plugins.
+- **Install:** `npx skills add base/skills --skill base-mcp`
+- **Resource:** https://docs.base.org/ai-agents/quickstart
+
+### Build on Base
+Complete Base development playbook: network config, contract deployment, wallet auth, payments, Farcaster.
+- **Install:** `npx skills add base/skills --skill build-on-base`
+- **Resource:** https://github.com/base/skills
+
+### Foundry
+Solidity-native dev toolchain (`forge`, `cast`, `anvil`). Fast compilation, testing, fuzzing, deployment.
+- **Resource:** https://book.getfoundry.sh
+
+### Scaffold-ETH 2
+Full-stack Ethereum toolkit: Solidity + Next.js + Foundry. Auto-generates TypeScript types.
+- **Resource:** https://docs.scaffoldeth.io
+
+### Hardhat 3
+TypeScript-first Ethereum dev environment. Solidity testing, fuzzing, Rust internals (Aug 2025).
+- **Resource:** https://hardhat.org
+
+### abi.ninja
+Paste any verified contract address → interactive UI for all functions. Multi-chain. Zero setup.
+- **Resource:** https://abi.ninja
+
+### RPC Providers
+- **LlamaNodes:** `https://eth.llamarpc.com` (free)
+- **Alchemy:** 300M CU/month free tier
+- **Infura:** MetaMask default
+- **QuickNode:** Performance-focused
+
+---
+
+## 11. Bastion's Trust Lifecycle Map
+
+```
+                    Applications
+        AI Agents · Enterprises · DAEMON
+
+                          │
+
+                   Bastion Runtime
+────────────────────────────────────────────────────
+
+Identity                Policy              Wallet
+├── ERC-8004            ├── OPA             ├── ERC-4337
+├── ERC-8126            ├── Runtime Rules   ├── EIP-7702
+├── ENS                 ├── Human Approval  ├── ERC-7579
+├── A2A                 └── Chainlink VRF   ├── Safe (multisig)
+├── Privado ID                              ├── Coinbase Smart Wallet
+└── DID/VC                                 └── wagmi/viem
+
+Evidence                Execution           Settlement
+├── EAS                 ├── Solana          ├── Ethereum
+├── Sign Protocol       ├── Arcium (MPC)    ├── Pact Network
+├── zkTLS/Reclaim       └── Midnight (ZK)   └── EigenLayer
+├── Sigil
+└── The Graph
+
+Trust Primitives         Bridging            Payments
+├── EigenLayer           ├── Across          ├── x402
+├── Lit Protocol         ├── LayerZero       ├── Pact Network
+├── Chainlink/Pyth       ├── Wormhole        └── EIP-3009
+└── Chronicle            └── Hyperlane
+```
+
+---
+
+## 12. Resources
+
+| Category | Resource |
+|----------|----------|
+| All Ethereum skills | https://ethskills.com/SKILL.md |
+| Base agent skills | https://github.com/base/skills |
+| ERC-8004 agent identity | https://www.8004.org |
+| x402 payments | https://www.x402.org |
+| Pact Network | https://pactnetwork.io/docs |
+| Blockscout MCP | https://mcp.blockscout.com/mcp |
+| Scaffold-ETH 2 | https://docs.scaffoldeth.io |
+| Foundry | https://book.getfoundry.sh |
+| SpeedRun Ethereum | https://speedrunethereum.com |
+| Ethereum.org dev | https://ethereum.org/en/developers |
+| ETH Tech Tree | https://www.ethtechtree.com |
+
+---
+
+**Built by zkOS Labs** — the Programmable Trust Runtime for Autonomous Systems.
