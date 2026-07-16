@@ -138,13 +138,15 @@ Identity                Policy              Evidence
 
 Wallet                  Execution           Settlement
 ├── ERC-4337            ├── Solana          ├── Ethereum
-├── EIP-7702            ├── Arcium          ├── Pact Network
-└── ERC-7579            └── Midnight        └── EigenLayer
+├── EIP-7702            ├── Starknet (ZK)   ├── Pact Network
+└── ERC-7579            ├── Arcium (MPC)    └── EigenLayer
+                        └── Midnight (ZK)
 ```
 
 ## Multi-chain by design
 
 Different execution environments serve different purposes: durable coordination (Solana),
+ZK-verified execution with native account abstraction (Starknet),
 confidential computation (Arcium), trust anchoring & settlement (Ethereum), privacy-preserving
 execution (Midnight), and provenance & attestations (Sigil). Applications interact with
 Bastion — not individual blockchains.
@@ -161,6 +163,7 @@ and policy-compliant.
 - Durable workflow runtime
 - Cross-chain orchestration and a real settlement router
 - Confidential execution with Arcium (real MXE)
+- ZK-verified execution on Starknet (native AA, STARK proofs, Cairo VM)
 - Zero-knowledge policy enforcement
 - Decentralized identity integration
 - A trust marketplace for AI agents

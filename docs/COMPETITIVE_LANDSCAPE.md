@@ -206,10 +206,11 @@ Identity                Policy              Evidence
 ├── Privado ID                              ├── Sigil
 └── DID / VC
 
-Wallet                  Execution           Settlement
-├── ERC-4337            ├── Solana          ├── Ethereum
-├── EIP-7702            ├── Arcium          ├── Pact Network
-└── ERC-7579            └── Midnight        └── EigenLayer
+Wallet                  Execution               Settlement
+├── ERC-4337            ├── Solana              ├── Ethereum
+├── EIP-7702            ├── Starknet (ZK + AA)  ├── Pact Network
+└── ERC-7579            ├── Arcium (MPC)        └── EigenLayer
+                        └── Midnight (ZK)
 ```
 
 ---

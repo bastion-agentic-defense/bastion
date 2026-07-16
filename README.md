@@ -100,12 +100,13 @@ Policy Runtime              ✅  OPA + Runtime Rules
 Wallet Runtime              🚧  ERC-4337, EIP-7702, ERC-7579
 Durable Workflow Engine     🚧
 Privacy Runtime             🚧  Arcium MXE
+ZK-Verified Execution       🚧  Starknet (STARK proofs, native AA)
 Trust Ledger                ✅  EAS, Sign Protocol
-Execution Planner           🟡  Solana, EVM, Arcium
+Execution Planner           🟡  Solana, EVM, Arcium, Starknet
 Settlement Router           🚧  Ethereum, Pact Network
 ─────────────────────────────────────────
     │
-Solana · Arcium · Ethereum · Midnight · Pact Network
+Solana · Starknet · Arcium · Ethereum · Midnight · Pact Network
 ```
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the complete capability architecture with Bastion's proprietary runtime layer, composable infrastructure mapping, and data flow diagrams.
@@ -119,6 +120,7 @@ Different execution environments serve different purposes.
 | Capability                    | Network  | Status |
 | ----------------------------- | -------- | ------ |
 | Durable workflow coordination | Solana   | ✅ on-chain audit program (devnet) |
+| ZK-verified execution (native AA) | Starknet | 🚧 planned — Ethereum ZK-rollup, STARK proofs, Cairo VM, every account is a smart account |
 | Confidential computation      | Arcium   | 🚧 integration stubbed (no-op MPC client today) |
 | Trust anchoring & settlement  | Ethereum | 🟡 per-chain sim wired (`settlement:"ethereum"`); contracts written & tested; testnet-only, mainnet 🚧 behind audit gate |
 | Privacy-preserving execution  | Midnight | 🚧 planned |
