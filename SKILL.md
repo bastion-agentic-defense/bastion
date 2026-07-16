@@ -44,9 +44,19 @@ cd bastion && cargo build --release
 
 Bastion integrates with these agent skill packages:
 
+**Ethereum Standards & Tooling**
+- **ETHSKILLS** ([ethskills.com](https://ethskills.com)): Complete Ethereum development knowledge for AI agents. Covers ERC-8004 (agent identity+reputation), ERC-4337 (account abstraction), EIP-7702 (smart EOAs), x402 (HTTP payments), ERC-7579 (modular wallets), Foundry, Scaffold-ETH 2, and security patterns. Load `/plugin install ethskills@ethskills` in Claude Code.
+- **Base Skills** ([base/skills](https://github.com/base/skills)): Base MCP server for wallet access (send, swap, sign), batched contract calls, x402 payments, and 20+ DeFi partner plugins (Uniswap, Morpho, Moonwell, Aerodrome, etc.). Install: `npx skills add base/skills --skill base-mcp`.
+
+**Privacy & Confidential Compute**
 - **Arcium Docs** (`arcium-docs`): MXE (Multi-party Execution) confidential computing on Solana. Covers threshold encryption, MPC key management, and encrypted on-chain state for privacy-preserving agent transactions.
-- **Base Docs** (`base-docs`): Base L2 (EVM hub-and-spoke). Covers cross-chain settlement, bridging, and EVM-compatible smart contract deployment for multi-chain agent workflows.
+- **Midnight Network** (`midnightskill`): Compact smart contracts with zero-knowledge proofs. Covers shielded/unshielded state, selective disclosure, and privacy-preserving execution.
+
+**Solana Tooling**
 - **Solana Agent Skills** (`solana-agent-skills`): Foundation-maintained Solana skills for wallet management, transaction building, program interaction, and on-chain state queries.
+- **Base Docs** (`base-docs`): Base L2 (EVM hub-and-spoke). Covers cross-chain settlement, bridging, and EVM-compatible smart contract deployment for multi-chain agent workflows.
+
+**Trust Primitives**
 - **Pact Network**: On-chain refund protocol for x402 agent payments. Provides money-back guarantees when agent API calls fail — chargebacks for the agent economy. Composes with Bastion's Web2 firewall for insured outbound API calls.
 
 ## Staking (AgentStake PDA)
