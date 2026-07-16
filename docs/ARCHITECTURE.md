@@ -236,8 +236,8 @@ bastion/
 ├── arcium/                   ← Arcium MXE integration
 ├── apps/web/                ← React compliance dashboard (Vite + TailwindCSS)
 ├── packages/
-│   ├── sdk/                 ← @bastion-agentique/sdk (TypeScript, on-chain + sidecar clients, 6 tests)
-│   └── web2-sdk/            ← @bastion-agentique/web2-sdk (TypeScript, BastionWeb2Client, 9 tests)
+│   ├── sdk/                 ← @zkos-labs/sdk (TypeScript, on-chain + sidecar clients, 6 tests)
+│   └── web2-sdk/            ← @zkos-labs/web2-sdk (TypeScript, BastionWeb2Client, 9 tests)
 ├── .agents/skills/          ← 48 agent skills (blockchain forensics, compliance, DeFi security, Web2 firewall)
 ├── docs/                    ← Architecture, roadmap, expansion plans, PRDs
 ├── config.toml              ← Sidecar policy configuration

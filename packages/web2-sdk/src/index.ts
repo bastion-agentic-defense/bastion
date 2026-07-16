@@ -115,7 +115,7 @@ export class BastionWeb2Client {
 
   /** Check if a request passes policy evaluation (without actually proxying). */
   async evaluate(req: ProxyRequest): Promise<ProxyDecision> {
-    const res = await fetch(`${this.proxyUrl}/api/v2/evaluate`, {
+    const res = await fetch(`${this.proxyUrl}/api/v2/evaluate-web2`, {
       method: "POST",
       headers: this.headers,
       body: JSON.stringify(req),

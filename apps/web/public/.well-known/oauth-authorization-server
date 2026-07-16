@@ -16,7 +16,7 @@
     "bastion:agents:read",
     "bastion:agents:write"
   ],
-  "service_documentation": "https://github.com/bastion-agentique/bastion",
+  "service_documentation": "https://github.com/zkos-labs/bastion",
   "ui_locales_supported": ["en"],
   "agent_auth": {
     "skill": "bastion",

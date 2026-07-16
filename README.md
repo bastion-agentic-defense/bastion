@@ -2,10 +2,17 @@
 
 > **The Programmable Trust Runtime for Autonomous Systems.**
 
-[![npm](https://img.shields.io/npm/v/@bastion-agentique/sdk?label=sdk)](https://www.npmjs.com/package/@bastion-agentique/sdk)
-[![npm](https://img.shields.io/npm/v/@bastion-agentique/web2-sdk?label=web2-sdk)](https://www.npmjs.com/package/@bastion-agentique/web2-sdk)
+[![npm](https://img.shields.io/npm/v/@zkos-labs/sdk?label=sdk)](https://www.npmjs.com/package/@zkos-labs/sdk)
+[![npm](https://img.shields.io/npm/v/@zkos-labs/web2-sdk?label=web2-sdk)](https://www.npmjs.com/package/@zkos-labs/web2-sdk)
 
 > ⚠️ **Alpha Software** — APIs and runtime behavior may change before the first stable release.
+> This document marks what ships today vs. what is planned. **No component is on mainnet with
+> real value:** production deployment is gated behind an external security audit — see
+> [`docs/MAINNET_READINESS.md`](docs/MAINNET_READINESS.md) and [`docs/EVM_READINESS.md`](docs/EVM_READINESS.md).
+
+**Status legend:** ✅ shipped & tested · 🟡 partial / not fully wired · 🚧 planned / stubbed
+
+For endpoint-level technical documentation, see [`docs/OVERVIEW.md`](docs/OVERVIEW.md).
 
 ---
 
@@ -18,6 +25,11 @@ Rather than building security, policy, and blockchain logic into every applicati
 Developers define **trust requirements**.
 
 Bastion determines **how those requirements are enforced**.
+
+Today, the shipped core is a **transaction firewall**: agents submit intended actions, Bastion
+evaluates them against programmable policy, simulates them, applies human-in-the-loop review when
+required, and writes a verifiable audit record. The broader runtime (durable workflows,
+confidential compute, cross-chain settlement) is under active development — see the roadmap below.
 
 ---
 
@@ -35,18 +47,20 @@ Bastion provides the runtime that makes autonomous systems safe to deploy in pro
 
 ## Core Capabilities
 
-* Durable workflow execution
-* Programmable policy engine
-* AI agent identity & delegation
-* Transaction simulation & verification
-* Human-in-the-loop approvals
-* Verifiable trust ledger
-* Multi-chain execution planning
-* Confidential computation
-* Web2 API policy gateway
-* MCP server
-* TypeScript SDK
-* Dashboard & monitoring
+| Capability | Status |
+| --- | --- |
+| Programmable policy engine | ✅ |
+| Transaction simulation & verification | ✅ |
+| Human-in-the-loop approvals | ✅ |
+| Verifiable trust ledger | ✅ |
+| TypeScript SDK | ✅ |
+| AI agent identity & delegation | 🟡 |
+| Multi-chain execution planning | 🟡 |
+| Web2 API policy gateway | 🟡 |
+| MCP server | 🟡 |
+| Dashboard & monitoring | 🟡 |
+| Durable workflow execution | 🚧 |
+| Confidential computation | 🚧 |
 
 ---
 
@@ -58,13 +72,13 @@ Applications
 AI Agents · DAEMON · Enterprise Systems
     │
 ──────────── Bastion Runtime ────────────
-Identity Runtime
-Policy Runtime
-Durable Workflow Engine
-Privacy Runtime
-Trust Ledger
-Execution Planner
-Settlement Router
+Identity Runtime            🟡
+Policy Runtime              ✅
+Durable Workflow Engine     🚧
+Privacy Runtime             🚧
+Trust Ledger                ✅
+Execution Planner           🟡
+Settlement Router           🚧
 ─────────────────────────────────────────
     │
 Solana · Arcium · Ethereum · Midnight
@@ -78,13 +92,13 @@ Bastion presents a single runtime while coordinating specialized infrastructure 
 
 Different execution environments serve different purposes.
 
-| Capability                    | Network  |
-| ----------------------------- | -------- |
-| Durable workflow coordination | Solana   |
-| Confidential computation      | Arcium   |
-| Trust anchoring & settlement  | Ethereum |
-| Privacy-preserving execution  | Midnight |
-| Provenance & attestations     | Sigil    |
+| Capability                    | Network  | Status |
+| ----------------------------- | -------- | ------ |
+| Durable workflow coordination | Solana   | ✅ on-chain audit program (devnet) |
+| Confidential computation      | Arcium   | 🚧 integration stubbed (no-op MPC client today) |
+| Trust anchoring & settlement  | Ethereum | 🟡 per-chain sim wired (`settlement:"ethereum"`); contracts written & tested; testnet-only, mainnet 🚧 behind audit gate |
+| Privacy-preserving execution  | Midnight | 🚧 planned |
+| Provenance & attestations     | Sigil    | 🚧 planned |
 
 Applications interact with Bastion—not individual blockchains.
 
@@ -114,27 +128,30 @@ This ensures every action is deterministic, auditable, and policy-compliant.
 
 ## Features
 
-| Component            | Purpose                                 |
-| -------------------- | --------------------------------------- |
-| Identity Runtime     | Agent identity, delegation, credentials |
-| Policy Runtime       | Rules, approvals, limits, governance    |
-| Transaction Firewall | Transaction validation and simulation   |
-| Trust Ledger         | Verifiable audit records                |
-| Execution Planner    | Multi-chain routing                     |
-| Web2 Gateway         | Secure API mediation                    |
-| MCP Server           | Native AI agent integration             |
-| Dashboard            | Monitoring and policy management        |
+| Component            | Purpose                                 | Status |
+| -------------------- | --------------------------------------- | ------ |
+| Policy Runtime       | Rules, approvals, limits, governance    | ✅ |
+| Transaction Firewall | Transaction validation and simulation   | ✅ |
+| Trust Ledger         | Verifiable audit records                | ✅ |
+| Identity Runtime     | Agent identity, delegation, credentials | 🟡 |
+| Execution Planner    | Multi-chain routing                     | 🟡 |
+| Web2 Gateway         | Secure API mediation                    | 🟡 |
+| MCP Server           | Native AI agent integration             | 🟡 |
+| Dashboard            | Monitoring and policy management        | 🟡 |
 
 ---
 
 ## Getting Started
 
 ```bash
-git clone https://github.com/bastion-agentique/bastion.git
+git clone https://github.com/zkos-labs/bastion.git
 cd bastion
 
+# Build the Rust workspace
 cargo build --release
-cargo run --release
+
+# Run the Bastion sidecar (the trust runtime HTTP service)
+cargo run --release -p bastion-sidecar
 ```
 
 Dashboard:
@@ -146,41 +163,65 @@ pnpm --filter bastion-dashboard dev
 SDK:
 
 ```bash
-npm install @bastion-agentique/sdk
+npm install @zkos-labs/sdk
 ```
 
 ---
 
 ## Example
 
+**Available today** — simulate and policy-check an agent transaction through the firewall, and
+register an agent identity:
+
 ```typescript
-await bastion.execute({
+import { BastionClient, BastionSidecar } from "@zkos-labs/sdk";
 
-  action: "swap",
+const sidecar = new BastionSidecar({ baseUrl: "https://bastion-agentique.fly.dev" });
 
-  policy: "default",
+// Simulate + policy-check an agent transaction (returns Pass / Block / PendingHITL)
+const decision = await sidecar.simulate({ transaction, intent: "swap" });
 
-  privacy: "public",
-
-  settlement: "ethereum"
-
-});
+// Register an agent identity on-chain
+const client = new BastionClient({ connection });
+const tx = await client.registerAgent({ /* ... */ });
 ```
 
-Instead of choosing infrastructure, developers define the desired trust guarantees.
+**Unified runtime facade (🟡 shipped in the SDK, thin composition)** — a single `execute()` call
+where developers declare trust guarantees instead of choosing infrastructure:
+
+```typescript
+import { Bastion, BastionSidecar, BastionClient } from "@zkos-labs/sdk";
+
+const bastion = new Bastion({ sidecar, client });
+
+const result = await bastion.execute({
+  action: "swap",
+  privacy: "public",       // "confidential" is refused unless real Arcium MPC is active
+  settlement: "ethereum",  // "solana" | "ethereum" | "base" | "celo"
+  transaction,             // base64 Solana tx, or EVM tx params
+});
+// result.decision → "pass" | "block" | "pending_hitl"
+```
+
+`execute()` composes the existing firewall primitives (policy evaluation, per-chain simulation,
+audit) behind one call — it adds no new backend. The cross-chain settlement **router/planner** is
+still minimal (chain selection + simulation); true execution planning remains 🚧.
 
 ---
 
 ## Roadmap
 
-* Durable workflow runtime
-* Cross-chain orchestration
-* Confidential execution with Arcium
-* Ethereum trust anchoring
-* Zero-knowledge policy enforcement
-* Decentralized identity integration
-* Trust marketplace for AI agents
-* Multi-network support
+* ✅ Programmable policy engine + transaction firewall (Solana + EVM simulation)
+* ✅ Verifiable trust ledger (on-chain audit program, devnet)
+* 🟡 Agent identity, delegation & multi-chain planning
+* 🟡 Web2 API policy gateway (rate / budget / cost / time rules enforced, wired into the sidecar) + MCP integration
+* 🟡 Unified `execute()` runtime facade (shipped in the SDK; settlement planner still minimal)
+* 🚧 Durable workflow runtime
+* 🚧 Confidential execution with Arcium (real MXE, replacing the no-op client)
+* 🚧 Ethereum trust anchoring & settlement router (post-audit)
+* 🚧 Zero-knowledge policy enforcement · decentralized identity · trust marketplace
+
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for detail and [`docs/VISION.md`](docs/VISION.md) for the long-form vision.
 
 ---
 
@@ -188,7 +229,7 @@ Instead of choosing infrastructure, developers define the desired trust guarante
 
 Contributions are welcome.
 
-Please open an issue to discuss new features, architecture proposals, or bug reports before submitting large pull requests.
+Please open an issue to discuss new features, architecture proposals, or bug reports before submitting large pull requests. See [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md).
 
 ---
 

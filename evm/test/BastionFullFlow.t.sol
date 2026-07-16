@@ -26,13 +26,16 @@ contract BastionFullFlowTest is Test {
     function setUp() public {
         vm.startPrank(owner);
 
-        audit = new BastionAudit();
+        audit = new BastionAudit(owner);
         policy = new BastionPolicy(owner);
         registry = new BastionRegistry(owner);
 
         firewall = new BastionFirewall(
             IBastionPolicy(address(policy)), IBastionAudit(address(audit)), owner
         );
+
+        // Authorize the firewall as the sole audit writer.
+        audit.setFirewall(address(firewall));
 
         // Register target
         registry.registerTarget(target, "Test Target");
@@ -221,7 +224,14 @@ contract BastionFullFlowTest is Test {
         assertEq(reason.length, 0);
     }
 
+    function test_Audit_RecordRevertsForNonFirewall() public {
+        vm.prank(stranger);
+        vm.expectRevert(abi.encodeWithSignature("NotFirewall(address)", stranger));
+        audit.record(agent, target, bytes4(0x11111111), 1, 100, true, "", "");
+    }
+
     function test_Audit_RecordAndRetrieveEntry() public {
+        vm.prank(address(firewall));
         bytes32 entryId = audit.record(
             agent,
             target,
@@ -244,6 +254,7 @@ contract BastionFullFlowTest is Test {
     }
 
     function test_Audit_RecordBlockedTransaction() public {
+        vm.prank(address(firewall));
         bytes32 entryId = audit.record(
             agent,
             target,
@@ -261,12 +272,14 @@ contract BastionFullFlowTest is Test {
     }
 
     function test_Audit_EntriesByAgent() public {
-        // Record 3 entries
+        // Record 3 entries (as the authorized firewall).
+        vm.startPrank(address(firewall));
         audit.record(agent, target, bytes4(0x11111111), 1, 100, true, "", "");
         vm.warp(100);
         audit.record(agent, target, bytes4(0x22222222), 2, 200, true, "", "");
         vm.warp(200);
         audit.record(agent, target, bytes4(0x33333333), 3, 300, false, "rejected", "");
+        vm.stopPrank();
 
         IBastionAudit.AuditEntry[] memory entries = audit.getEntriesByAgent(agent, 0, 300);
         assertEq(entries.length, 3);

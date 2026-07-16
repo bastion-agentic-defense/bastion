@@ -192,7 +192,7 @@ fn build_test_app(
             logger,
             OnChainClient::disabled(),
             GrondOracle::disabled(),
-            None,
+            std::sync::Arc::new(std::collections::HashMap::new()),
             None,
             agent_store_path.to_str().unwrap(),
         ),

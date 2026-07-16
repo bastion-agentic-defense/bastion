@@ -5,8 +5,9 @@ use bastion_sidecar::{
     policy::Policy,
     program_client::OnChainClient,
     simulation::{AlchemySimulator, HeliusSimulator, Simulate},
-    simulation_evm::CeloSimulator,
+    simulation_evm::EvmSimulator,
 };
+use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::sync::Arc;
@@ -17,8 +18,31 @@ async fn shutdown_signal() {
     eprintln!("shutdown signal received");
 }
 
+/// Initialize structured logging. Emits JSON logs when `BASTION_LOG_JSON=1`
+/// (recommended for mainnet/Fly.io log ingestion), otherwise human-readable.
+/// Verbosity is controlled by `RUST_LOG` (default `info`).
+fn init_tracing() {
+    use tracing_subscriber::{EnvFilter, fmt};
+    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+    let json = matches!(
+        env::var("BASTION_LOG_JSON").as_deref(),
+        Ok("1") | Ok("true")
+    );
+    if json {
+        fmt()
+            .with_env_filter(filter)
+            .json()
+            .flatten_event(true)
+            .init();
+    } else {
+        fmt().with_env_filter(filter).init();
+    }
+}
+
 #[tokio::main]
 async fn main() {
+    init_tracing();
+    tracing::info!("bastion sidecar starting");
     let config_text = fs::read_to_string("config.toml").expect("read config.toml");
     let policy: Policy = toml::from_str(&config_text).expect("parse config.toml");
     let simulator: Arc<dyn Simulate + Send + Sync> = Arc::new(
@@ -66,16 +90,25 @@ async fn main() {
         }
     };
 
-    let celo_sim = match env::var("CELO_RPC_URL") {
-        Ok(url) if !url.is_empty() => {
-            eprintln!("[bastion] Celo/EVM simulator enabled: {url}");
-            Some(Arc::new(CeloSimulator::from_rpc_url(url)))
+    // Per-chain EVM simulators, keyed by normalized lowercase chain name. Each is
+    // enabled by its own RPC env var; absent chains yield a 503 on request rather
+    // than silently routing to a different network.
+    let mut evm_simulators: HashMap<String, Arc<EvmSimulator>> = HashMap::new();
+    for (chain, env_var) in bastion_sidecar::simulation_evm::EVM_CHAIN_ENV_VARS {
+        if let Ok(url) = env::var(env_var) {
+            if !url.is_empty() {
+                eprintln!("[bastion] EVM simulator enabled for {chain}: {url}");
+                evm_simulators
+                    .insert((*chain).to_string(), Arc::new(EvmSimulator::for_chain(*chain, url)));
+            }
         }
-        _ => {
-            eprintln!("[bastion] Celo/EVM simulator disabled (set CELO_RPC_URL to enable)");
-            None
-        }
-    };
+    }
+    if evm_simulators.is_empty() {
+        eprintln!(
+            "[bastion] No EVM simulators configured (set ETH_RPC_URL / BASE_RPC_URL / CELO_RPC_URL / ETH_SEPOLIA_RPC_URL to enable)"
+        );
+    }
+    let evm_simulators = Arc::new(evm_simulators);
 
     let agent_store_path =
         env::var("BASTION_AGENT_STORE_PATH").unwrap_or_else(|_| "agent_store".to_string());
@@ -86,7 +119,7 @@ async fn main() {
         logger,
         on_chain,
         grond_oracle,
-        celo_sim,
+        evm_simulators,
         alchemy_sim,
         &agent_store_path,
     );

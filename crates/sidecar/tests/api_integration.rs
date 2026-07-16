@@ -19,6 +19,7 @@ use bastion_sidecar::{
     policy::{MaxUnitsCheck, Policy},
     program_client::OnChainClient,
     simulation::{ReturnData, Simulate, SimulationResult},
+    simulation_evm::EvmSimulator,
 };
 
 #[derive(serde::Deserialize)]
@@ -144,7 +145,7 @@ fn test_app_with_result_and_policy(
             logger,
             OnChainClient::disabled(),
             GrondOracle::disabled(),
-            None,
+            std::sync::Arc::new(std::collections::HashMap::new()),
             None,
             agent_store_path.to_str().expect("agent store path"),
         ),
@@ -1226,3 +1227,95 @@ async fn audit_logs_alias_endpoints_find_entries_by_transaction_id_and_signature
             .all(|entry| { entry.transaction_signature.as_deref() == Some(tx_signature.as_str()) })
     );
 }
+
+// ── EVM per-chain simulator routing ─────────────────────────────────────────
+
+/// Build an app whose EVM simulators are exactly the given (chain, rpc_url) pairs.
+fn test_app_with_evm(chains: &[(&str, &str)]) -> (axum::Router, TempDir) {
+    let tmp_dir = tempfile::tempdir().expect("temp dir");
+    let db_path = tmp_dir.path().join("audit.sled");
+    let logger = Arc::new(AuditLogger::new(db_path.to_str().expect("db path")).expect("logger"));
+    let simulator: Arc<dyn Simulate + Send + Sync> = Arc::new(MockSimulator {
+        result: mock_result(),
+    });
+    let mut evm_simulators = std::collections::HashMap::new();
+    for (chain, url) in chains {
+        evm_simulators.insert(
+            chain.to_string(),
+            Arc::new(EvmSimulator::for_chain(*chain, *url)),
+        );
+    }
+    let agent_store_path = tmp_dir.path().join("agents.sled");
+    (
+        build_app(
+            test_policy(vec![], true, None),
+            simulator,
+            logger,
+            OnChainClient::disabled(),
+            GrondOracle::disabled(),
+            Arc::new(evm_simulators),
+            None,
+            agent_store_path.to_str().expect("agent store path"),
+        ),
+        tmp_dir,
+    )
+}
+
+fn evm_sim_payload(chain: &str) -> serde_json::Value {
+    serde_json::json!({
+        "transaction": { "from": "0x1111111111111111111111111111111111111111",
+                          "to":   "0x2222222222222222222222222222222222222222" },
+        "chain": chain,
+    })
+}
+
+#[tokio::test]
+async fn simulate_evm_unconfigured_chain_returns_503_with_clear_message() {
+    // No EVM simulators configured at all.
+    let (app, _tmp) = test_app_with_evm(&[]);
+
+    let response = app
+        .oneshot(json_request("/api/v2/simulate-evm", evm_sim_payload("ethereum")))
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+    let body = to_bytes(response.into_body(), usize::MAX)
+        .await
+        .expect("body");
+    let body = String::from_utf8(body.to_vec()).expect("utf8");
+    assert!(body.contains("ethereum"), "message names the chain: {body}");
+    assert!(body.contains("ETH_RPC_URL"), "message names the env var: {body}");
+}
+
+#[tokio::test]
+async fn simulate_evm_defaults_to_celo_when_chain_omitted() {
+    let (app, _tmp) = test_app_with_evm(&[]);
+
+    let response = app
+        .oneshot(json_request(
+            "/api/v2/simulate-evm",
+            serde_json::json!({
+                "transaction": { "from": "0x1111111111111111111111111111111111111111",
+                                 "to":   "0x2222222222222222222222222222222222222222" }
+            }),
+        ))
+        .await
+        .expect("response");
+
+    // Default chain is "celo"; with nothing configured it 503s naming celo.
+    assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+    let body = to_bytes(response.into_body(), usize::MAX)
+        .await
+        .expect("body");
+    let body = String::from_utf8(body.to_vec()).expect("utf8");
+    assert!(body.contains("celo"), "defaults to celo: {body}");
+    assert!(body.contains("CELO_RPC_URL"), "names celo env var: {body}");
+}
+
+// Note: the positive routing path (a configured chain actually reaching its
+// simulator) is a network-integration concern — `EvmSimulator` owns a blocking
+// reqwest client that can't be constructed/dropped cleanly inside a test runtime.
+// The 503 tests above already prove the handler looks up by the *requested* chain
+// (empty map → 503 naming that chain) and defaults correctly, which is the
+// behavior change; `test_evm_rpc_env_var_mapping` covers the env-var naming.

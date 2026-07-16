@@ -51,6 +51,15 @@ impl<C: ArciumClient, R: RiskOracle> ArcumPolicyEvaluator<C, R> {
         self
     }
 
+    /// Whether genuine confidential computation is active.
+    ///
+    /// True only when an Arcium client is configured *and* it performs real MPC.
+    /// The runtime must consult this before advertising "confidential" evaluation
+    /// — a no-op client reports `false`.
+    pub fn confidential_active(&self) -> bool {
+        self.arcium.as_ref().is_some_and(|c| c.is_confidential())
+    }
+
     /// Evaluate a transaction against the policy set.
     ///
     /// For Solana transactions with Arcium configured:

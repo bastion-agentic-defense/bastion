@@ -13,6 +13,15 @@ use crate::types::{ArciumError, MxeConfig, MxeResult};
 pub trait ArciumClient: Send + Sync {
     /// Evaluate a transaction against the MXE policy circuit.
     async fn evaluate(&self, config: &MxeConfig, tx_data: &[u8]) -> Result<MxeResult, ArciumError>;
+
+    /// Whether this client performs genuine confidential (MPC) computation.
+    ///
+    /// Defaults to `false`. Only a live MXE-backed implementation should return
+    /// `true`; the no-op client must never let the runtime advertise
+    /// "confidential" evaluation it does not actually perform.
+    fn is_confidential(&self) -> bool {
+        false
+    }
 }
 
 /// A no-op client that always returns `FirewallDecision::Pass`.

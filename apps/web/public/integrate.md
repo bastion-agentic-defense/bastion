@@ -6,13 +6,13 @@ AI agent firewall into your application.
 ## Install the SDK
 
 ```bash
-npm install @bastion-agentique/sdk
+npm install @zkos-labs/sdk
 ```
 
 ## Basic Usage (SDK)
 
 ```typescript
-import { BastionClient } from "@bastion-agentique/sdk";
+import { BastionClient } from "@zkos-labs/sdk";
 
 const client = new BastionClient({ baseUrl: "https://bastion-agentique.fly.dev/" });
 
@@ -59,5 +59,5 @@ curl -X POST https://bastion-agentique.fly.dev//override \
 
 ## Links
 
-- **NPM**: https://www.npmjs.com/package/@bastion-agentique/sdk
-- **API Reference**: https://github.com/bastion-agentique/bastion#readme
+- **NPM**: https://www.npmjs.com/package/@zkos-labs/sdk
+- **API Reference**: https://github.com/zkos-labs/bastion#readme

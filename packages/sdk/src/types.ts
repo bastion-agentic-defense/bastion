@@ -146,6 +146,9 @@ export interface HealthResponse {
   uptime_seconds: number;
   db_healthy: boolean;
   db_size_bytes: number;
+  /** Whether genuine confidential (Arcium MPC) evaluation is active. `false`
+   *  while only the no-op client is configured. */
+  confidential_compute?: boolean;
 }
 
 export interface OverrideRequest {

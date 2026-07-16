@@ -33,14 +33,21 @@ POST /simulate { transaction: base64, intent?: string }
 
 ## Chain Routing
 
-| Input chain | Chain variant | Simulation source |
-|-------------|---------------|-------------------|
-| "solana" or None | Chain::Solana | Helius/Alchemy simulateTransaction |
-| "base" | Chain::Base | CeloSimulator (reuse EVM) |
-| "ethereum" | Chain::Ethereum | CeloSimulator |
-| "polygon" | Chain::Polygon | CeloSimulator |
-| "arbitrum" | Chain::Arbitrum | CeloSimulator |
-| "celo" | Chain::Celo | CeloSimulator eth_call |
+EVM transactions (`/api/v2/simulate-evm`) route to a per-chain `EvmSimulator`
+selected by the request's `chain` field (normalized lowercase). Each chain's
+simulator is enabled by its own RPC env var; a chain with no configured RPC
+returns HTTP 503 naming the missing var (it is **not** silently routed elsewhere).
+
+| Input chain | Simulator | Enabled by |
+|-------------|-----------|------------|
+| "solana" or None | Helius/Alchemy `simulateTransaction` | `HELIUS_API_KEY` / `SOLANA_RPC_URL` |
+| "ethereum" | `EvmSimulator` (`eth_call` + balance diff) | `ETH_RPC_URL` |
+| "base" | `EvmSimulator` | `BASE_RPC_URL` |
+| "celo" (default for EVM) | `EvmSimulator` | `CELO_RPC_URL` |
+| "sepolia" | `EvmSimulator` (Ethereum testnet) | `ETH_SEPOLIA_RPC_URL` |
+
+Any other chain string with no configured RPC → 503 `EVM simulation for chain
+'<x>' not configured (set <X>_RPC_URL to enable).`
 
 ## Existing Test Coverage
 

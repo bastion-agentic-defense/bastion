@@ -77,8 +77,8 @@ bastion/
 │   ├── solana/                      ← UNCHANGED: Anchor program
 │   └── arcium/                      ← Arcium MXE integration
 ├── packages/
-│   ├── sdk/                         ← UPDATED: @bastion-agentique/sdk (new Web2 methods)
-│   └── web2-sdk/                    ← NEW: @bastion-agentique/web2-sdk
+│   ├── sdk/                         ← UPDATED: @zkos-labs/sdk (new Web2 methods)
+│   └── web2-sdk/                    ← NEW: @zkos-labs/web2-sdk
 ├── apps/
 │   └── web/                         ← UPDATED: Dashboard (new Web2 panels)
 │       └── src/
@@ -275,7 +275,7 @@ LOG_ONLY        → Pass through, log for audit
 
 | Milestone | Date | Deliverables |
 |-----------|------|-------------|
-| **Phase 1 Complete** | Week 4 | HTTP proxy, OpenAI adapter, SDK middleware, Sled audit, dashboard panel. `npm publish @bastion-agentique/web2-sdk@0.1.0` |
+| **Phase 1 Complete** | Week 4 | HTTP proxy, OpenAI adapter, SDK middleware, Sled audit, dashboard panel. `npm publish @zkos-labs/web2-sdk@0.1.0` |
 | **Phase 2 Complete** | Week 8 | 5 provider adapters, generic OpenAPI parser, content inspection, webhook security |
 | **Phase 3 Complete** | Week 12 | API key vault, RBAC, SAML/SSO, SOC 2 evidence export, Team tier |
 | **Phase 4 Complete** | Week 16 | eBPF transparent proxy, gRPC, anomaly detection, on-chain audit integration |

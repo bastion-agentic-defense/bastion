@@ -112,7 +112,7 @@ ReputationWeighted {
 - Bump SDK version to `0.6.0` in `packages/sdk/package.json`
 - Update `packages/sdk/README.md` if it references staking
 
-**Acceptance:** `pnpm --filter @bastion-agentique/sdk build` passes with no type errors.
+**Acceptance:** `pnpm --filter @zkos-labs/sdk build` passes with no type errors.
 
 ---
 
@@ -164,6 +164,84 @@ These are from `IMPROVEMENTS.md` — prioritized but not blocking production:
 | 4 | AI intent scoring (heuristic) | Differentiates from rule-only firewalls |
 | 5 | EVM hooks wired in dashboard | `useBastionEVM.ts` stubs need `useReadContract`/`useWriteContract` |
 | 6 | Behavioral baseline per agent | Requires data pipeline, strongest long-term moat |
+
+---
+
+## Future Epics — The Runtime Vision (🚧)
+
+These are the large net-new subsystems behind the 🚧 markers in the root `README.md` and
+[`docs/VISION.md`](VISION.md). They are **not** in any current milestone — they are captured here so
+the vision has an honest home and the README markers reconcile against a real backlog. Each sits
+**behind the mainnet/EVM external-audit hard gate** (`docs/MAINNET_READINESS.md` §7,
+`docs/EVM_READINESS.md` §6); none ships to mainnet real-value traffic before that gate clears.
+
+### Epic A — Durable Workflow Engine (🚧 absent)
+
+**Status today:** No workflow / orchestration / state-machine code exists anywhere in the repo. This
+is the **largest net-new subsystem** on the roadmap.
+
+**Why:** `execute()` today is a single synchronous decision (policy → simulate → decide). A durable
+engine is what turns Bastion from a firewall into a *runtime* — multi-step agent actions that
+survive process restarts, retry deterministically, and resume where they left off.
+
+**Requirements:**
+- **Persistent state machine** — each workflow run is durably recorded (step, status, inputs,
+  outputs) so a crash mid-run is recoverable. Reuse the existing `sled` store the sidecar audit log
+  already depends on (`crates/sidecar/src/audit.rs`) rather than introducing a new datastore.
+- **Idempotency / dedupe** — every step carries an idempotency key; re-delivery of the same step is a
+  no-op, so at-least-once execution is safe.
+- **Retry & resume** — failed steps retry with backoff; a resumed run replays completed steps from
+  the log instead of re-executing side effects.
+- **Failure survival** — a killed sidecar reconstructs in-flight runs from the persisted log on boot.
+- **HITL integration** — a `PendingHITL` decision suspends the workflow durably until an
+  `/override` resolves it, rather than blocking a request handler.
+
+**Shape:** likely a new `crates/workflow` crate (chain-agnostic, like `crates/core`) plus sidecar
+routes to start / query / resume runs, and an SDK surface (`bastion.workflow(...)`) composing
+`execute()` per step.
+
+### Epic B — Real Arcium Confidential Compute (🚧 stubbed)
+
+**Status today:** `crates/arcium/` ships only `NoopArciumClient`, which always returns `Pass`. The
+Arcis circuits (`crates/arcium/src/circuits/`) and the Solana callback (`crates/arcium/src/solana/`)
+are empty placeholders. Per MAINNET_READINESS §6, the runtime **must not advertise "confidential"
+while only the noop is active** — this is now enforced: `/health` reports
+`confidential_compute: false` and `bastion.execute({ privacy: "confidential" })` refuses rather than
+evaluating in the clear.
+
+**Why:** confidential policy evaluation (evaluating a transaction against private limits/rules
+without revealing them) is the headline privacy guarantee. A no-op cannot back that claim.
+
+**Requirements:**
+- **Arcis circuits** — implement the real MPC circuits in `crates/arcium/src/circuits/` for the
+  confidential policy-evaluation path (private thresholds, private allowlists).
+- **Solana callback** — wire `crates/arcium/src/solana/` to submit/await the MXE computation and
+  land the attested result on-chain.
+- **Live MXE client** — replace `NoopArciumClient` with a client that talks to a real Arcium MXE
+  cluster, implementing `is_confidential() -> true` only when genuinely backed by MPC.
+- **Feature-gated rollout** — keep the noop as the default build; the live client is opt-in and, once
+  active, flips `confidential_compute` to `true` so `execute()` will proceed.
+
+**Gate:** confidential execution touching real value is behind the external-audit hard gate.
+
+### Epic C — True Settlement Router / Cross-Chain Execution Planner (🟡 → 🚧)
+
+**Status today:** `execute()` ships a **minimal** router — it selects a chain and runs that chain's
+simulator (`Chain` enum + per-chain simulators in `crates/sidecar`). There is no execution
+*planner*: no cross-chain sequencing, no route optimization, no atomic multi-leg settlement.
+
+**Why:** the vision's "declare the outcome, not the infrastructure" promise needs a planner that can
+decompose an intent into an ordered, chain-spanning execution plan — the minimal router only answers
+"is this one tx on this one chain allowed?".
+
+**Requirements:**
+- **Plan decomposition** — turn a single high-level intent into an ordered set of per-chain legs.
+- **Route selection** — choose chains/venues by cost, latency, and reputation-weighted policy.
+- **Atomicity / rollback semantics** — define what happens when leg N fails after legs 1..N-1
+  settled (compensating actions, or all-or-nothing where the chains support it). This depends on
+  **Epic A** for durability.
+- **Promotion path** — grow the Phase-4 minimal router in `packages/sdk/src/execute.ts` into a real
+  planner without changing the `execute()` call signature (declarative in stays the same).
 
 ---
 

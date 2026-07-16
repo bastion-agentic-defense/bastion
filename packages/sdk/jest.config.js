@@ -6,6 +6,6 @@ module.exports = {
   testMatch: ["**/*.test.ts"],
   moduleFileExtensions: ["ts", "js", "json"],
   transformIgnorePatterns: [
-    "node_modules/(?!(@bastion-agentique)/)",
+    "node_modules/(?!(@zkos-labs)/)",
   ],
 };

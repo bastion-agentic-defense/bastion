@@ -1,6 +1,19 @@
 mod providers;
 
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::Mutex;
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+
+/// Returns the current hour (0-23) in UTC.
+fn current_utc_hour() -> u8 {
+    ((SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs()
+        / 3600)
+        % 24) as u8
+}
 
 /// A normalized API call event from an AI agent.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -165,7 +178,14 @@ impl ApiPolicyRule {
                 block_headers: _block_headers,
             } => self.matches_any_blocked_header(event),
             Self::CostCap { .. } => false,
-            Self::TimeOfDayRestriction { .. } => false,
+            Self::TimeOfDayRestriction {
+                min_hour_utc,
+                max_hour_utc,
+            } => {
+                // Blocks when the current UTC hour is outside [min, max].
+                let hour = current_utc_hour();
+                hour < *min_hour_utc || hour > *max_hour_utc
+            }
         }
     }
 
@@ -273,18 +293,44 @@ impl OpenApiSpec {
     }
 }
 
+/// Mutable, per-engine tracking state for stateful rules (rate limits and spend
+/// budgets). Kept behind a `Mutex` so `evaluate` can stay `&self`.
+#[derive(Debug, Default)]
+struct EngineState {
+    /// provider -> recent request instants (sliding window for rate limiting)
+    request_times: HashMap<String, Vec<Instant>>,
+    /// provider -> (accumulated cents, window start) for per-provider budgets
+    provider_spend: HashMap<String, (u64, Instant)>,
+    /// global (accumulated cents, window start) for the monthly cost cap
+    monthly_spend: Option<(u64, Instant)>,
+}
+
 /// The Web2 proxy engine that evaluates API events against rules.
 #[derive(Debug)]
 pub struct ProxyEngine {
     rules: Vec<ApiPolicyRule>,
+    state: Mutex<EngineState>,
 }
 
 impl ProxyEngine {
     pub fn new(rules: Vec<ApiPolicyRule>) -> Self {
-        ProxyEngine { rules }
+        ProxyEngine {
+            rules,
+            state: Mutex::new(EngineState::default()),
+        }
     }
 
+    /// Evaluate an event with no associated spend. Budget/cost rules only bite
+    /// when a cost is supplied via [`evaluate_with_cost`].
     pub fn evaluate(&self, event: &ApiEvent) -> ProxyDecision {
+        self.evaluate_with_cost(event, 0)
+    }
+
+    /// Evaluate an event, attributing `cost_usd_cents` to the calling provider for
+    /// budget/cost-cap accounting. Stateless rules are checked first, then the
+    /// stateful rate/budget rules under the engine lock.
+    pub fn evaluate_with_cost(&self, event: &ApiEvent, cost_usd_cents: u64) -> ProxyDecision {
+        // ── Pass 1: stateless rules ──
         for rule in &self.rules {
             match rule {
                 ApiPolicyRule::EndpointAllowlist { .. } if rule.matches(event) => {
@@ -348,6 +394,92 @@ impl ProxyEngine {
                         reason: format!("Blocked headers present: {}", h.join(", ")),
                         rule_id: Some("header_filter".to_string()),
                     };
+                }
+                ApiPolicyRule::TimeOfDayRestriction {
+                    min_hour_utc,
+                    max_hour_utc,
+                } if rule.matches(event) => {
+                    return ProxyDecision::Block {
+                        reason: format!(
+                            "Outside permitted hours: {} UTC not in {}-{} UTC",
+                            current_utc_hour(),
+                            min_hour_utc,
+                            max_hour_utc
+                        ),
+                        rule_id: Some("time_of_day_restriction".to_string()),
+                    };
+                }
+                _ => {}
+            }
+        }
+
+        // ── Pass 2: stateful rate/budget rules ──
+        let now = Instant::now();
+        let mut st = self.state.lock().unwrap_or_else(|p| p.into_inner());
+        for rule in &self.rules {
+            match rule {
+                ApiPolicyRule::RateLimitPerProvider {
+                    provider,
+                    max_requests_per_minute,
+                } if event.provider == *provider => {
+                    let window = Duration::from_secs(60);
+                    let times = st.request_times.entry(provider.clone()).or_default();
+                    times.retain(|t| now.duration_since(*t) < window);
+                    times.push(now);
+                    if times.len() as u32 > *max_requests_per_minute {
+                        return ProxyDecision::Block {
+                            reason: format!(
+                                "Rate limit exceeded for {}: {} requests/min > {} allowed",
+                                provider,
+                                times.len(),
+                                max_requests_per_minute
+                            ),
+                            rule_id: Some("rate_limit_per_provider".to_string()),
+                        };
+                    }
+                }
+                ApiPolicyRule::ProviderBudget {
+                    provider,
+                    max_usd_cents_per_window,
+                    window_minutes,
+                } if event.provider == *provider && cost_usd_cents > 0 => {
+                    let window = Duration::from_secs(window_minutes.saturating_mul(60));
+                    let entry = st
+                        .provider_spend
+                        .entry(provider.clone())
+                        .or_insert((0, now));
+                    if now.duration_since(entry.1) >= window {
+                        *entry = (0, now);
+                    }
+                    entry.0 = entry.0.saturating_add(cost_usd_cents);
+                    if entry.0 > *max_usd_cents_per_window {
+                        return ProxyDecision::Block {
+                            reason: format!(
+                                "Provider budget exceeded for {}: {}¢ > {}¢ per {}min",
+                                provider, entry.0, max_usd_cents_per_window, window_minutes
+                            ),
+                            rule_id: Some("provider_budget".to_string()),
+                        };
+                    }
+                }
+                ApiPolicyRule::CostCap {
+                    max_usd_cents_per_month,
+                } if cost_usd_cents > 0 => {
+                    let window = Duration::from_secs(30 * 24 * 3600);
+                    let entry = st.monthly_spend.get_or_insert((0, now));
+                    if now.duration_since(entry.1) >= window {
+                        *entry = (0, now);
+                    }
+                    entry.0 = entry.0.saturating_add(cost_usd_cents);
+                    if entry.0 > *max_usd_cents_per_month {
+                        return ProxyDecision::Block {
+                            reason: format!(
+                                "Monthly cost cap exceeded: {}¢ > {}¢",
+                                entry.0, max_usd_cents_per_month
+                            ),
+                            rule_id: Some("cost_cap".to_string()),
+                        };
+                    }
                 }
                 _ => {}
             }

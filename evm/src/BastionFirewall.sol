@@ -25,6 +25,19 @@ contract BastionFirewall is IBastionFirewall, Ownable, Pausable, ReentrancyGuard
     bytes4 internal constant ERC1271_MAGIC_VALUE = 0x1626ba7e;
     bytes4 internal constant VALIDATOR_VALID = 0x7b3b2015;
 
+    /// @dev ERC-4337 validation return codes.
+    uint internal constant SIG_VALIDATION_SUCCESS = 0;
+    uint internal constant SIG_VALIDATION_FAILED = 1;
+
+    /// @dev Bastion execution calldata layout:
+    ///   [0:32]  target  (ABI word, address right-aligned)
+    ///   [32:64] value   (uint256)
+    ///   [64:]   inner   (the actual call, starting with its 4-byte selector)
+    /// `_HEADER_LEN` is the fixed prefix; `_MIN_CALLDATA_LEN` also requires the 4-byte
+    /// selector so the target/value/selector decode never reads past the slice.
+    uint internal constant _HEADER_LEN = 64;
+    uint internal constant _MIN_CALLDATA_LEN = 68;
+
     IBastionPolicy public immutable policyEngine;
     IBastionAudit public immutable auditLog;
 
@@ -49,21 +62,61 @@ contract BastionFirewall is IBastionFirewall, Ownable, Pausable, ReentrancyGuard
     // ──────────────────────────────────────────────────────────────
 
     /// @inheritdoc IBastionFirewall
+    /// @dev ERC-4337 validation MUST be side-effect free with respect to external
+    /// contract storage (bundlers reject ops whose validation touches storage outside
+    /// the validator/account). We therefore only read the policy (a view call) here and
+    /// return a validation code — 0 when allowed, SIG_VALIDATION_FAILED when the policy
+    /// blocks. The audit-trail write and the hard revert-on-block happen in {enforce},
+    /// which the account calls in the execution phase where state writes are permitted.
     function validateUserOp(
         PackedUserOperation calldata userOp,
         bytes32 /* userOpHash */
-    ) external override whenNotPaused returns (uint validationData) {
+    ) external view override whenNotPaused returns (uint validationData) {
+        address agent = userOp.sender;
+
+        if (_installedAccounts[agent] == bytes32(0)) {
+            return SIG_VALIDATION_FAILED;
+        }
+        if (userOp.callData.length < _MIN_CALLDATA_LEN) {
+            return SIG_VALIDATION_FAILED;
+        }
+
+        (address target, uint value,,) = _decodeCallData(userOp.callData);
+
+        // Policy reads the selector from the start of the inner calldata.
+        (bool allowed,) =
+            policyEngine.checkTransaction(agent, target, value, userOp.callData[_HEADER_LEN:]);
+
+        return allowed ? SIG_VALIDATION_SUCCESS : SIG_VALIDATION_FAILED;
+    }
+
+    /// @notice Execution-phase enforcement: re-checks the policy, writes the audit
+    /// entry, and reverts if the transaction is not allowed. Called by the smart
+    /// account during execution (where external state writes are permitted), so the
+    /// audit trail is recorded atomically with the enforced decision.
+    /// @param userOp The user operation being executed.
+    /// @return target Decoded call target.
+    /// @return value Decoded call value.
+    /// @return selector Decoded call selector.
+    function enforce(
+        PackedUserOperation calldata userOp
+    )
+        external
+        override
+        whenNotPaused
+        nonReentrant
+        returns (address target, uint value, bytes4 selector)
+    {
         address agent = userOp.sender;
 
         if (_installedAccounts[agent] == bytes32(0)) {
             revert NotAuthorized(agent, address(0), bytes4(0));
         }
 
-        (address target, uint value, bytes4 selector,) = _decodeCallData(userOp.callData);
+        (target, value, selector,) = _decodeCallData(userOp.callData);
 
-        // Run firewall checks
         (bool allowed, bytes memory reason) =
-            policyEngine.checkTransaction(agent, target, value, userOp.callData);
+            policyEngine.checkTransaction(agent, target, value, userOp.callData[_HEADER_LEN:]);
 
         uint gasBefore = gasleft();
 
@@ -87,9 +140,6 @@ contract BastionFirewall is IBastionFirewall, Ownable, Pausable, ReentrancyGuard
         );
 
         emit TransactionAllowed(agent, target, selector, value, block.timestamp);
-
-        // SIG_VALIDATION_SUCCESS per ERC-4337: 0 on success
-        return 0;
     }
 
     /// @inheritdoc IBastionFirewall
@@ -145,14 +195,18 @@ contract BastionFirewall is IBastionFirewall, Ownable, Pausable, ReentrancyGuard
     function _decodeCallData(
         bytes calldata callData
     ) internal pure returns (address target, uint value, bytes4 selector, bytes memory params) {
-        require(callData.length >= 4, "callData too short");
+        // Require the full fixed header + selector so the assembly reads never run
+        // past the slice and the inner-calldata slice below cannot underflow.
+        require(callData.length >= _MIN_CALLDATA_LEN, "callData too short");
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            target := shr(96, calldataload(callData.offset))
+            // Mask to the low 20 bytes so a dirty high word cannot spoof the target.
+            target := and(calldataload(callData.offset), 0xffffffffffffffffffffffffffffffffffffffff)
             value := calldataload(add(callData.offset, 32))
-            selector := calldataload(add(callData.offset, 68))
+            // selector is the high 4 bytes of the inner calldata at offset 64.
+            selector := calldataload(add(callData.offset, _HEADER_LEN))
         }
-        uint paramsLen = callData.length - 68;
-        params = callData[68:68 + paramsLen];
+        // Inner calldata (starts with the 4-byte selector), forwarded to the policy.
+        params = callData[_HEADER_LEN:];
     }
 }

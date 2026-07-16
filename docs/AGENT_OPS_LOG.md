@@ -163,7 +163,7 @@ No API keys. The sidecar is open on localhost. In production:
 ## SDK Integration
 
 ```typescript
-import { BastionClient, AGENT_CAPABILITIES } from "@bastion-agentique/sdk";
+import { BastionClient, AGENT_CAPABILITIES } from "@zkos-labs/sdk";
 import { Connection, Keypair } from "@solana/web3.js";
 
 const connection = new Connection("https://api.devnet.solana.com");

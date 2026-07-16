@@ -92,10 +92,24 @@ fn paused_offset() -> usize {
     8 + 32 + 1 + 8 + 8 + 8
 }
 
+fn init_args(admin: &Pubkey) -> Vec<u8> {
+    admin.to_bytes().to_vec()
+}
+
 async fn do_initialize(
     banks: &mut solana_program_test::BanksClient,
     payer: &Keypair,
     as_pda: &Pubkey,
+) {
+    // Default: the payer is the admin authority (keeps existing assertions intact).
+    do_initialize_with_admin(banks, payer, as_pda, &payer.pubkey()).await;
+}
+
+async fn do_initialize_with_admin(
+    banks: &mut solana_program_test::BanksClient,
+    payer: &Keypair,
+    as_pda: &Pubkey,
+    admin: &Pubkey,
 ) {
     send(
         banks,
@@ -107,7 +121,7 @@ async fn do_initialize(
                 AccountMeta::new(payer.pubkey(), true),
                 AccountMeta::new_readonly(system_program::ID, false),
             ],
-            vec![],
+            init_args(admin),
         )],
     )
     .await
@@ -183,7 +197,7 @@ async fn test_initialize_twice() {
             AccountMeta::new(payer.pubkey(), true),
             AccountMeta::new_readonly(system_program::ID, false),
         ],
-        vec![],
+        init_args(&payer.pubkey()),
     );
 
     send(&mut banks, &payer, vec![ix.clone()]).await.unwrap();
@@ -309,6 +323,7 @@ async fn test_log_audit_unauthorized() {
     let (as_pda, _) = audit_state_pda();
     let wrong = Keypair::new();
 
+    // payer is the admin authority; `wrong` is a funded but unauthorized signer.
     do_initialize(&mut banks, &payer, &as_pda).await;
     airdrop(&mut banks, &payer, &wrong.pubkey(), 1_000_000_000).await;
 
@@ -319,11 +334,30 @@ async fn test_log_audit_unauthorized() {
     args.extend(borsh_string("unauthorized"));
     args.extend(borsh_option_pubkey(None));
 
-    // Verify via account state — audit_entry should not have been created
-    let entry_exists = banks.get_account(e0).await.unwrap().is_some();
+    // Actually submit log_audit signed by the WRONG key — the authority constraint
+    // (signer == audit_state.authority) must reject it.
+    let ix = make_ix(
+        "log_audit",
+        vec![
+            AccountMeta::new(e0, false),
+            AccountMeta::new(as_pda, false),
+            AccountMeta::new(wrong.pubkey(), true),
+            AccountMeta::new_readonly(system_program::ID, false),
+        ],
+        args,
+    );
+    let bh = banks.get_latest_blockhash().await.unwrap();
+    let tx = Transaction::new_signed_with_payer(&[ix], Some(&wrong.pubkey()), &[&wrong], bh);
+    let res = banks.process_transaction(tx).await;
     assert!(
-        !entry_exists,
-        "unauthorized signer must not create audit entry"
+        res.is_err(),
+        "unauthorized signer must be rejected by the authority constraint"
+    );
+
+    // And no audit entry should have been created.
+    assert!(
+        banks.get_account(e0).await.unwrap().is_none(),
+        "rejected log_audit must not create an audit entry"
     );
 }
 
@@ -346,9 +380,25 @@ async fn test_log_audit_paused() {
     args.extend(borsh_string("paused fail"));
     args.extend(borsh_option_pubkey(None));
 
-    // Verify via account state — audit_entry should not have been created when paused
-    let entry_exists = banks.get_account(e0).await.unwrap().is_some();
-    assert!(!entry_exists, "must not create audit entry when paused");
+    // Submit log_audit signed by the authority while paused — the `!paused`
+    // constraint must reject it.
+    let ix = make_ix(
+        "log_audit",
+        vec![
+            AccountMeta::new(e0, false),
+            AccountMeta::new(as_pda, false),
+            AccountMeta::new(payer.pubkey(), true),
+            AccountMeta::new_readonly(system_program::ID, false),
+        ],
+        args,
+    );
+    let res = send(&mut banks, &payer, vec![ix]).await;
+    assert!(res.is_err(), "log_audit must be rejected while paused");
+
+    assert!(
+        banks.get_account(e0).await.unwrap().is_none(),
+        "rejected log_audit must not create an audit entry when paused"
+    );
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -862,4 +912,83 @@ async fn test_full_lifecycle() {
     let pd = &banks.get_account(pol_pda).await.unwrap().unwrap().data;
     let pc = u32::from_le_bytes(pd[8 + 32..8 + 36].try_into().unwrap()) as usize;
     assert_eq!(pc, 1, "policy should have 1 allowed program");
+}
+
+// ══════════════════════════════════════════════════════════════════
+// 12. test_initialize_sets_distinct_admin — authority is the provided admin (B5)
+// ══════════════════════════════════════════════════════════════════
+#[tokio::test]
+async fn test_initialize_sets_distinct_admin() {
+    let mut pt = make_pt();
+    let (mut banks, payer, _bh) = pt.start().await;
+    let (as_pda, _) = audit_state_pda();
+
+    // Payer pays + signs, but a separate multisig-style admin becomes the authority.
+    let admin = Pubkey::new_unique();
+    do_initialize_with_admin(&mut banks, &payer, &as_pda, &admin).await;
+
+    let acct = banks.get_account(as_pda).await.unwrap().unwrap();
+    let authority = Pubkey::try_from(&acct.data[8..40]).unwrap();
+    assert_eq!(
+        authority, admin,
+        "authority must be the provided admin, not the payer"
+    );
+    assert_ne!(authority, payer.pubkey());
+}
+
+// ══════════════════════════════════════════════════════════════════
+// 13. test_reputation_upper_bound — updates above MAX_REPUTATION rejected (B10)
+// ══════════════════════════════════════════════════════════════════
+#[tokio::test]
+async fn test_reputation_upper_bound() {
+    let mut pt = make_pt();
+    let (mut banks, payer, _bh) = pt.start().await;
+    let (ag_pda, _) = agent_pda(&payer.pubkey());
+
+    let mut reg = Vec::new();
+    reg.extend(borsh_string("CapBot"));
+    reg.extend(1u64.to_le_bytes());
+    send(
+        &mut banks,
+        &payer,
+        vec![make_ix(
+            "register_agent",
+            vec![
+                AccountMeta::new(ag_pda, false),
+                AccountMeta::new(payer.pubkey(), true),
+                AccountMeta::new_readonly(system_program::ID, false),
+            ],
+            reg,
+        )],
+    )
+    .await
+    .unwrap();
+
+    // Delta of 101 would push reputation to 101 (> MAX_REPUTATION = 100) -> reject.
+    let res = send(
+        &mut banks,
+        &payer,
+        vec![make_ix(
+            "update_agent_reputation",
+            vec![
+                AccountMeta::new(ag_pda, false),
+                AccountMeta::new(payer.pubkey(), true),
+            ],
+            101i64.to_le_bytes().to_vec(),
+        )],
+    )
+    .await;
+    assert!(
+        res.is_err(),
+        "reputation update above MAX_REPUTATION must be rejected"
+    );
+
+    // Reputation stays at 0 (unchanged).
+    let rep_off = 8 + 32 + 4 + 6 + 8;
+    let d = &banks.get_account(ag_pda).await.unwrap().unwrap().data;
+    assert_eq!(
+        u64::from_le_bytes(d[rep_off..rep_off + 8].try_into().unwrap()),
+        0,
+        "rejected update must not change reputation"
+    );
 }

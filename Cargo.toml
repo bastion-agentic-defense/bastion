@@ -13,7 +13,7 @@ members = [
 version = "0.3.0"
 edition = "2024"
 license = "Apache-2.0"
-repository = "https://github.com/bastion-agentique/bastion"
+repository = "https://github.com/zkos-labs/bastion"
 
 [workspace.dependencies]
 bastion-core = { path = "crates/core" }
@@ -35,3 +35,7 @@ opt-level = 0
 opt-level = "z"
 lto = true
 codegen-units = 1
+# Keep arithmetic overflow checks on in release/SBF builds. The on-chain program
+# is deployed from a release build; silent wraparound must never mint counters or
+# reputation. The cost is negligible for this workload.
+overflow-checks = true
