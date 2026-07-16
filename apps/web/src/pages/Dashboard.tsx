@@ -149,7 +149,7 @@ export default function Dashboard() {
   const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
 
   const [editingPolicy, setEditingPolicy] = useState(false);
-  const [policyForm, setPolicyForm] = useState({ maxSolPerTx: 1, rateLimitPerMinute: 120, allowedProgramsText: '' });
+  const [policyForm, setPolicyForm] = useState({ maxNativePerTx: 1, rateLimitPerMinute: 120, allowedProgramsText: '' });
 
   const loadNetworkData = useCallback(async (force = false) => {
     const now = Date.now();
@@ -319,7 +319,7 @@ export default function Dashboard() {
           </div>
           <StatWidget label="Allowed" value={stats.allowed} color="#22c55e" />
           <StatWidget label="Blocked" value={stats.blocked} color="#ef4444" />
-          <StatWidget label="Total Staked" value={`${trackedAgents.reduce((s, a) => s + (a.staked_lamports || 0), 0).toLocaleString()} SOL`} color="#f59e0b" />
+          <StatWidget label="Total Staked" value={`${trackedAgents.reduce((s, a) => s + (a.staked_lamports || 0), 0).toLocaleString()} ${chain === 'solana' ? 'SOL' : 'ETH'}`} color="#f59e0b" />
         </div>
 
         {/* Pending approvals */}
@@ -444,7 +444,7 @@ export default function Dashboard() {
                   <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500 mb-2">Architecture</p>
                   <div className="space-y-2 font-mono text-[10px] text-zinc-400">
                     <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full shrink-0" style={{background:'#22c55e'}}/> Sidecar API <span className="text-zinc-600">:3000</span></div>
-                    <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full shrink-0" style={{background:'#3b82f6'}}/> Solana On-Chain <span className="text-zinc-600">devnet</span></div>
+                    <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full shrink-0" style={{background:'#3b82f6'}}/> {chain === 'solana' ? 'Solana' : 'EVM'} On-Chain <span className="text-zinc-600">{chain === 'solana' ? 'devnet' : 'testnet'}</span></div>
                     <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full shrink-0" style={{background:'#a855f7'}}/> Agent Registry <span className="text-zinc-600">{trackedAgents.length} agents</span></div>
                     <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full shrink-0" style={{background:'#f59e0b'}}/> DID Resolution <span className="text-zinc-600">/did</span></div>
                   </div>
@@ -505,16 +505,14 @@ export default function Dashboard() {
 
           {activeTab === 'policy' && (
             <div className="max-w-lg space-y-4">
-              <div><label className="block font-sans text-sm font-medium mb-1.5 text-zinc-300">Max SOL per Tx</label><input type="number" min="0" step="0.1" value={editingPolicy ? policyForm.maxSolPerTx : (policy?.maxSolPerTx ?? 0)} onChange={(e) => setPolicyForm((p) => ({ ...p, maxSolPerTx: Number(e.target.value) }))} readOnly={!editingPolicy} className="w-full p-2.5 rounded-lg font-mono text-sm outline-none" style={inputStyle(editingPolicy)} /></div>
+              <div><label className="block font-sans text-sm font-medium mb-1.5 text-zinc-300">Max Native Token per Tx</label><input type="number" min="0" step="0.1" value={editingPolicy ? policyForm.maxNativePerTx : (policy?.maxSolPerTx ?? 0)} onChange={(e) => setPolicyForm((p) => ({ ...p, maxNativePerTx: Number(e.target.value) }))} readOnly={!editingPolicy} className="w-full p-2.5 rounded-lg font-mono text-sm outline-none" style={inputStyle(editingPolicy)} /></div>
               <div><label className="block font-sans text-sm font-medium mb-1.5 text-zinc-300">Rate Limit (tx/min)</label><input type="number" min="1" value={editingPolicy ? policyForm.rateLimitPerMinute : (policy?.rateLimit ?? 0)} onChange={(e) => setPolicyForm((p) => ({ ...p, rateLimitPerMinute: Number(e.target.value) }))} readOnly={!editingPolicy} className="w-full p-2.5 rounded-lg font-mono text-sm outline-none" style={inputStyle(editingPolicy)} /></div>
               <div><label className="block font-sans text-sm font-medium mb-1.5 text-zinc-300">Allowed Programs</label><textarea rows={4} value={editingPolicy ? policyForm.allowedProgramsText : (policy?.allowedPrograms?.join('\n') ?? '')} onChange={(e) => setPolicyForm((p) => ({ ...p, allowedProgramsText: e.target.value }))} readOnly={!editingPolicy} className="w-full p-2.5 rounded-lg font-mono text-sm resize-y outline-none" style={inputStyle(editingPolicy)} /></div>
               <div className="flex gap-3">
                 {!editingPolicy && <button onClick={() => setEditingPolicy(true)} className="px-8 py-2.5 rounded-xl font-sans text-sm font-medium bg-white text-black hover:bg-zinc-200 transition-colors">Edit</button>}
                 {editingPolicy && (<><button onClick={handleSavePolicy} disabled={txPending} className="px-8 py-2.5 rounded-xl font-sans text-sm font-medium bg-green-600 text-white hover:bg-green-500 transition-colors disabled:opacity-50">Save</button><button onClick={() => setEditingPolicy(false)} className="px-8 py-2.5 rounded-xl font-sans text-sm font-medium bg-zinc-900 text-zinc-400 border border-zinc-800">Cancel</button></>)}
               </div>
-              {chain === 'solana' && (
-                <button onClick={handlePause} disabled={txPending} className="w-full py-3 rounded-xl font-sans font-semibold text-sm hover:opacity-90 disabled:opacity-50" style={isPaused ? { background: '#22c55e', color: '#fff' } : { background: '#ef4444', color: '#fff' }}>{txPending ? 'Processing...' : isPaused ? 'Resume Protocol' : 'Pause Protocol (Emergency)'}</button>
-              )}
+              <button onClick={handlePause} disabled={txPending} className="w-full py-3 rounded-xl font-sans font-semibold text-sm hover:opacity-90 disabled:opacity-50" style={isPaused ? { background: '#22c55e', color: '#fff' } : { background: '#ef4444', color: '#fff' }}>{txPending ? 'Processing...' : isPaused ? 'Resume Protocol' : 'Pause Protocol (Emergency)'}</button>
             </div>
           )}
 
@@ -542,7 +540,7 @@ export default function Dashboard() {
 
         {/* Footer */}
         <footer className="max-w-7xl mx-auto pt-6 border-t border-white/[0.06] text-center">
-          <p className="font-sans text-[10px] text-zinc-600">Built on Daemon BlockInt Technologies. Bastion v0.3.0. Apache 2.0. Auto-refresh: 30s. Dual-chain: <span className="text-purple-500">Solana</span> + <span style={{ color: '#627EEA' }}>Ethereum</span> <span className="text-zinc-700">(Sepolia testnet)</span> + <span className="text-emerald-400">Arcium</span>.</p>
+          <p className="font-sans text-[10px] text-zinc-600">Built by ZKOS Labs. Bastion v0.3.0. Apache 2.0. Auto-refresh: 30s. Multi-chain: <span className="text-purple-500">Solana</span> + <span style={{ color: '#627EEA' }}>Ethereum</span> <span className="text-zinc-700">+ Base + Celo</span> + <span className="text-emerald-400">Arcium</span>.</p>
         </footer>
       </main>
     </div>

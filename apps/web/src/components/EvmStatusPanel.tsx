@@ -11,7 +11,7 @@ const AUDIT_ADDRESS = import.meta.env.VITE_BASTION_AUDIT_ADDRESS as string | und
 const EXPLORER_URL = import.meta.env.VITE_EVM_EXPLORER_URL || 'https://sepolia.etherscan.io';
 
 /**
- * Read-only EVM (Ethereum Sepolia testnet) status panel. Surfaces live on-chain
+ * Read-only EVM status panel. Surfaces live on-chain data across Sepolia, Base, and Celo.
  * state from the deployed Bastion contracts via the wagmi/viem `useBastionEVM`
  * hook: audit entry count, firewall pause state, and recent AuditRecorded events.
  * Writes (pause / setPolicy) are intentionally omitted from this pass.
@@ -48,7 +48,7 @@ export default function EvmStatusPanel() {
   if (!deployed) {
     return (
       <div className="max-w-7xl mx-auto mb-4 rounded-xl p-6" style={CARD}>
-        <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500 mb-2">Ethereum (Sepolia Testnet)</p>
+        <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500 mb-2">EVM Networks (Sepolia / Base / Celo)</p>
         <p className="font-sans text-sm text-zinc-400">Bastion contracts are not yet deployed on this frontend.</p>
         <p className="font-sans text-xs text-zinc-600 mt-1">
           Set <code className="text-zinc-500">VITE_BASTION_AUDIT_ADDRESS</code> (and the policy / firewall / registry
@@ -62,7 +62,7 @@ export default function EvmStatusPanel() {
   return (
     <div className="max-w-7xl mx-auto mb-4 rounded-xl p-6" style={CARD}>
       <div className="flex items-center justify-between mb-4">
-        <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500">Ethereum (Sepolia Testnet)</p>
+        <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500">EVM Networks (Sepolia / Base / Celo)</p>
         <div className="flex items-center gap-2">
           <span className="px-2 py-0.5 rounded-full text-[10px] font-sans font-semibold border"
             style={paused

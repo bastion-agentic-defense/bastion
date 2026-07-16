@@ -43,7 +43,7 @@ export default function Integrate() {
             className="animate-fade-rise-delay font-sans mt-6 max-w-xl mx-auto text-base leading-relaxed"
             style={{ color: 'var(--text-muted)' }}
           >
-            Install the SDK, register your agent, set a policy, connect via MCP. Every transaction validated before signing. Every API call inspected before sending. Solana native. Web2 proxy. Zero trust.
+            Install the SDK, register your agent, set a policy, connect via MCP. Every transaction validated before signing. Every API call inspected before sending. Multi-chain native. Web2 proxy. Zero trust.
 
             Bastion is in alpha testing. Use with caution in production environments.
           </p>
@@ -80,24 +80,23 @@ export default function Integrate() {
 
           {/* EVM Status */}
           <div
-            className="animate-fade-rise-delay-2 mt-10 mx-auto max-w-sm rounded-xl p-5 opacity-60"
-            style={{ background: 'var(--bg-subtle)', border: '1px dashed var(--border)' }}
+            className="animate-fade-rise-delay-2 mt-10 mx-auto max-w-sm rounded-xl p-5"
+            style={{ background: 'var(--bg-subtle)', border: '1px solid var(--card-border)' }}
           >
             <div className="flex items-center gap-3 mb-2">
-              <span style={{ fontSize: '1.3em', filter: 'grayscale(1)' }}>⟠</span>
-              <span className="font-sans text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
-                EVM (Celo / Base / Polygon)
+              <span style={{ fontSize: '1.3em' }}>⟠</span>
+              <span className="font-sans text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                EVM (Celo / Base / Sepolia)
               </span>
               <span
                 className="font-mono text-[9px] px-2 py-0.5 rounded-full ml-auto"
-                style={{ background: 'rgba(107,114,128,0.15)', color: '#6B7280', border: '1px solid rgba(107,114,128,0.25)' }}
+                style={{ background: 'rgba(234,179,8,0.1)', color: '#eab308', border: '1px solid rgba(234,179,8,0.25)' }}
               >
-                In Development
+                Live Testnet
               </span>
             </div>
             <p className="font-sans text-xs" style={{ color: 'var(--text-muted)' }}>
-              Solidity contracts in active development. Solana is our primary deployment target.
-              EVM support (ERC-7579 validator, EIP-712 audit trail) coming soon.
+              EVM contracts deployed on Sepolia. ERC-7579 validator module and EIP-712 audit trail operational across Ethereum, Base, and Celo.
             </p>
           </div>
         </section>

@@ -4,11 +4,13 @@ import { RulerCarousel, type CarouselItem } from "@/components/ui/ruler-carousel
 
 const TECH_ITEMS: CarouselItem[] = [
   { id: 1, title: "◎ Solana SVM" },
-  { id: 2, title: "Arcium MPC" },
-  { id: 3, title: "Helius RPC" },
-  { id: 4, title: "Anchor Framework" },
-  { id: 5, title: "Rust Sidecar" },
-  { id: 6, title: "Daemon BlockInt" },
+  { id: 2, title: "⟠ Ethereum EVM" },
+  { id: 3, title: "Arcium MPC" },
+  { id: 4, title: "Foundry / Solidity" },
+  { id: 5, title: "Anchor Framework" },
+  { id: 6, title: "Rust Sidecar" },
+  { id: 7, title: "ZKOS Labs" },
+  { id: 8, title: "Helius RPC" },
 ];
 
 export function TechCarousel() {

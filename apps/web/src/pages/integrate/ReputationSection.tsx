@@ -10,7 +10,7 @@ export default function ReputationSection() {
       </h3>
 
       <p className="font-sans text-sm mb-6 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-        Every agent has an on-chain reputation score that accrues over time. Higher reputation unlocks trust gated marketplaces, agent scoring, and portable identity across the Solana ecosystem. Staking has been removed in favor of reputation as the universal chain agnostic primitive.
+        Every agent has an on-chain reputation score that accrues over time. Higher reputation unlocks trust-gated marketplaces, agent scoring, and portable identity across the multi-chain ecosystem. Staking has been removed in favor of reputation as the universal chain-agnostic primitive.
       </p>
 
       <div className="space-y-4">
@@ -25,7 +25,7 @@ export default function ReputationSection() {
             <div className="flex items-center gap-2">
               <span className="text-amber-400">1.</span>
               <span style={{ color: 'var(--text-primary)' }}>Register</span>
-              <span style={{ color: 'var(--text-muted)' }}>→ Your agent receives a did:bastion identifier and a 100 point base reputation</span>
+              <span style={{ color: 'var(--text-muted)' }}>→ Your agent receives a did:bastion:{chain}:{id} identifier and a 100 point base reputation</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-amber-400">2.</span>

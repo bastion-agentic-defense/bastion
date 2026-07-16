@@ -23,10 +23,10 @@ const PLATFORMS: AgentPlatform[] = [
     description: 'Per-repo rule. Auto-loads on every session.',
     setup: 'Create .cursor/rules/bastion.mdc',
     code: `---
-description: Bastion agent firewall for Solana transactions
+description: Bastion Programmable Trust Runtime for multi-chain transactions
 alwaysApply: true
 ---
-Before signing any Solana transaction, validate it through Bastion.
+Before signing any transaction, validate it through Bastion.
 Use @zkos-labs/sdk for agent registration and policy config.
 Import { BastionClient } from "@zkos-labs/sdk".`,
   },
@@ -36,12 +36,13 @@ Import { BastionClient } from "@zkos-labs/sdk".`,
     description: 'Per-repo pointer. Codex fetches on each task.',
     setup: 'Add to AGENTS.md',
     code: `# AGENTS.md
-Use @zkos-labs/sdk for all Solana transaction security.
+Use @zkos-labs/sdk for multi-chain transaction security.
 Import { BastionClient, AGENT_CAPABILITIES }
 from "@zkos-labs/sdk".
 
 Before signing, pass the transaction through
-Bastion middleware at POST /simulate.
+Bastion middleware at POST /simulate (Solana)
+or POST /api/v2/simulate-evm (EVM).
 Only sign if response is ALLOW.`,
   },
   {

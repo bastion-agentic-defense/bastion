@@ -22,7 +22,7 @@ export const CHAINS: Record<ChainId, ChainConfig> = {
   },
   evm: {
     id: 'evm',
-    name: 'EVM (Ethereum/Base/Celo)',
+    name: 'EVM (Ethereum / Base / Celo / Polygon)',
     shortName: 'EVM',
     icon: '⟠',
     color: '#627EEA',
