@@ -109,7 +109,7 @@ Settlement Router           🚧  Ethereum, Pact Network
 Solana · Starknet · Arcium · Ethereum · Midnight · Pact Network
 ```
 
-Bastion presents a single runtime while coordinating specialized infrastructure behind the scenes.
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the complete capability architecture with Bastion's proprietary runtime layer, composable infrastructure mapping, and data flow diagrams.
 
 ---
 

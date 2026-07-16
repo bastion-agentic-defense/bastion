@@ -174,27 +174,6 @@ Permissionless cross-chain messaging. Anyone can deploy to new chains without go
 
 ---
 
-## 7. Execution Environments (ZK-Verified)
-
-### Starknet — Ethereum ZK-Rollup with Native AA
-Ethereum Layer 2 using STARK proofs. Every account is a smart account (no EOA/smart account split).
-Cairo VM for ZK-optimized execution. L1-L2 messaging for trust anchoring to Ethereum.
-
-**Key properties for Bastion:**
-- **Native Account Abstraction** — no ERC-4337 bundler needed. Agent wallets are smart accounts by default.
-- **STARK proofs** — execution is proven valid cryptographically, not trusted. Post-quantum secure.
-- **L1-L2 messaging** — Bastion can execute on Starknet, settle trust records to Ethereum L1 via native bridge.
-- **Starkzap SDK** — TypeScript SDK with explicit LLM integration docs for AI agent development.
-- **Cairo VM** — ZK-optimized VM, different from EVM. Requires Cairo language for smart contracts.
-
-**Why Starknet complements Arcium:**
-- Arcium = confidential MPC compute on Solana (privacy)
-- Starknet = ZK-verified public execution on Ethereum (provable correctness + native AA)
-
-**Resource:** https://docs.starknet.io | https://docs.starknet.io/llms.txt
-
----
-
 ## 8. Indexing & Data
 
 ### The Graph — Blockchain Indexing
@@ -280,34 +259,52 @@ Paste any verified contract address → interactive UI for all functions. Multi-
 ## 11. Bastion's Trust Lifecycle Map
 
 ```text
-                    Applications
-        AI Agents · Enterprises · DAEMON
+                         Applications
+              AI Agents · Enterprises · DAEMON
+                                │
+    ────────────────────────────────────────────────────────────
+                         Bastion Runtime
+    ────────────────────────────────────────────────────────────
+    Policy Compiler  · Risk Engine      · Transaction Firewall
+    Trust Graph      · Evidence Aggregator · Audit Log
+    Agent Session Manager · Human Approval Engine
+    ────────────────────────────────────────────────────────────
 
-                          │
+    Identity & Trust              Agent Interoperability
+    ├── ERC-8004 · ERC-8126      ├── A2A
+    ├── ENS · DID/VC             ├── MCP
+    └── Privado ID               └── ACP (future)
 
-                   Bastion Runtime
-────────────────────────────────────────────────────
+    Policy Backends               Wallet Infrastructure
+    ├── OPA · Cedar              ├── ERC-4337 · EIP-7702
+    ├── Runtime Rules            ├── ERC-7579 · ERC-7715
+    └── Human Approval           ├── Session Keys · Safe
+                                 └── Coinbase Smart Wallet
 
-Identity                Policy              Wallet
-├── ERC-8004            ├── OPA             ├── ERC-4337
-├── ERC-8126            ├── Runtime Rules   ├── EIP-7702
-├── ENS                 ├── Human Approval  ├── ERC-7579
-├── A2A                 └── Chainlink VRF   ├── Safe (multisig)
-├── Privado ID                              ├── Coinbase Smart Wallet
-└── DID/VC                                 └── wagmi/viem
+    Evidence & Provenance         Confidential Compute
+    ├── EAS · Sign Protocol      ├── Arcium MXE (MPC)
+    ├── Sigil · zkTLS            ├── SP1 (ZKVM)
+    └── Reclaim · zkPass         ├── Lit (Threshold Crypto)
+                                 ├── Nillion (Blind Compute)
+    Trust Services               └── Aztec (ZK Private State)
+    ├── Attestation: EAS · Sign
+    ├── Identity: ERC-8004 · ENS  Execution
+    ├── Oracles: Chainlink · Pyth ├── Solana
+    │   · Chronicle              ├── Starknet (ZK + native AA)
+    ├── Randomness: VRF          ├── Ethereum
+    └── Restaking: EigenLayer    └── Midnight (ZK privacy)
 
-Evidence                Execution               Settlement
-├── EAS                 ├── Solana              ├── Ethereum
-├── Sign Protocol       ├── Starknet (ZK + AA)  ├── Pact Network
-├── zkTLS/Reclaim       ├── Arcium (MPC)        └── EigenLayer
-├── Sigil               └── Midnight (ZK)
-└── The Graph
+    Settlement & Security         Connectivity & Bridging
+    ├── Ethereum                 ├── Across
+    ├── Pact Network             ├── LayerZero
+    └── EigenLayer               ├── Wormhole
+                                 └── Hyperlane
 
-Trust Primitives         Bridging            Payments
-├── EigenLayer           ├── Across          ├── x402
-├── Lit Protocol         ├── LayerZero       ├── Pact Network
-├── Chainlink/Pyth       ├── Wormhole        └── EIP-3009
-└── Chronicle            └── Hyperlane
+    Payments
+    ├── x402
+    ├── Pact Network
+    └── EIP-3009 · ERC-2612
+    ────────────────────────────────────────────────────────────
 ```
                     Applications
         AI Agents · Enterprises · DAEMON
@@ -347,8 +344,6 @@ Trust Primitives         Bridging            Payments
 |----------|----------|
 | All Ethereum skills | https://ethskills.com/SKILL.md |
 | Base agent skills | https://github.com/base/skills |
-| Starknet docs | https://docs.starknet.io |
-| Starknet LLM context | https://docs.starknet.io/llms.txt |
 | ERC-8004 agent identity | https://www.8004.org |
 | x402 payments | https://www.x402.org |
 | Pact Network | https://pactnetwork.io/docs |

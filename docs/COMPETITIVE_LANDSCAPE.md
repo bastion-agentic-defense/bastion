@@ -146,6 +146,52 @@ Trust / Settlement    ← Pact + EigenLayer
 
 ```
                     Applications
+         AI Agents · Enterprises · DAEMON
+                           │
+────────────────────────────────────────────────────────
+                   Bastion Runtime
+────────────────────────────────────────────────────────
+Policy Compiler  · Risk Engine      · Transaction Firewall
+Trust Graph      · Evidence Aggregator · Audit Log
+Agent Session Manager · Human Approval Engine
+────────────────────────────────────────────────────────
+
+Identity & Trust              Agent Interoperability
+├── ERC-8004 · ERC-8126      ├── A2A
+├── ENS · DID/VC             ├── MCP
+└── Privado ID               └── ACP (future)
+
+Policy Backends               Wallet Infrastructure
+├── OPA · Cedar              ├── ERC-4337 · EIP-7702
+├── Runtime Rules            ├── ERC-7579 · ERC-7715
+└── Human Approval           ├── Session Keys · Safe
+                             └── Coinbase Smart Wallet
+
+Evidence & Provenance         Confidential Compute
+├── EAS · Sign Protocol      ├── Arcium MXE (MPC)
+├── Sigil · zkTLS            ├── SP1 (ZKVM)
+└── Reclaim · zkPass         ├── Lit (Threshold Crypto)
+                             ├── Nillion (Blind Compute)
+Trust Services               └── Aztec (ZK Private State)
+├── Attestation: EAS · Sign
+├── Identity: ERC-8004 · ENS  Execution
+├── Oracles: Chainlink · Pyth ├── Solana
+│   · Chronicle              ├── Starknet (ZK + native AA)
+├── Randomness: VRF          ├── Ethereum
+└── Restaking: EigenLayer    └── Midnight (ZK privacy)
+
+Settlement & Security         Connectivity & Bridging
+├── Ethereum                 ├── Across
+├── Pact Network             ├── LayerZero
+└── EigenLayer               ├── Wormhole
+                             └── Hyperlane
+
+Payments
+├── x402
+├── Pact Network
+└── EIP-3009 · ERC-2612
+```
+                    Applications
         AI Agents · Enterprises · DAEMON
 
                           │
