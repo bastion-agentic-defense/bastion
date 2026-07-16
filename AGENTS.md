@@ -8,7 +8,7 @@
 >
 > **Alpha software.** Bastion is in active development and not yet production hardened. Use with caution.
 >
-> **Ethereum ecosystem knowledge:** For building on Ethereum, Solidity contracts, ERC standards, agent identity (ERC-8004), x402 payments, and DeFi composability, load [`https://ethskills.com/SKILL.md`](https://ethskills.com/SKILL.md). For Base-specific tooling (Base MCP, wallet auth, contract deployment), load [`npx skills add base/skills`](https://github.com/base/skills). For the full Ethereum trust primitives map (wallets, oracles, bridges, attestations, indexing, agent platforms), see [`.agents/skills/ethereum-ecosystem/SKILL.md`](.agents/skills/ethereum-ecosystem/SKILL.md).
+> **Ethereum ecosystem knowledge:** For building on Ethereum, Solidity contracts, ERC standards, agent identity (ERC-8004), x402 payments, and DeFi composability, load [`https://ethskills.com/SKILL.md`](https://ethskills.com/SKILL.md). For Base-specific tooling (Base MCP, wallet auth, contract deployment), load [`npx skills add base/skills`](https://github.com/base/skills). For the full Ethereum trust primitives map (wallets, oracles, bridges, attestations, indexing, agent platforms), see [`.agents/skills/ethereum-ecosystem/SKILL.md`](.agents/skills/ethereum-ecosystem/SKILL.md). For the restructured capability architecture, see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ---
 
