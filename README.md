@@ -59,9 +59,11 @@ Bastion provides the runtime that makes autonomous systems safe to deploy in pro
 | Web2 API policy gateway | 🟡 |
 | MCP server | 🟡 |
 | Dashboard & monitoring | 🟡 |
-| Durable workflow execution | 🚧 |
-| Confidential computation (Arcium) | 🚧 |
-| Payment guarantees (Pact Network) | 🚧 |
+| Durable workflow execution | 🚧 design phase — see [Epic A](docs/IMPLEMENTATION_PLAN.md#phase-1-durable-workflow-engine--epic-a-1700-loc-2-3-weeks) |
+| Confidential computation (Arcium) | 🚧 stubbed — noop client, behind audit gate |
+| Payment guarantees (Pact Network) | 🚧 planned — see [Epic D](docs/IMPLEMENTATION_PLAN.md#phase-5-pact-network--epic-d-300-loc-3-5-days) |
+| Secrets management (Vault) | 🚧 planned — see [Epic E](docs/IMPLEMENTATION_PLAN.md#phase-3-secrets-management--epic-e-500-loc-1-week) |
+| General-purpose policy (OPA) | 🚧 planned — see [Epic F](docs/IMPLEMENTATION_PLAN.md#phase-2-general-purpose-policy--epic-f-600-loc-1-week) |
 
 ---
 
@@ -244,7 +246,7 @@ still minimal (chain selection + simulation); true execution planning remains �
 * 🚧 Ethereum trust anchoring & settlement router (post-audit)
 * 🚧 Zero-knowledge policy enforcement · decentralized identity · trust marketplace
 
-See [`docs/ROADMAP.md`](docs/ROADMAP.md) for detail, [`docs/VISION.md`](docs/VISION.md) for the long-form vision, and [`docs/COMPETITIVE_LANDSCAPE.md`](docs/COMPETITIVE_LANDSCAPE.md) for the ecosystem analysis.
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for detail, [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) for the complete implementation plan (~5,780 LOC across 7 epics), [`docs/VISION.md`](docs/VISION.md) for the long-form vision, and [`docs/COMPETITIVE_LANDSCAPE.md`](docs/COMPETITIVE_LANDSCAPE.md) for the ecosystem analysis.
 
 ---
 
