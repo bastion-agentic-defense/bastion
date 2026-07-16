@@ -1,6 +1,8 @@
 # Bastion — Production Roadmap
 
 > Target: Production-ready by **2026-06-18** (one week from 2026-06-11)
+>
+> See [`docs/IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) for the complete 7-epic implementation plan (~5,780 LOC, 8-12 weeks).
 
 ---
 
@@ -268,6 +270,70 @@ loop (policy decides whether to call, Pact guarantees the outcome).
 - **Market integration** — route covered calls through `market.pactnetwork.io` for curated endpoints
 
 **Gate:** pact-network mainnet is in private beta. Integration follows Pact's public beta milestone.
+
+### Epic E — Secrets Management (🚧 planned)
+
+**Status today:** No secrets management layer exists. Agents must manage their own API keys,
+signing keys, and database credentials. Bastion's Web2 firewall can intercept calls but not
+manage the credentials needed for those calls.
+
+**Why:** Production agent workflows need API keys, database credentials, signing keys,
+and encryption keys. Today these are hardcoded or managed externally — Bastion has no
+visibility into credential lifecycle and cannot enforce least-privilege access.
+
+**Requirements:**
+- **Vault client** — authenticate, read KV v2, issue dynamic DB creds, revoke (`crates/vault/`)
+- **SecretBroker trait** — abstraction over Vault or env-fallback for dev/testing
+- **Bastion agent → Vault identity mapping** — map agent DID to Vault entities and aliases
+- **Activity-level injection** — `FetchSecret` Activity scopes credentials to step TTL
+- **No secrets in event log** — redact credential values before persisting to Sled
+- **Docker compose** — Vault dev server for local development
+
+**Depends on:** Epic A (secrets are injected inside Activities, which need durable workflows).
+See [`docs/IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) Phase 3 for detailed task breakdown.
+
+### Epic F — General-Purpose Policy (OPA Integration) (🚧 planned)
+
+**Status today:** `crates/core/src/policy/evaluator.rs` ships 11 hardcoded Rust rule variants
+(`AmountLimit`, `Destination`, `Frequency`, `HITL`, `Reputation`, `TxTypeAllowlist`,
+`StakeWeighted`, `Geofence`, `SpeedLimit`, `EnergyBudget`, `OperatingHours`). Adding a
+new rule requires recompilation. No custom policy language. No versioning.
+
+**Why:** Enterprise users and protocol teams need custom policies expressed as code
+(policy-as-code), versioned independently of the Rust binary. OPA/Rego is the industry
+standard for general-purpose policy evaluation.
+
+**Requirements:**
+- **`PluggablePolicy` trait** — abstraction over policy backends
+- **`NativePolicyBackend`** — wraps existing 11 rules for the fast path
+- **`OpaPolicyClient`** — HTTP client to OPA sidecar for Rego policy evaluation
+- **`PolicyConfig`** — select backend per policy set
+- **Docker compose** — OPA sidecar with example Rego bundle
+- **SDK surface** — `bastion.policy.evaluate()` + `bastion.policy.dryRun()`
+- **Dry-run endpoint** — `POST /policy/evaluate` for policy testing
+
+**Dependency:** Phase 0 (durable policy state via Sled for OPA decision caching).
+See [`docs/IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) Phase 2 for detailed task breakdown.
+
+### Epic G — EigenLayer AVS Integration (🚧 planned)
+
+**Status today:** EigenLayer is referenced in documentation and the competitive landscape
+but has zero integration code. Bastion operators run as centralized services with no
+cryptoeconomic accountability.
+
+**Why:** When Bastion workflows dispatch tasks to distributed operators, there must be
+an accountability model. EigenLayer's AVS framework provides operator staking, slashing,
+and rewards that make operator misbehavior economically expensive.
+
+**Requirements:**
+- **Operator registry** — on-chain registration, removal, query of operator identities
+- **AVS trust model selector** — choose from whitelisted, permissioned, or economic security
+- **Evidence collection** — link operator task output to workflow execution + policy decision
+- **Slashing hook** — trigger slashing when evidence threshold is met
+- **`AvsOperator` Activity** — delegate workflow tasks to operator set members
+
+**Depends on:** Epic A (operator tasks are Activities within durable workflows).
+See [`docs/IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) Phase 7 for detailed task breakdown.
 
 ---
 
