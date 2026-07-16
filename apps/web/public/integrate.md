@@ -14,7 +14,7 @@ npm install @zkos-labs/sdk
 ```typescript
 import { BastionClient } from "@zkos-labs/sdk";
 
-const client = new BastionClient({ baseUrl: "https://bastion.zkos.dev/" });
+const client = new BastionClient({ baseUrl: "https://bastion-agentique.fly.dev/" });
 
 // Simulate a Solana transaction
 const result = await client.simulate({
@@ -45,18 +45,18 @@ const evmResult = await client.simulateEvm({
 
 ```bash
 # Simulate a transaction
-curl -X POST https://bastion.zkos.dev/simulate \
+curl -X POST https://bastion-agentique.fly.dev/simulate \
   -H "Content-Type: application/json" \
   -d '{"transaction": "...", "intent": "Swap 1 SOL for USDC"}'
 
 # Get current policy
-curl https://bastion.zkos.dev/policy
+curl https://bastion-agentique.fly.dev/policy
 
 # Get audit logs
-curl https://bastion.zkos.dev/logs?limit=50
+curl https://bastion-agentique.fly.dev/logs?limit=50
 
 # Human override
-curl -X POST https://bastion.zkos.dev/override \
+curl -X POST https://bastion-agentique.fly.dev/override \
   -H "Content-Type: application/json" \
   -d '{"block_id": "...", "action": "ALLOW"}'
 ```
