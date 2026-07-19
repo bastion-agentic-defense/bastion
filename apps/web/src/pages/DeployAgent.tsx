@@ -7,7 +7,7 @@ const TEMPLATES = [
   {
     id: 'defi',
     name: 'DeFi Agent',
-    icon: '⇄',
+    icon: '',
     color: '#22c55e',
     desc: 'Swap and transfer with policy-gated limits. Jupiter + Raydium + Token Program.',
     caps: 'TRANSFER + SWAP',
@@ -18,7 +18,7 @@ const TEMPLATES = [
   {
     id: 'trading',
     name: 'Trading Agent',
-    icon: '⚡',
+    icon: '',
     color: '#f59e0b',
     desc: 'High-frequency trading with relaxed limits. Requires higher stake for 5x limit multiplier.',
     caps: 'TRANSFER + SWAP',

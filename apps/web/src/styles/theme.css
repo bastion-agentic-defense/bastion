@@ -1,24 +1,390 @@
+/* ── Link state ──
+ * Hover changes tone only. No growing underline, no lift, no glow. */
+.nav-link {
+  transition: color 0.18s ease;
+}
+
+.nav-link:hover {
+  color: var(--text-primary) !important;
+}
+
+.nav-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ── Entrance motion ──
+ * Used by the /integrate page. Content is never gated on these: the animation
+ * runs from a visible state, so if it never fires the text is still fully
+ * readable. Only the offset animates.
+ */
 @keyframes fade-rise {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
+  from {
+    transform: translateY(14px);
   }
-  100% {
-    opacity: 1;
+  to {
     transform: translateY(0);
   }
 }
 
 .animate-fade-rise {
-  animation: fade-rise 0.8s ease-out both;
+  animation: fade-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-fade-rise-delay {
-  animation: fade-rise 0.8s ease-out 0.2s both;
+  animation: fade-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
 }
 
 .animate-fade-rise-delay-2 {
-  animation: fade-rise 0.8s ease-out 0.4s both;
+  animation: fade-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+/* ── Scroll-linked motion ─────────────────────────────────────────────────────
+ * `--sy` is the scroll offset, written each frame by SmoothScroll. These rules
+ * move elements that are already on screen and already legible; nothing here
+ * decides whether content is visible. With reduced motion `--sy` stays 0 and
+ * every transform below resolves to zero translation.
+ * ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --sy: 0;
+}
+
+/* The hero artifact holds back slightly against the page, so the ledger and the
+ * claim separate on the z-axis as you leave the fold. Clamped so it never
+ * drifts far enough to break the composition. */
+.parallax-hold {
+  transform: translate3d(0, min(calc(var(--sy) * 0.08 * 1px), 64px), 0);
+  will-change: transform;
+}
+
+.parallax-lead {
+  transform: translate3d(0, max(calc(var(--sy) * -0.045 * 1px), -40px), 0);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .parallax-hold,
+  .parallax-lead {
+    transform: none;
+  }
+}
+
+/* ── Nav on scroll ──
+ * Sits transparent over the hero, then earns its edge and blur once the page
+ * has moved. A tonal change, not a resize. */
+.nav-shell {
+  transition: background-color 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.scrolled .nav-shell {
+  border-bottom-color: var(--border);
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  backdrop-filter: blur(14px) saturate(1.25);
+  -webkit-backdrop-filter: blur(14px) saturate(1.25);
+}
+
+/* ── Ledger arrival ──
+ * The newest decision settles in with a brief tonal wash. Only the background
+ * animates: the row and its text are fully legible from the first frame, so a
+ * skipped animation costs nothing. */
+@keyframes ledger-arrive {
+  from {
+    background-color: color-mix(in srgb, var(--accent) 11%, transparent);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+.ledger-row-new {
+  animation: ledger-arrive 1.5s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ledger-row-new {
+    animation: none;
+  }
+}
+
+/* ── Hero artifact ──
+ * On a wide screen the ledger runs past the container's right gutter to the
+ * viewport edge, so it crosses a layer boundary instead of sitting politely
+ * inside the column. Depth comes from the overlap, not from a shadow. */
+@media (min-width: 1240px) {
+  .hero-artifact {
+    margin-right: calc(-1 * ((100vw - 1180px) / 2 + 2.5rem));
+  }
+}
+
+/* ── Hero light ──
+ * A single raking source from the upper left with real falloff, resolving into
+ * the page colour so the next section meets no seam. Not a halo behind an
+ * object. */
+/* ── Section grounds ─────────────────────────────────────────────────────────
+ * The page moves through four surfaces: white, ink, warm stone, and a full
+ * orange field. Each band is a deliberate change of ground, and the type
+ * colours invert with it rather than being restated at every call site.
+ * ─────────────────────────────────────────────────────────────────────────── */
+/* Each band redefines the token set for everything inside it, so a band's
+ * appearance is a property of the band and not of the active theme. Without
+ * this, a hardcoded light ground inherits dark-theme ink and the text
+ * disappears — and nested surfaces like `.panel` invert against their own
+ * background. */
+.band-ink {
+  background: oklch(0.165 0.006 84.57);
+
+  --bg: oklch(0.165 0.006 84.57);
+  --bg-subtle: oklch(0.205 0.006 84.57);
+  --surface: oklch(0.225 0.006 84.57);
+  --surface-raised: oklch(0.255 0.006 84.57);
+  --border: oklch(0.95 0.005 84.57 / 0.11);
+  --border-strong: oklch(0.95 0.005 84.57 / 0.2);
+  --card-bg: oklch(0.225 0.006 84.57);
+  --card-border: oklch(0.95 0.005 84.57 / 0.11);
+  --text-primary: oklch(0.955 0.004 84.57);
+  --text-secondary: oklch(0.79 0.005 84.57);
+  --text-muted: oklch(0.68 0.006 84.57);
+  --text-faint: oklch(0.58 0.006 84.57);
+  --accent-text: oklch(0.775 0.16 48);
+
+  color: var(--text-primary);
+}
+
+.band-stone {
+  background: oklch(0.918 0.004 84.57);
+
+  --bg: oklch(0.918 0.004 84.57);
+  --bg-subtle: oklch(0.895 0.004 84.57);
+  --surface: oklch(0.96 0.003 84.57);
+  --surface-raised: oklch(0.99 0.002 84.57);
+  --border: oklch(0.183 0.009 84.57 / 0.14);
+  --border-strong: oklch(0.183 0.009 84.57 / 0.26);
+  --card-bg: oklch(0.96 0.003 84.57);
+  --card-border: oklch(0.183 0.009 84.57 / 0.13);
+  --text-primary: oklch(0.183 0.009 84.57);
+  --text-secondary: oklch(0.391 0.006 78.26);
+  --text-muted: oklch(0.475 0.007 84.58);
+  --text-faint: oklch(0.52 0.007 84.58);
+  --accent-text: oklch(0.55 0.168 42);
+
+  color: var(--text-primary);
+}
+
+.band-warm {
+  background: linear-gradient(
+    168deg,
+    oklch(0.985 0.003 84.56) 0%,
+    oklch(0.967 0.008 62) 55%,
+    oklch(0.958 0.014 52) 100%
+  );
+
+  --bg: oklch(0.975 0.005 70);
+  --bg-subtle: oklch(0.955 0.006 62);
+  --surface: oklch(0.995 0.002 84.56);
+  --surface-raised: oklch(1 0 0);
+  --border: oklch(0.183 0.009 84.57 / 0.12);
+  --border-strong: oklch(0.183 0.009 84.57 / 0.24);
+  --card-bg: oklch(0.995 0.002 84.56);
+  --card-border: oklch(0.183 0.009 84.57 / 0.11);
+  --text-primary: oklch(0.183 0.009 84.57);
+  --text-secondary: oklch(0.391 0.006 78.26);
+  --text-muted: oklch(0.475 0.007 84.58);
+  --text-faint: oklch(0.52 0.007 84.58);
+  --accent-text: oklch(0.55 0.168 42);
+
+  color: var(--text-primary);
+}
+
+.band-orange {
+  background: oklch(0.688 0.19 44.62);
+
+  --border: oklch(0.24 0.03 44 / 0.3);
+  --border-strong: oklch(0.24 0.03 44 / 0.45);
+  --text-primary: oklch(0.165 0.006 84.57);
+  --text-secondary: oklch(0.26 0.035 44);
+  --text-muted: oklch(0.3 0.04 44);
+  --text-faint: oklch(0.34 0.045 44);
+
+  color: var(--text-primary);
+}
+
+.band-ink .band-title,
+.band-orange .band-title {
+  color: var(--text-primary);
+}
+
+.band-body {
+  color: var(--text-secondary);
+}
+
+/* Kicker: one small tracked label, used only to open a band. */
+.band-kicker {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 1.4rem;
+}
+
+/* ── Marquee ──
+ * The pipeline, running continuously. The track is duplicated so the loop is
+ * seamless; the text is present and readable at every frame, and the animation
+ * only translates it. */
+.marquee {
+  overflow: hidden;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.marquee-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 2.5rem;
+  padding-right: 2.5rem;
+  animation: marquee-run 34s linear infinite;
+  will-change: transform;
+}
+
+@keyframes marquee-run {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* A second track running the other way, so the two bands read as opposing
+ * belts rather than one repeated effect. */
+.marquee-track--reverse {
+  animation-direction: reverse;
+  animation-duration: 46s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
+
+/* ── Example reporting panel ──
+ * The artifact frame used inside a capability block. A quiet chrome bar, no
+ * traffic lights, so it reads as a report rather than a fake desktop window. */
+.report-frame {
+  background: var(--surface-raised);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-raised);
+}
+
+.report-chrome {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--card-border);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* ── Gradient hero ───────────────────────────────────────────────────────────
+ * A directional wash across the brand orange: pale at the lower left, deepening
+ * to a burnt shadow at the upper right, so it reads as one raking light rather
+ * than a two-stop ramp. Grain sits on the substrate to keep the large field
+ * from banding.
+ * ─────────────────────────────────────────────────────────────────────────── */
+.hero-gradient {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(
+      108deg,
+      oklch(0.93 0.045 62) 0%,
+      oklch(0.84 0.108 55) 18%,
+      oklch(0.72 0.176 47) 42%,
+      oklch(0.635 0.186 42) 62%,
+      oklch(0.5 0.152 38) 84%,
+      oklch(0.41 0.122 35) 100%
+    );
+}
+
+/* The mark, oversized and set into the field as a watermark. Two instances at
+ * different scales give the surface depth without any floating card. */
+.hero-watermark {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  color: oklch(1 0 0);
+  opacity: 0.11;
+}
+
+.hero-watermark--lead {
+  top: -14%;
+  left: 4%;
+}
+
+.hero-watermark--trail {
+  bottom: -34%;
+  right: 8%;
+  opacity: 0.08;
+}
+
+@media (max-width: 900px) {
+  .hero-watermark--trail {
+    display: none;
+  }
+}
+
+/* On the gradient the copy is white and the primary action inverts to ink. */
+.btn-on-gradient {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 0.78rem 1.6rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: oklch(0.183 0.009 84.57);
+  color: oklch(1 0 0);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: background-color 0.18s ease;
+}
+
+.btn-on-gradient:hover {
+  background: oklch(0.28 0.012 84.57);
+}
+
+.btn-on-gradient:focus-visible {
+  outline: 2px solid oklch(1 0 0);
+  outline-offset: 3px;
+}
+
+.hero-light {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    157deg,
+    var(--accent-wash) 0%,
+    color-mix(in oklch, var(--accent) 4%, transparent) 24%,
+    transparent 52%
+  );
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Anchored sections clear the fixed nav instead of hiding under it. */
+  scroll-padding-top: 88px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -26,7 +392,10 @@
   .animate-fade-rise-delay,
   .animate-fade-rise-delay-2 {
     animation: none;
-    opacity: 1;
     transform: none;
+  }
+
+  html {
+    scroll-behavior: auto;
   }
 }

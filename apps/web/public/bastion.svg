@@ -1,1 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="Bastion">
+  <!--
+    The Bastion mark: two mirrored brackets closing into a gate with an aperture
+    at the centre. Same geometry as the verdict marker in the policy ledger, so
+    the identity and the product are drawn from one system.
+  -->
+  <rect width="24" height="24" rx="5" fill="#14120e"/>
+  <g fill="none" stroke="#f66a17" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10.1 5 L5.2 8.2 L5.2 15.8 L10.1 19"/>
+    <path d="M13.9 5 L18.8 8.2 L18.8 15.8 L13.9 19"/>
+  </g>
+</svg>

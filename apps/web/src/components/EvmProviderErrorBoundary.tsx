@@ -80,7 +80,7 @@ function EvmConflictBanner({ message }: { message: string }) {
         gap: '10px',
       }}
     >
-      <span style={{ fontSize: '16px' }}>⚠️</span>
+      <span style={{ fontSize: '16px' }}></span>
       <span>
         {isExtensionConflict ? (
           <>

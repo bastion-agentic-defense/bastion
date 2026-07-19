@@ -26,17 +26,17 @@ export default function Integrate() {
         <section className="text-center mb-20" aria-labelledby="integrate-headline">
           <h1
             id="integrate-headline"
-            className="animate-fade-rise font-serif max-w-3xl mx-auto"
+            className="animate-fade-rise font-display max-w-3xl mx-auto"
             style={{
-              fontSize: 'clamp(2rem, 6vw, 4rem)',
-              lineHeight: '1.05',
-              letterSpacing: '-1.5px',
-              fontWeight: 400,
+              fontSize: 'clamp(1.95rem, 4.4vw, 3.1rem)',
+              lineHeight: '1.1',
+              letterSpacing: '-0.032em',
+              fontWeight: 500,
               color: 'var(--text-primary)',
             }}
           >
             One line to secure{' '}
-            <em style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>your agent</em>.
+            <span style={{ color: 'var(--accent-text)' }}>your agent</span>.
           </h1>
 
           <p
@@ -71,10 +71,10 @@ export default function Integrate() {
               href="https://github.com/zkos-labs/bastion"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-full px-8 py-3 text-sm font-medium font-sans transition-all duration-150 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
-              style={{ color: 'var(--text-muted)', border: '1px solid var(--border)', textDecoration: 'none' }}
+              className="font-sans nav-link no-underline"
+              style={{ fontSize: '14px', color: 'var(--text-muted)', textDecoration: 'none' }}
             >
-              GitHub
+              Source ↗
             </a>
           </div>
 
@@ -84,7 +84,6 @@ export default function Integrate() {
             style={{ background: 'var(--bg-subtle)', border: '1px solid var(--card-border)' }}
           >
             <div className="flex items-center gap-3 mb-2">
-              <span style={{ fontSize: '1.3em' }}>⟠</span>
               <span className="font-sans text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                 EVM (Celo / Base / Sepolia)
               </span>

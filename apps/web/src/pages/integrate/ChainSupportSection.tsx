@@ -56,7 +56,7 @@ export default function ChainSupportSection() {
           style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
         >
           <div className="flex items-center gap-3 mb-4">
-            <span style={{ color: '#9945FF', fontSize: '1.5em' }}>◎</span>
+            <span style={{ color: '#9945FF', fontSize: '1.5em' }}></span>
             <div>
               <h4 className="font-sans font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
                 Solana
@@ -99,7 +99,7 @@ export default function ChainSupportSection() {
           style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
         >
           <div className="flex items-center gap-3 mb-4">
-            <span style={{ color: '#3B82F6', fontSize: '1.5em' }}>⟠</span>
+            <span style={{ color: '#3B82F6', fontSize: '1.5em' }}></span>
             <div>
               <h4 className="font-sans font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
                 EVM
@@ -142,7 +142,6 @@ export default function ChainSupportSection() {
           style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
         >
           <div className="flex items-center gap-3 mb-4">
-            <span style={{ color: 'var(--text-primary)', fontSize: '1.5em' }}>🛡️</span>
             <div>
               <h4 className="font-sans font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
                 Web2 Proxy

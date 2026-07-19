@@ -9,9 +9,9 @@ interface Props {
 
 const CAPABILITIES = [
   { key: 'TRANSFER', label: 'Token Transfer', bit: 1 << 0, icon: '→' },
-  { key: 'SWAP', label: 'DEX Swap', bit: 1 << 1, icon: '⇄' },
-  { key: 'NFT_MINT', label: 'NFT Mint', bit: 1 << 2, icon: '◆' },
-  { key: 'STAKE', label: 'Staking', bit: 1 << 4, icon: '⊞' },
+  { key: 'SWAP', label: 'DEX Swap', bit: 1 << 1, icon: '' },
+  { key: 'NFT_MINT', label: 'NFT Mint', bit: 1 << 2, icon: '' },
+  { key: 'STAKE', label: 'Staking', bit: 1 << 4, icon: '' },
 ];
 
 const STEPS = [

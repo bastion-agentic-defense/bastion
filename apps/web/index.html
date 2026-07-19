@@ -2,7 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/bastion.svg" />
+    <!-- Version query busts the browser's favicon cache, which otherwise holds
+         the previous mark indefinitely. Bump on any change to the file. -->
+    <link rel="icon" type="image/svg+xml" href="/bastion.svg?v=2" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bastion | Programmable Trust Runtime for AI Agents</title>
   </head>

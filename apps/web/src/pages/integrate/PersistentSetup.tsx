@@ -47,7 +47,7 @@ Only sign if response is ALLOW.`,
   },
   {
     name: 'OpenClaw',
-    icon: '◆',
+    icon: '',
     description: 'Per-project clone. Skills live on disk.',
     setup: 'Run in terminal',
     code: `clawhub install bastion`,

@@ -1,4 +1,47 @@
-@import '@fontsource/instrument-serif/400.css';
-@import '@fontsource/inter/400.css';
-@import '@fontsource/inter/500.css';
-@import '@fontsource/inter/600.css';
+/* ── Switzer (Fontshare, self-hosted) ────────────────────────────────────────
+ *
+ * bastion.com runs a single neutral grotesque — Aeonik — across the entire
+ * identity. Aeonik is a commercial licence and cannot be redistributed here, so
+ * Switzer stands in: the same structural voice (neutral, slightly geometric,
+ * generous x-height) and self-hosted rather than pulled off the Google shelf.
+ *
+ * One face carries the whole page, as on the reference. Variable 100–900.
+ */
+@font-face {
+  font-family: 'Switzer';
+  src: url('/fonts/Switzer-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Cabinet Grotesk carries the display line: a grotesque with actual character
+ * in its terminals and a tighter, more deliberate fit than a neutral workhorse,
+ * so headlines read as a voice rather than as set text. Body stays on Switzer,
+ * which keeps the pairing to one structural family. */
+@font-face {
+  font-family: 'Cabinet Grotesk';
+  src: url('/fonts/CabinetGrotesk-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Sentient is retained for the rare editorial moment — it is not the house
+ * voice. Kept because the display cut is already downloaded and paid for in
+ * bytes only when actually used. */
+@font-face {
+  font-family: 'Sentient';
+  src: url('/fonts/Sentient-Variable.woff2') format('woff2-variations');
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sentient';
+  src: url('/fonts/Sentient-VariableItalic.woff2') format('woff2-variations');
+  font-weight: 200 800;
+  font-style: italic;
+  font-display: swap;
+}

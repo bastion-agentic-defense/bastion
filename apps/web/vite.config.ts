@@ -23,5 +23,10 @@ export default defineConfig({
   server: {
     port: 3000,
     host: true,
+    fs: {
+      // The docs pages import `docs/*.md` from the repository root as the single
+      // source of truth, which sits outside this app's Vite root.
+      allow: [path.resolve(__dirname, '../..')],
+    },
   },
 });

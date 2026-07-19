@@ -1,0 +1,210 @@
+/* ── Docs layout ─────────────────────────────────────────────────────────────
+ * Three columns on a wide screen: documents, prose, in-page contents. The prose
+ * column holds a fixed measure so lines stay readable regardless of viewport.
+ * Below 1100px the rails stack above the body rather than crowding it.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+.docs-shell {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+}
+
+.docs-aside,
+.docs-toc {
+  min-width: 0;
+}
+
+/* Long endpoint names wrap rather than forcing the rail to scroll sideways. */
+.docs-toc a {
+  display: block;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+@media (min-width: 1100px) {
+  .docs-shell {
+    grid-template-columns: 200px minmax(0, 1fr) 190px;
+    gap: 3.5rem;
+    align-items: start;
+  }
+
+  .docs-aside,
+  .docs-toc {
+    position: sticky;
+    top: calc(68px + 2.5rem);
+    max-height: calc(100vh - 68px - 4rem);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+}
+
+.docs-body {
+  min-width: 0;
+  max-width: 72ch;
+}
+
+/* ── Prose ── */
+
+.md-h1 {
+  font-size: clamp(2.1rem, 4.2vw, 2.9rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin: 0 0 1.5rem;
+}
+
+.md-h2 {
+  font-size: clamp(1.35rem, 2.4vw, 1.7rem);
+  line-height: 1.25;
+  letter-spacing: -0.022em;
+  color: var(--text-primary);
+  margin: 3.5rem 0 1rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.md-h3 {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--accent);
+  margin: 2.25rem 0 0.75rem;
+}
+
+.md-p {
+  font-size: 15.5px;
+  line-height: 1.72;
+  color: var(--text-secondary);
+  margin: 0 0 1.15rem;
+}
+
+.md-ul,
+.md-ol {
+  margin: 0 0 1.4rem;
+  padding-left: 1.15rem;
+}
+
+.md-ul li,
+.md-ol li {
+  font-size: 15.5px;
+  line-height: 1.72;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  padding-left: 0.35rem;
+}
+
+.md-ul li::marker {
+  color: var(--text-faint);
+}
+
+.md-ol li::marker {
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.md-link {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-decoration-color: var(--accent-dim);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.18s ease;
+}
+
+.md-link:hover {
+  text-decoration-color: var(--accent);
+}
+
+.md-code {
+  font-family: var(--font-mono);
+  font-size: 0.87em;
+  padding: 0.14em 0.4em;
+  border-radius: 4px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* ── Code blocks ──
+ * A single quiet surface. No traffic lights, no filename tab, no syntax
+ * rainbow: the code is the content, not a prop. */
+.md-pre {
+  position: relative;
+  margin: 0 0 1.6rem;
+  padding: 1.15rem 1.25rem;
+  border-radius: 10px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--card-border);
+  overflow-x: auto;
+}
+
+.md-pre code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  white-space: pre;
+}
+
+.md-pre-lang {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  pointer-events: none;
+}
+
+.md-quote {
+  margin: 0 0 1.6rem;
+  padding: 1rem 1.2rem;
+  border-radius: 10px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--card-border);
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+
+/* ── Tables ── */
+
+.md-table-wrap {
+  margin: 0 0 1.8rem;
+  overflow-x: auto;
+}
+
+.md-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 420px;
+}
+
+.md-table th {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--text-faint);
+  padding: 0 1.4rem 0.7rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.md-table td {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  padding: 0.85rem 1.4rem 0.85rem 0;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.md-table th:last-child,
+.md-table td:last-child {
+  padding-right: 0;
+}

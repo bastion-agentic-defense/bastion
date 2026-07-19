@@ -8,7 +8,7 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: 'light',
+  theme: 'dark',
   toggle: () => {},
 });
 
@@ -16,16 +16,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     const stored = localStorage.getItem('bastion-theme');
     if (stored === 'dark' || stored === 'light') return stored;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    // Warm paper is the house look, matching the brand. Dark is opt-in.
+    return 'light';
   });
 
   useEffect(() => {
+    // Light lives on `:root`, so `.dark` is the class we toggle.
     const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
+    root.classList.toggle('dark', theme === 'dark');
     localStorage.setItem('bastion-theme', theme);
   }, [theme]);
 

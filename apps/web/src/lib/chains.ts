@@ -15,7 +15,7 @@ export const CHAINS: Record<ChainId, ChainConfig> = {
     id: 'solana',
     name: 'Solana',
     shortName: 'SOL',
-    icon: '◎',
+    icon: '',
     color: '#9945FF',
     rpcUrl: 'https://api.devnet.solana.com',
     explorerUrl: 'https://explorer.solana.com',
@@ -24,7 +24,7 @@ export const CHAINS: Record<ChainId, ChainConfig> = {
     id: 'evm',
     name: 'EVM (Ethereum / Base / Celo / Polygon)',
     shortName: 'EVM',
-    icon: '⟠',
+    icon: '',
     color: '#627EEA',
     // Sepolia testnet by default (see docs/EVM_READINESS.md — testnet-only pre-audit).
     rpcUrl: import.meta.env.VITE_EVM_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com',

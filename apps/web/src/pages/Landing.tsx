@@ -1,245 +1,839 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
-import { TechCarousel } from '../components/TechCarousel';
+import { BastionMark, BastionLockup } from '../components/BastionMark';
+import Ferrofluid from '../components/Ferrofluid';
 
-const FEATURES = [
+/* ── Content ─────────────────────────────────────────────────────────────────
+ * Every claim is drawn from README.md and docs/. Status markers are the
+ * repository's own. Nothing is promoted beyond what the code does today, and
+ * no third-party company, customer or investor is named.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+const PROBLEMS = [
   {
-    title: 'Trust Runtime',
-    description: 'Multi-chain transaction validation for Solana and EVM. Simulates every transaction against live chain state, enforces configurable native token caps, rate limits, program allowlists, and blockint security checks before signing. Fleet-wide circuit breaker pauses all processing with one command.',
+    title: 'Unbounded authority',
+    body: 'An agent holding a key can call any contract, sign any payload, and reach any endpoint. The blast radius of a bad inference is the whole wallet.',
   },
   {
-    title: 'Audit Trail',
-    description: 'Immutable on-chain audit trail. Every decision — allowed, blocked, or pending — is recorded on-chain as a verifiable record. Auditable by anyone, at any time, with full decision reasoning preserved.',
+    title: 'Failure you cannot see',
+    body: 'When an autonomous system does the wrong thing, the loss is discovered downstream — after settlement, in a reconciliation, or by a customer.',
   },
   {
-    title: 'Agent Identity',
-    description: 'On-chain agent identity and reputation registry. Every agent receives a unique identity with verifiable metadata and W3C DID compliance. Reputation accrues in real time, enabling trust-gated marketplaces, agent scoring, and portable identity across the multi-chain ecosystem.',
+    title: 'No record worth trusting',
+    body: 'Application logs are written by the same process that made the decision. They prove nothing to an auditor, a regulator, or a counterparty.',
+  },
+  {
+    title: 'Policy bolted on last',
+    body: 'Limits live scattered across prompts, wrappers and review queues, so they are inconsistent, unenforceable, and quietly bypassed under load.',
   },
 ];
 
-function FeaturesCarousel() {
-  return (
-    <section id="features" className="max-w-6xl mx-auto px-6 py-32">
-      <p className="font-sans text-sm uppercase tracking-widest text-zinc-500 mb-4">Safe. Modular. Connected.</p>
-      <p className="font-sans text-base text-zinc-400 max-w-lg mb-16 leading-relaxed">
-        Each feature was built to solve a distinct operational problem. Deploy one or all of them. They work independently and together.
-      </p>
+const PIPELINE = ['INTENT', 'POLICY', 'SIMULATION', 'REVIEW', 'AUDIT'];
 
-      <div
-        className="gap-5"
-        style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))' }}
-      >
-        {FEATURES.map((feature, i) => (
-          <div
-            key={feature.title}
-            className="animate-fade-rise rounded-2xl p-8 transition-all duration-500 hover:scale-[1.02] hover:border-white/15 group cursor-default"
-            style={{
-              background: '#0a0a0a',
-              border: '1px solid rgba(255,255,255,0.06)',
-              animationDelay: `${i * 150}ms`,
-              animationFillMode: 'both',
-            }}
-          >
-            <span className="font-mono text-xs text-zinc-600 mb-6 block transition-colors duration-300 group-hover:text-zinc-400">/0.{i + 1}</span>
-              <h3 className="font-serif text-xl mb-4 tracking-tight transition-colors duration-300 group-hover:text-white" style={{ fontWeight: 400, letterSpacing: '-0.5px' }}>{feature.title}</h3>
-              <p className="font-sans text-sm leading-relaxed text-zinc-400 transition-colors duration-300 group-hover:text-zinc-300">{feature.description}</p>
-          </div>
-        ))}
-      </div>
-    </section>
+const CASES = [
+  {
+    title: 'Treasury and payment agents',
+    body: 'Cap the value any single agent can move, restrict it to known programs and counterparties, and hold anything above a threshold for a human.',
+    best: 'Best suited for: finance teams running autonomous payouts, rebalancing, or vendor settlement.',
+  },
+  {
+    title: 'DeFi and market operations',
+    body: 'Screen every intent for flash loans, slippage, and authority changes before signing, with simulation against live chain state on each call.',
+    best: 'Best suited for: market makers, yield strategies, and protocol operations running unattended.',
+  },
+  {
+    title: 'Agent fleets and delegation',
+    body: 'Give each agent an identity, delegate a bounded subset of authority to children, and stop the entire fleet with one circuit breaker.',
+    best: 'Best suited for: platforms operating many agents on behalf of many end users.',
+  },
+];
+
+const FOUNDATIONS = [
+  {
+    title: 'Programmable policy',
+    body: 'Caps, rate limits, program allowlists and egress rules, evaluated before a signature exists.',
+  },
+  {
+    title: 'Verifiable audit',
+    body: 'Every verdict written on-chain with its reasoning intact, readable by anyone without trusting the runtime.',
+  },
+  {
+    title: 'Portable identity',
+    body: 'W3C DID-compliant agent identity, with reputation that accrues across chains rather than per application.',
+  },
+  {
+    title: 'Human authority',
+    body: 'Review queues for what policy will not decide alone, and a fleet-wide stop that overrides everything.',
+  },
+];
+
+const STANDARDS = [
+  { id: 'ERC-4337', adds: 'Policy-aware execution and multi-chain routing' },
+  { id: 'ERC-7579', adds: 'Trust modules and policy validators' },
+  { id: 'ERC-8004', adds: 'Runtime authorization across standards' },
+  { id: 'EAS', adds: 'Lifecycle orchestration and execution evidence' },
+  { id: 'Lit Protocol', adds: 'Confidential execution policies' },
+  { id: 'EigenLayer', adds: 'Coordination using cryptoeconomic trust' },
+];
+
+const STATUS = [
+  { label: 'Programmable policy engine', state: 'shipped' },
+  { label: 'Transaction simulation and verification', state: 'shipped' },
+  { label: 'Human-in-the-loop approvals', state: 'shipped' },
+  { label: 'Verifiable trust ledger', state: 'shipped' },
+  { label: 'TypeScript SDK', state: 'shipped' },
+  { label: 'Agent identity and delegation', state: 'partial' },
+  { label: 'Multi-chain execution planning', state: 'partial' },
+  { label: 'Web2 API policy gateway', state: 'partial' },
+  { label: 'MCP server', state: 'partial' },
+  { label: 'Durable workflow execution', state: 'planned' },
+  { label: 'Confidential computation', state: 'planned' },
+  { label: 'Secrets management', state: 'planned' },
+];
+
+const STATE_COPY: Record<string, string> = {
+  shipped: 'Shipped',
+  partial: 'Partial',
+  planned: 'Planned',
+};
+
+const STATE_COLOR: Record<string, string> = {
+  shipped: 'var(--verdict-allow)',
+  partial: 'var(--verdict-review)',
+  planned: 'var(--text-faint)',
+};
+
+/* ── In-house iconography ────────────────────────────────────────────────────
+ * Drawn for this brand on one 32-unit grid with a single stroke weight and
+ * round joins, sharing the bracket construction of the Bastion mark. Not an
+ * icon-pack import, and never set inside a tile.
+ * ─────────────────────────────────────────────────────────────────────────── */
+function FoundationIcon({ index }: { index: number }) {
+  const common = {
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.5,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  };
+  return (
+    <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" style={{ color: 'var(--accent-text)' }}>
+      {index === 0 && (
+        <>
+          <path d="M12 5 L6 9.5 L6 22.5 L12 27" {...common} />
+          <path d="M20 5 L26 9.5 L26 22.5 L20 27" {...common} />
+          <path d="M16 12.5 L16 19.5" {...common} />
+        </>
+      )}
+      {index === 1 && (
+        <>
+          <path d="M6 24 L6 8 L26 8 L26 24" {...common} />
+          <path d="M6 24 L26 24" {...common} />
+          <path d="M11 19 L15 15 L19 18 L23 12" {...common} />
+        </>
+      )}
+      {index === 2 && (
+        <>
+          <path d="M16 5 L16 27" {...common} />
+          <path d="M8 11 L16 15.5 L24 11" {...common} />
+          <path d="M8 20 L16 24.5 L24 20" {...common} />
+        </>
+      )}
+      {index === 3 && (
+        <>
+          <path d="M16 5 L26 9.5 L26 18 C26 23 21 26 16 27.5 C11 26 6 23 6 18 L6 9.5 Z" {...common} />
+          <path d="M12 16 L15 19 L20 13.5" {...common} />
+        </>
+      )}
+    </svg>
   );
 }
 
-const FLOW_STEPS = [
-  { num: '01', label: 'Define the target', desc: 'Set the policy, configure allowlists, rate limits, and security checks tailored to your agent fleet.' },
-  { num: '02', label: 'Correlate across the stack', desc: 'Every transaction flows through the policy engine, blockint security checks, and Helius simulation before reaching the chain.' },
-  { num: '03', label: 'Decide with evidence', desc: 'Allowed transactions execute on chain. Blocked transactions surface in the dashboard with full reasoning for human review.' },
-  { num: '04', label: 'Deliver verified intelligence', desc: 'Every decision is recorded as an immutable on chain audit entry. Verifiable by regulators, auditors, and your own security team.' },
-];
+/* ── Navigation ──────────────────────────────────────────────────────────── */
 
-const FAQ_ITEMS = [
-  {
-    q: 'What is the Bastion ecosystem?',
-    a: 'Bastion is a Programmable Trust Runtime built by ZKOS Labs. It includes a multi-chain policy engine, immutable on-chain audit trail, agent identity and reputation registry with W3C DID compliance, and fleet-wide circuit breaker with human override. Each component operates independently and shares a common intelligence layer.',
-  },
-  {
-    q: 'Which product should I start with?',
-    a: 'Start with the Trust Runtime. Integrate the TypeScript SDK into your agent, configure a policy, and begin simulating transactions against live chain state across Solana and EVM. The audit trail and identity registry activate automatically when you deploy the on-chain program.',
-  },
-  {
-    q: 'How does the ZKOS Labs intelligence layer power Bastion?',
-    a: 'ZKOS Labs provides three core pillars. GrondOSINT feeds real-world threat data into Bastion risk oracle — querying Tavily for web search and Shodan for internet infrastructure. The blockint rules engine detects flash loans, high slippage, authority changes, and risk-labeled addresses. The 49 agent skills ecosystem covers blockchain forensics, compliance workflows, and DeFi security auditing. All three pipelines power Bastion security checks before any transaction reaches the chain.',
-  },
-  {
-    q: 'How do I get access?',
-    a: 'Bastion is open source under the Apache 2.0 license. Clone the repository at github.com/zkos-labs/bastion, deploy the on-chain programs (Solana Anchor or EVM Solidity), start the sidecar, and integrate the SDK. For enterprise deployments and managed infrastructure, contact hello@bastionagentique.com.',
-  },
-];
+function Nav() {
+  return (
+    <nav
+      className="fixed top-0 inset-x-0 z-50"
+      aria-label="Main"
+      style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}
+    >
+      <div className="max-w-[1180px] mx-auto px-6 sm:px-10 h-[68px] flex items-center justify-between gap-6">
+        <a href="#main" className="no-underline" style={{ color: 'var(--text-primary)' }} aria-label="Bastion, home">
+          <BastionLockup size={23} markColor="var(--accent)" />
+        </a>
+
+        <div className="hidden md:flex items-center gap-9">
+          {[
+            ['Runtime', '#runtime'],
+            ['Standards', '#standards'],
+            ['Status', '#status'],
+            ['Docs', '/docs'],
+          ].map(([label, href]) => (
+            <a
+              key={label}
+              href={href}
+              className="font-sans no-underline nav-link"
+              style={{ fontSize: '14px', color: 'var(--text-secondary)' }}
+            >
+              {label}
+            </a>
+          ))}
+        </div>
+
+        <Link
+          to="/integrate"
+          className="font-sans no-underline"
+          style={{
+            fontSize: '14px',
+            fontWeight: 500,
+            padding: '0.62rem 1.35rem',
+            borderRadius: '999px',
+            background: 'var(--accent)',
+            color: 'oklch(1 0 0)',
+            textDecoration: 'none',
+          }}
+        >
+          Integrate
+        </Link>
+      </div>
+    </nav>
+  );
+}
+
+/* ── Page ────────────────────────────────────────────────────────────────── */
 
 export default function Landing() {
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-
   return (
-    <div className="min-h-screen w-full bg-black text-white font-sans overflow-x-hidden">
-      {/* ── Navbar ── */}
-      <nav className="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-8 py-5 bg-black/80 backdrop-blur-md border-b border-white/[0.06]">
-        <a href="#main-content" className="flex items-center gap-2 font-serif text-xl tracking-tight no-underline text-white">
-          Bastion<span className="text-[10px] align-super ml-px">&reg;</span>
-        </a>
-        <div className="hidden md:flex items-center gap-8">
-                <a href="#features" className="text-sm text-zinc-400 hover:text-white transition-colors no-underline">Features</a>
-          <a href="#how-it-works" className="text-sm text-zinc-400 hover:text-white transition-colors no-underline">How it works</a>
-          <a href="#faq" className="text-sm text-zinc-400 hover:text-white transition-colors no-underline">FAQ</a>
-          <a href="#contact" className="text-sm text-zinc-400 hover:text-white transition-colors no-underline">Contact</a>
-          <a href="https://discord.gg/hXVFB2Tz2t" target="_blank" rel="noopener noreferrer" className="text-sm text-zinc-400 hover:text-white transition-colors no-underline">Community</a>
-        </div>
-        <Link to="/integrate" className="rounded-full bg-white text-black px-6 py-2.5 text-sm font-medium hover:bg-zinc-200 transition-colors no-underline">
-          Get Started
-        </Link>
-      </nav>
+    // Ink is the page's base ground; the warm and stone bands below read as lit
+    // panels set into it.
+    <div className="band-ink">
+      <Nav />
 
-      <main id="main-content" className="pt-[85px]">
+      <main id="main">
         {/* ── Hero ── */}
-        <section className="flex flex-col items-center justify-center text-center px-6 pt-32 pb-48">
-          <h1
-            className="font-serif max-w-4xl tracking-tight leading-[0.95]"
-            style={{ fontSize: 'clamp(2.75rem, 8vw, 5.5rem)', letterSpacing: '-2px', fontWeight: 400 }}
+        <section
+          className="hero-gradient grain overflow-hidden"
+          style={{ marginTop: '68px', minHeight: 'min(76vh, 640px)', display: 'flex', alignItems: 'center' }}
+        >
+          {/* Living background: a ferrofluid shimmer in white over the orange
+              field. Absolutely positioned behind the content, decorative only —
+              the headline and CTA never depend on it. */}
+          <div
+            aria-hidden="true"
+            style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}
           >
-            Trust your Agent,<br />Verify every Transaction.
-          </h1>
-          <p className="font-sans mt-8 max-w-xl text-base leading-relaxed text-zinc-400">
-            Bastion is a Programmable Trust Runtime for AI agents and autonomous systems. Orchestrating identity, policy, privacy, durable execution, and multi-chain settlement across Solana, EVM, and Arcium.
-          </p>
-          <p className="font-sans mt-4 max-w-xl text-sm leading-relaxed text-amber-500/70">
-            Bastion is in alpha testing. Use with caution in production environments.
-          </p>
-          <div className="flex items-center gap-4 mt-12">
-            <Link
-              to="/integrate"
-              className="rounded-full bg-white text-black px-14 py-4 text-base font-medium font-sans hover:bg-zinc-200 transition-colors no-underline"
-            >
-              Integrate your agent
-            </Link>
-            <a
-              href="https://github.com/zkos-labs/bastion"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-full border border-zinc-700 text-zinc-300 px-10 py-4 text-base font-medium font-sans hover:border-zinc-500 hover:text-white transition-colors no-underline"
-            >
-              GitHub
-            </a>
+            <Ferrofluid
+              colors={['#ffffff', '#ffffff', '#ffffff']}
+              speed={0.5}
+              scale={1.6}
+              turbulence={1}
+              fluidity={0.1}
+              rimWidth={0.2}
+              sharpness={2.5}
+              shimmer={1.5}
+              glow={2}
+              flowDirection="down"
+              opacity={0.55}
+              mouseInteraction={false}
+            />
+          </div>
+
+          <div className="relative z-10 w-full max-w-[1180px] mx-auto px-6 sm:px-10 py-24">
+            <div className="parallax-lead">
+              <h1
+                className="font-display"
+                style={{
+                  fontSize: 'clamp(2.2rem, 4.6vw, 4rem)',
+                  lineHeight: 1.08,
+                  letterSpacing: '-0.034em',
+                  fontWeight: 500,
+                  color: 'oklch(1 0 0)',
+                  maxWidth: '17ch',
+                  margin: 0,
+                }}
+              >
+                Trusted execution infrastructure for autonomous agents
+              </h1>
+
+              <p
+                className="font-sans mt-7"
+                style={{ fontSize: '16.5px', lineHeight: 1.6, color: 'oklch(1 0 0 / 0.92)', maxWidth: '42ch' }}
+              >
+                Enforce policy, simulate every transaction, and keep a verifiable
+                audit trail across your agent fleet.
+              </p>
+
+              <div className="mt-10 flex flex-wrap items-center gap-7">
+                <Link to="/integrate" className="btn-on-gradient">
+                  Integrate your agent
+                </Link>
+                <a
+                  href="https://github.com/zkos-labs/bastion"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-sans no-underline"
+                  style={{ fontSize: '14px', color: 'oklch(1 0 0 / 0.88)', textDecoration: 'none' }}
+                >
+                  Source ↗
+                </a>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* ── Tagline ── */}
-        <section className="border-y border-white/[0.06] overflow-hidden py-20">
-          <p
-            className="font-serif text-center max-w-3xl mx-auto px-6 leading-[1.15] text-zinc-400"
-            style={{ fontSize: 'clamp(1.1rem, 2.5vw, 1.4rem)', fontWeight: 400 }}
-          >
-            Powered by ZKOS Labs. The onchain world grew faster than the
-            infrastructure built to protect it. Intelligence, security, and execution ended up in
-            separate tools, separate vendors, separate contexts. Bastion was built because that gap
-            has a cost and no one was closing it as a coherent system.
-          </p>
-          <p className="font-serif text-center mt-8 text-white" style={{ fontSize: 'clamp(1.3rem, 3vw, 1.7rem)', fontWeight: 400, lineHeight: '1.15' }}>
-            The first SIEM where the audit trail<br />itself is the product.
-          </p>
+        {/* ── Runs on ──
+          * The reference runs an investor wall here. Bastion has none to show and
+          * inventing one would be a lie, so the beat carries something true. */}
+        <section className="py-12">
+          <p className="band-kicker text-center">Runs on</p>
+          <div className="marquee" aria-label="Supported chains: Solana, Ethereum, Base, Celo, Arcium">
+            <div className="marquee-track marquee-track--reverse" aria-hidden="true">
+              {Array.from({ length: 6 }).flatMap(() =>
+                ['Solana', 'Ethereum', 'Base', 'Celo', 'Arcium'],
+              ).map((chain, i) => (
+                <span key={i} className="inline-flex items-center gap-10">
+                  <span
+                    className="font-display"
+                    style={{ fontSize: '21px', fontWeight: 500, color: 'var(--text-muted)', letterSpacing: '-0.02em' }}
+                  >
+                    {chain}
+                  </span>
+                  <BastionMark size={13} color="var(--text-faint)" />
+                </span>
+              ))}
+            </div>
+          </div>
         </section>
 
-        {/* ── Tech Carousel ── */}
-        <TechCarousel />
+        {/* ── Statement ── */}
+        <section>
+          <div className="max-w-[1000px] mx-auto px-6 sm:px-10 pb-24 sm:pb-28">
+            <p
+              className="font-display text-center"
+              style={{
+                fontSize: 'clamp(1.5rem, 3.1vw, 2.4rem)',
+                lineHeight: 1.24,
+                letterSpacing: '-0.028em',
+                margin: 0,
+              }}
+            >
+              The full-stack runtime to evaluate, simulate, approve, and prove every
+              action an autonomous agent takes.
+            </p>
+          </div>
+        </section>
 
-        {/* ── Features ── */}
-        <FeaturesCarousel />
+        {/* ── The problem ── */}
+        <section className="band-ink">
+          <div className="max-w-[1180px] mx-auto px-6 sm:px-10 py-24 sm:py-32">
+            <p className="band-kicker">The problem</p>
+            <div
+              className="grid gap-x-16 gap-y-14"
+              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 380px), 1fr))' }}
+            >
+              <h2
+                className="band-title font-display"
+                style={{
+                  fontSize: 'clamp(1.8rem, 3.4vw, 2.7rem)',
+                  lineHeight: 1.14,
+                  letterSpacing: '-0.03em',
+                  maxWidth: '17ch',
+                  margin: 0,
+                }}
+              >
+                You already know agents will run production. Here is what stands in
+                the way.
+              </h2>
 
-        {/* ── How it works ── */}
-        <section id="how-it-works" className="max-w-5xl mx-auto px-6 py-32">
-          <p className="font-sans text-sm uppercase tracking-widest text-zinc-500 mb-4">How it works</p>
-          <h2 className="font-sans text-2xl font-medium mb-20">One workflow. Four steps. No context switching.</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {FLOW_STEPS.map((step) => (
-              <div key={step.num}>
-                <div className="w-10 h-10 rounded-full border border-zinc-700 flex items-center justify-center font-mono text-xs text-zinc-500 mb-6">{step.num}</div>
-                <h3 className="font-sans font-medium text-sm mb-3">{step.label}</h3>
-                <p className="font-sans text-sm text-zinc-400 leading-relaxed">{step.desc}</p>
+              <div
+                className="grid gap-x-12 gap-y-11"
+                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))' }}
+              >
+                {PROBLEMS.map(p => (
+                  <div key={p.title}>
+                    <h3
+                      className="font-display"
+                      style={{ fontSize: '1.2rem', letterSpacing: '-0.022em', margin: '0 0 0.7rem' }}
+                    >
+                      {p.title}
+                    </h3>
+                    <p className="band-body font-sans" style={{ fontSize: '14.5px', lineHeight: 1.65, margin: 0 }}>
+                      {p.body}
+                    </p>
+                  </div>
+                ))}
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Pipeline marquee ──
+          * The stages an intent passes through, running continuously. The text is
+          * present and legible at every frame; only its offset animates. */}
+        <section className="marquee py-10" style={{ borderBottom: '1px solid var(--border)' }} aria-hidden="true">
+          <div className="marquee-track">
+            {[...PIPELINE, ...PIPELINE, ...PIPELINE, ...PIPELINE].map((stage, i) => (
+              <span key={i} className="inline-flex items-center gap-10">
+                <span
+                  className="font-display"
+                  style={{
+                    fontSize: 'clamp(2.4rem, 6vw, 5rem)',
+                    fontWeight: 500,
+                    letterSpacing: '-0.03em',
+                    color: i % PIPELINE.length === 0 ? 'var(--accent)' : 'var(--text-primary)',
+                  }}
+                >
+                  {stage}
+                </span>
+                <span style={{ fontSize: 'clamp(1.6rem, 3.4vw, 2.6rem)', color: 'var(--text-faint)' }}>→</span>
+              </span>
             ))}
           </div>
         </section>
 
-        {/* ── FAQ ── */}
-        <section id="faq" className="max-w-3xl mx-auto px-6 py-32">
-          <p className="font-sans text-sm uppercase tracking-widest text-zinc-500 mb-4">FAQs</p>
-          <div className="space-y-1">
-            {FAQ_ITEMS.map((item, i) => (
-              <div key={i} className="border-b border-white/[0.06]">
-                <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between py-5 text-left font-sans text-sm font-medium hover:text-zinc-300 transition-colors" aria-expanded={openFaq === i}>
-                  <span>{item.q}</span>
-                  <span className={`text-zinc-500 transition-transform duration-200 ${openFaq === i ? 'rotate-45' : ''}`}>+</span>
-                </button>
-                <div className="overflow-hidden transition-all duration-300" style={{ maxHeight: openFaq === i ? '600px' : '0', opacity: openFaq === i ? 1 : 0 }}>
-                  <p className="font-sans text-sm text-zinc-400 pb-5 leading-relaxed">{item.a}</p>
+        {/* ── Core capabilities ── */}
+        <section id="runtime" className="band-ink">
+          <div className="max-w-[1180px] mx-auto px-6 sm:px-10 py-24 sm:py-32">
+            <p className="band-kicker">Core capabilities</p>
+            <h2
+              className="font-display"
+              style={{
+                fontSize: 'clamp(1.9rem, 4vw, 3rem)',
+                letterSpacing: '-0.032em',
+                lineHeight: 1.1,
+                margin: 0,
+                color: 'var(--accent-text)',
+              }}
+            >
+              Four controls. One runtime.
+            </h2>
+            <p
+              className="font-sans mt-5"
+              style={{ fontSize: '15.5px', lineHeight: 1.7, color: 'var(--text-secondary)', maxWidth: '52ch' }}
+            >
+              Adopt a single control or all of them. They compose into one decision
+              path that sits between your agent and everything it can reach.
+            </p>
+
+            {/* Capability 1 — the ledger */}
+            <div className="panel mt-16 p-8 sm:p-11">
+              <div style={{ maxWidth: '62ch' }}>
+                <p className="band-kicker" style={{ color: 'var(--accent-text)' }}>
+                  Policy and simulation
+                </p>
+                <h3
+                  className="font-display"
+                  style={{ fontSize: 'clamp(1.5rem, 2.6vw, 2rem)', letterSpacing: '-0.028em', lineHeight: 1.16, margin: 0 }}
+                >
+                  <span style={{ color: 'var(--accent-text)' }}>Every decision</span> carries
+                  the rule that made it.
+                </h3>
+                <ul style={{ listStyle: 'none', margin: '2rem 0 0', padding: 0 }}>
+                  {[
+                    'Native-token caps, rate limits, program allowlists and egress rules.',
+                    'Simulation against live chain state before a signature exists.',
+                    'Flash loan, slippage and authority-change screening on every intent.',
+                  ].map(line => (
+                    <li key={line} className="flex items-start gap-3" style={{ marginBottom: '0.85rem' }}>
+                      <BastionMark size={15} color="var(--accent)" />
+                      <span className="font-sans" style={{ fontSize: '14.5px', lineHeight: 1.6, color: 'var(--text-secondary)' }}>
+                        {line}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+            </div>
+
+            {/* Capability 2 — identity and delegation */}
+            <div
+              className="panel mt-8 p-8 sm:p-11 grid gap-x-14 gap-y-10 items-center"
+              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))' }}
+            >
+              <div>
+                <p className="band-kicker" style={{ color: 'var(--accent-text)' }}>
+                  Identity and delegation
+                </p>
+                <h3
+                  className="font-display"
+                  style={{ fontSize: 'clamp(1.5rem, 2.6vw, 2rem)', letterSpacing: '-0.028em', lineHeight: 1.16, margin: 0 }}
+                >
+                  <span style={{ color: 'var(--accent-text)' }}>Bounded authority</span>, handed
+                  down a tree.
+                </h3>
+                <ul style={{ listStyle: 'none', margin: '2rem 0 0', padding: 0 }}>
+                  {[
+                    'W3C DID-compliant identity issued per agent, portable across chains.',
+                    'Children inherit a subset of a parent policy and can never exceed it.',
+                    'Revocation takes effect on the next evaluation, not the next deploy.',
+                  ].map(line => (
+                    <li key={line} className="flex items-start gap-3" style={{ marginBottom: '0.85rem' }}>
+                      <BastionMark size={15} color="var(--accent)" />
+                      <span className="font-sans" style={{ fontSize: '14.5px', lineHeight: 1.6, color: 'var(--text-secondary)' }}>
+                        {line}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="report-frame">
+                <div className="report-chrome">Example reporting</div>
+                <div className="p-6">
+                  <p className="band-kicker" style={{ margin: '0 0 0.4rem' }}>
+                    Delegation tree
+                  </p>
+                  <p className="font-display" style={{ fontSize: '1.9rem', margin: '0 0 1.5rem' }}>
+                    4 agents
+                  </p>
+                  {[
+                    { did: 'treasury-01', scope: 'root · 5.0 SOL cap', depth: 0 },
+                    { did: 'ops-payer-02', scope: 'delegated · 1.0 SOL cap', depth: 1 },
+                    { did: 'mm-relay-04', scope: 'delegated · swap only', depth: 1 },
+                    { did: 'agent-8f2c', scope: 'revoked', depth: 2 },
+                  ].map(row => (
+                    <div
+                      key={row.did}
+                      className="flex items-baseline justify-between gap-4 py-2.5"
+                      style={{ borderTop: '1px solid var(--card-border)', paddingLeft: `${row.depth * 1.1}rem` }}
+                    >
+                      <span className="font-mono" style={{ fontSize: '12px', color: 'var(--text-primary)' }}>
+                        {row.did}
+                      </span>
+                      <span className="font-sans" style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>
+                        {row.scope}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Case studies ── */}
+        <section className="band-stone">
+          <div className="max-w-[1180px] mx-auto px-6 sm:px-10 py-24 sm:py-32">
+            <p className="band-kicker">How it is used</p>
+            <h2
+              className="font-display"
+              style={{ fontSize: 'clamp(1.8rem, 3.2vw, 2.5rem)', letterSpacing: '-0.03em', margin: '0 0 4rem' }}
+            >
+              Where a runtime earns its place
+            </h2>
+
+            <div
+              className="grid gap-x-12 gap-y-14"
+              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))' }}
+            >
+              {CASES.map((c, i) => (
+                <div key={c.title}>
+                  <BastionMark size={34} color="var(--text-primary)" />
+                  <h3
+                    className="font-display"
+                    style={{ fontSize: '1.32rem', letterSpacing: '-0.024em', margin: '1.6rem 0 0.9rem' }}
+                  >
+                    {c.title}
+                  </h3>
+                  <p className="font-sans" style={{ fontSize: '14.5px', lineHeight: 1.68, color: 'var(--text-secondary)', margin: 0 }}>
+                    {c.body}
+                  </p>
+                  <p className="font-sans" style={{ fontSize: '14.5px', lineHeight: 1.68, color: 'var(--text-muted)', margin: '1.2rem 0 0' }}>
+                    {c.best}
+                  </p>
+                  <span className="sr-only">{i}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Foundations ── */}
+        <section>
+          <div className="max-w-[1180px] mx-auto px-6 sm:px-10 py-24 sm:py-32">
+            <p className="band-kicker">Foundation</p>
+            <h2
+              className="font-display"
+              style={{
+                fontSize: 'clamp(1.8rem, 3.2vw, 2.5rem)',
+                letterSpacing: '-0.03em',
+                lineHeight: 1.14,
+                margin: '0 0 4rem',
+                maxWidth: '18ch',
+              }}
+            >
+              Built on standards, not around them
+            </h2>
+
+            <div
+              className="grid gap-x-12 gap-y-12"
+              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))' }}
+            >
+              {FOUNDATIONS.map((f, i) => (
+                <div key={f.title} style={{ borderLeft: '1px solid var(--border)', paddingLeft: '1.6rem' }}>
+                  <FoundationIcon index={i} />
+                  <h3
+                    className="font-display"
+                    style={{ fontSize: '1.18rem', letterSpacing: '-0.022em', margin: '1.3rem 0 0.7rem' }}
+                  >
+                    {f.title}
+                  </h3>
+                  <p className="font-sans" style={{ fontSize: '14px', lineHeight: 1.65, color: 'var(--text-secondary)', margin: 0 }}>
+                    {f.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Status ──
+          * Published as-is. A runtime asking to be trusted should be honest about
+          * what it has not finished. */}
+        <section id="status" style={{ borderTop: '1px solid var(--border)' }}>
+          <div className="max-w-[1180px] mx-auto px-6 sm:px-10 py-24 sm:py-28">
+            <p className="band-kicker">Status</p>
+            <h2
+              className="font-display"
+              style={{ fontSize: 'clamp(1.7rem, 3vw, 2.3rem)', letterSpacing: '-0.03em', margin: 0, maxWidth: '22ch' }}
+            >
+              What is finished, and what is not
+            </h2>
+
+            <ul
+              className="grid gap-x-14"
+              style={{
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
+                listStyle: 'none',
+                padding: 0,
+                margin: '3.5rem 0 0',
+              }}
+            >
+              {STATUS.map(s => (
+                <li
+                  key={s.label}
+                  className="flex items-baseline justify-between gap-6 py-4"
+                  style={{ borderBottom: '1px solid var(--border)' }}
+                >
+                  <span className="font-sans" style={{ fontSize: '14.5px', color: 'var(--text-secondary)' }}>
+                    {s.label}
+                  </span>
+                  <span
+                    className="font-mono uppercase"
+                    style={{ fontSize: '10px', letterSpacing: '0.1em', color: STATE_COLOR[s.state], whiteSpace: 'nowrap' }}
+                  >
+                    {STATE_COPY[s.state]}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* ── Call to action ── */}
+        <section className="band-ink">
+          <div className="max-w-[1180px] mx-auto px-6 sm:px-10 py-24 sm:py-32">
+            <h2
+              className="band-title font-display"
+              style={{
+                fontSize: 'clamp(2rem, 4.4vw, 3.4rem)',
+                lineHeight: 1.1,
+                letterSpacing: '-0.032em',
+                margin: 0,
+                maxWidth: '16ch',
+              }}
+            >
+              Ready to ship an agent you can prove?
+            </h2>
+            <p className="band-body font-sans mt-6" style={{ fontSize: '15.5px', lineHeight: 1.7, maxWidth: '44ch' }}>
+              Integrate the SDK, set a policy, and route signing through the runtime.
+              Open source under Apache 2.0.
+            </p>
+            <div className="mt-10 flex flex-wrap items-center gap-7">
+              <Link
+                to="/integrate"
+                className="font-sans no-underline"
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  padding: '0.8rem 1.7rem',
+                  borderRadius: '999px',
+                  background: 'var(--accent)',
+                  color: 'oklch(0.165 0.006 84.57)',
+                  textDecoration: 'none',
+                }}
+              >
+                Integrate your agent
+              </Link>
+              <Link
+                to="/docs"
+                className="font-sans no-underline"
+                style={{ fontSize: '14px', color: 'oklch(0.79 0.005 84.57)', textDecoration: 'none' }}
+              >
+                Read the docs ↗
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Standards ──
+          * The reference puts a wall of employer logos here. Those are other
+          * companies' marks and other people's credibility, so this beat carries
+          * the composition Bastion can actually claim: the primitives it builds on. */}
+        <section id="standards" className="band-orange">
+          <div className="max-w-[1180px] mx-auto px-6 sm:px-10 py-24 sm:py-32">
+            <p className="band-kicker">Composed, not reinvented</p>
+            <h2
+              className="band-title font-display"
+              style={{
+                fontSize: 'clamp(1.8rem, 3.4vw, 2.7rem)',
+                lineHeight: 1.14,
+                letterSpacing: '-0.03em',
+                margin: 0,
+                maxWidth: '20ch',
+              }}
+            >
+              Bastion orchestrates the ecosystem's trust primitives
+            </h2>
+            <p className="band-body font-sans mt-6" style={{ fontSize: '15.5px', lineHeight: 1.7, maxWidth: '48ch' }}>
+              It does not replace them. Each standard keeps doing its job; the
+              runtime coordinates them and adds the decision layer on top.
+            </p>
+
+            <div
+              className="grid gap-x-12 gap-y-8 mt-16"
+              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))' }}
+            >
+              {STANDARDS.map(s => (
+                <div key={s.id} style={{ borderTop: '1px solid oklch(0.24 0.03 44 / 0.28)', paddingTop: '1.1rem' }}>
+                  <p
+                    className="font-mono"
+                    style={{ fontSize: '13px', margin: '0 0 0.5rem', color: 'oklch(0.165 0.006 84.57)' }}
+                  >
+                    {s.id}
+                  </p>
+                  <p className="band-body font-sans" style={{ fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
+                    {s.adds}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* ── Footer ── */}
+      <footer className="band-ink relative overflow-hidden">
+        <div className="relative z-10 max-w-[1180px] mx-auto px-6 sm:px-10 pt-20">
+          <div
+            className="grid gap-x-12 gap-y-12 pb-16"
+            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))' }}
+          >
+            <div style={{ maxWidth: '32ch' }}>
+              <BastionLockup size={22} color="oklch(0.955 0.004 84.57)" markColor="var(--accent)" />
+              <p className="band-body font-sans" style={{ fontSize: '13.5px', lineHeight: 1.7, margin: '1.2rem 0 0' }}>
+                A programmable trust runtime for autonomous systems. Built by ZKOS
+                Labs.
+              </p>
+            </div>
+
+            {[
+              {
+                head: 'Product',
+                links: [
+                  ['Runtime', '#runtime'],
+                  ['Standards', '#standards'],
+                  ['Status', '#status'],
+                  ['Integrate', '/integrate'],
+                ],
+              },
+              {
+                head: 'Developers',
+                links: [
+                  ['Documentation', '/docs'],
+                  ['Quickstart', '/docs/quickstart'],
+                  ['API reference', '/docs/api-reference'],
+                  ['MCP server', '/docs/mcp'],
+                ],
+              },
+              {
+                head: 'Project',
+                links: [
+                  ['GitHub', 'https://github.com/zkos-labs/bastion'],
+                  ['X', 'https://x.com/BastionAgntque'],
+                  ['Discord', 'https://discord.gg/hXVFB2Tz2t'],
+                  ['Contact', 'mailto:hello@bastionagentique.com'],
+                ],
+              },
+            ].map(col => (
+              <div key={col.head}>
+                <p className="band-kicker" style={{ margin: '0 0 1.25rem' }}>
+                  {col.head}
+                </p>
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                  {col.links.map(([label, href]) => (
+                    <li key={label} style={{ marginBottom: '0.7rem' }}>
+                      {href.startsWith('/') ? (
+                        <Link
+                          to={href}
+                          className="font-sans no-underline nav-link"
+                          style={{ fontSize: '13.5px', color: 'oklch(0.79 0.005 84.57)' }}
+                        >
+                          {label}
+                        </Link>
+                      ) : (
+                        <a
+                          href={href}
+                          target={href.startsWith('http') ? '_blank' : undefined}
+                          rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                          className="font-sans no-underline nav-link"
+                          style={{ fontSize: '13.5px', color: 'oklch(0.79 0.005 84.57)' }}
+                        >
+                          {label}
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
           </div>
-        </section>
 
-        {/* ── Contact ── */}
-        <section id="contact" className="max-w-3xl mx-auto px-6 pb-20">
-          <p className="font-sans text-sm uppercase tracking-widest text-zinc-500 mb-4">Work with Bastion.</p>
-          <p className="font-sans text-base text-zinc-400 mb-8 leading-relaxed">
-            Enterprise deployments, technical evaluations, or general inquiries reach us directly.
-          </p>
-          <a href="mailto:hello@bastionagentique.com" className="inline-flex rounded-full bg-white text-black px-10 py-4 text-sm font-medium font-sans hover:bg-zinc-200 transition-colors no-underline">
-            Get in Touch
-          </a>
-        </section>
+          <div
+            className="flex flex-wrap items-baseline justify-between gap-4 py-7"
+            style={{ borderTop: '1px solid oklch(0.95 0.005 84.57 / 0.11)' }}
+          >
+            <span className="font-sans" style={{ fontSize: '12.5px', color: 'oklch(0.6 0.006 84.57)' }}>
+              © 2026 ZKOS Labs. Apache 2.0.
+            </span>
+            <span className="font-sans" style={{ fontSize: '12.5px', color: 'oklch(0.6 0.006 84.57)' }}>
+              Alpha — not audited for mainnet use.
+            </span>
+          </div>
+        </div>
 
-        {/* ── Footer ── */}
-        <footer className="border-t border-white/[0.06] py-16">
-          <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between gap-12">
-            <div className="flex flex-col gap-6">
-              <a href="#main-content" className="font-serif text-xl tracking-tight no-underline text-white">Bastion<span className="text-[10px] align-super ml-px">&reg;</span></a>
-              <p className="font-sans text-xs text-zinc-600 max-w-xs leading-relaxed">Built by ZKOS Labs. The first SIEM where the audit trail itself is the product.</p>
-              <div className="flex items-center gap-3">
-                <span className="font-sans text-[10px] text-zinc-600">Powered by</span>
-                <span className="font-mono text-[10px] text-purple-500">◎ Solana</span>
-                <span className="font-sans text-[10px] text-zinc-700">+</span>
-                <span className="font-mono text-[10px] text-blue-400">⟠ Ethereum</span>
-                <span className="font-sans text-[10px] text-zinc-700">+</span>
-                <span className="font-mono text-[10px] text-emerald-400">Arcium</span>
-              </div>
-              <div className="flex gap-4">
-                <a href="https://github.com/zkos-labs/bastion" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-white transition-colors text-sm no-underline">GitHub</a>
-                <a href="https://x.com/BastionAgntque" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-white transition-colors text-sm no-underline">X</a>
-              </div>
-            </div>
-            <div>
-              <p className="font-sans text-xs uppercase tracking-widest text-zinc-600 mb-4">Company</p>
-              <div className="flex flex-col gap-3">
-          <a href="#features" className="text-sm text-zinc-400 hover:text-white transition-colors no-underline">Features</a>
-                <a href="#how-it-works" className="text-sm text-zinc-400 hover:text-white transition-colors no-underline">How it works</a>
-                <a href="#faq" className="text-sm text-zinc-400 hover:text-white transition-colors no-underline">FAQ</a>
-                <a href="#contact" className="text-sm text-zinc-400 hover:text-white transition-colors no-underline">Contact</a>
-              </div>
-            </div>
-            <div>
-              <p className="font-sans text-xs uppercase tracking-widest text-zinc-600 mb-4">Features</p>
-              <div className="flex flex-col gap-3">
-                <span className="text-sm text-zinc-400">Trust Runtime</span>
-                <span className="text-sm text-zinc-400">Audit Trail</span>
-                <span className="text-sm text-zinc-400">Agent Identity</span>
-                <span className="text-sm text-zinc-400">Circuit Breaker</span>
-              </div>
-            </div>
+        {/* Signature wordmark: flush to the bottom edge, room above so no cap is
+            shaved, and on the layer above everything else. */}
+        <div className="relative z-10 w-full overflow-hidden" style={{ marginBottom: '-0.13em' }} aria-hidden="true">
+          <div
+            className="font-display select-none"
+            style={{
+              fontSize: 'clamp(3.4rem, 16.5vw, 14rem)',
+              lineHeight: 0.9,
+              letterSpacing: '0.02em',
+              fontWeight: 500,
+              textAlign: 'center',
+              color: 'oklch(0.955 0.004 84.57)',
+              opacity: 0.07,
+              paddingTop: '0.14em',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            BASTION
           </div>
-          <div className="max-w-6xl mx-auto px-6 mt-12 pt-8 border-t border-white/[0.06]">
-            <p className="font-sans text-xs text-zinc-600">&copy; 2026 Bastion. Built by ZKOS Labs. All rights reserved.</p>
-          </div>
-        </footer>
-      </main>
+        </div>
+      </footer>
     </div>
   );
 }

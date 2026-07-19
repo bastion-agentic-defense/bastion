@@ -25,7 +25,10 @@ export default function ReputationSection() {
             <div className="flex items-center gap-2">
               <span className="text-amber-400">1.</span>
               <span style={{ color: 'var(--text-primary)' }}>Register</span>
-              <span style={{ color: 'var(--text-muted)' }}>→ Your agent receives a did:bastion:{chain}:{id} identifier and a 100 point base reputation</span>
+              <span style={{ color: 'var(--text-muted)' }}>
+                → Your agent receives a <code>{'did:bastion:<chain>:<id>'}</code> identifier and a
+                100 point base reputation
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-amber-400">2.</span>
