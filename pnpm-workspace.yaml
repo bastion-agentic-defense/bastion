@@ -10,3 +10,4 @@ allowBuilds:
   tiny-secp256k1: false
   usb: false
   utf-8-validate: true
+  protobufjs: true

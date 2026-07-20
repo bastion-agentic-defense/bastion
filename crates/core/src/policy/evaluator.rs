@@ -1,7 +1,7 @@
 use crate::decision::FirewallDecision;
 use crate::policy::set::PolicySet;
 use crate::policy::types::PolicyRule;
-use crate::risk::RiskOracle;
+use crate::risk::TrustSignalProvider;
 use crate::transaction::{Address, NormalizedTransaction};
 
 use std::collections::HashMap;
@@ -18,12 +18,12 @@ struct RateLimitState {
 }
 
 /// Core policy evaluator — evaluates a normalized transaction against a policy set.
-pub struct PolicyEvaluator<O: RiskOracle> {
+pub struct PolicyEvaluator<P: TrustSignalProvider> {
     rate_state: Mutex<RateLimitState>,
-    oracle: Option<O>,
+    oracle: Option<P>,
 }
 
-impl<O: RiskOracle> PolicyEvaluator<O> {
+impl<P: TrustSignalProvider> PolicyEvaluator<P> {
     /// Create a new evaluator without a risk oracle.
     pub fn new() -> Self {
         Self {
@@ -421,7 +421,7 @@ impl<O: RiskOracle> PolicyEvaluator<O> {
     }
 }
 
-impl<O: RiskOracle> Default for PolicyEvaluator<O> {
+impl<P: TrustSignalProvider> Default for PolicyEvaluator<P> {
     fn default() -> Self {
         Self::new()
     }
@@ -432,14 +432,13 @@ mod tests {
     use super::*;
     use crate::transaction::{Chain, NormalizedTransaction, TxType};
 
-    /// A no-op oracle for testing.
     struct NoopOracle;
     #[async_trait::async_trait]
-    impl RiskOracle for NoopOracle {
-        async fn score(
+    impl TrustSignalProvider for NoopOracle {
+        async fn address_risk(
             &self,
             _address: &Address,
-        ) -> Result<crate::risk::RiskScore, crate::risk::RiskOracleError> {
+        ) -> Result<crate::risk::RiskScore, crate::risk::TrustSignalError> {
             Ok(crate::risk::RiskScore::new(0))
         }
         fn provider_name(&self) -> &str {

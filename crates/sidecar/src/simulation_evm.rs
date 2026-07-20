@@ -48,6 +48,10 @@ pub const EVM_CHAIN_ENV_VARS: &[(&str, &str)] = &[
     ("base", "BASE_RPC_URL"),
     ("celo", "CELO_RPC_URL"),
     ("sepolia", "ETH_SEPOLIA_RPC_URL"),
+    ("zksync", "ZKSYNC_RPC_URL"),
+    ("zksync_sepolia", "ZKSYNC_SEPOLIA_RPC_URL"),
+    ("robinhood", "ROBINHOOD_RPC_URL"),
+    ("robinhood_testnet", "ROBINHOOD_TESTNET_RPC_URL"),
 ];
 
 /// The RPC env var name for a chain, e.g. `evm_rpc_env_var("ethereum") == "ETH_RPC_URL"`.
@@ -270,6 +274,12 @@ mod tests {
         assert_eq!(evm_rpc_env_var("celo"), "CELO_RPC_URL");
         // Testnet var name is not derivable from the chain name.
         assert_eq!(evm_rpc_env_var("sepolia"), "ETH_SEPOLIA_RPC_URL");
+        // zkSync chains
+        assert_eq!(evm_rpc_env_var("zksync"), "ZKSYNC_RPC_URL");
+        assert_eq!(evm_rpc_env_var("zksync_sepolia"), "ZKSYNC_SEPOLIA_RPC_URL");
+        // Robinhood chains
+        assert_eq!(evm_rpc_env_var("robinhood"), "ROBINHOOD_RPC_URL");
+        assert_eq!(evm_rpc_env_var("robinhood_testnet"), "ROBINHOOD_TESTNET_RPC_URL");
         // Unknown chains fall back to the derived form.
         assert_eq!(evm_rpc_env_var("polygon"), "POLYGON_RPC_URL");
     }

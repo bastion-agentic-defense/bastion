@@ -1,10 +1,10 @@
-use crate::risk::oracle::{RiskOracle, RiskOracleError, RiskScore};
+use crate::risk::oracle::{TrustSignalProvider, TrustSignalError, RiskScore};
 use crate::transaction::Address;
 
-/// Webacy risk oracle client.
+/// Webacy trust signal client.
 ///
-/// Queries the Webacy API for address risk scores.
-/// This is the first concrete RiskOracle implementation.
+/// Queries the Webacy API for address trust signals (risk scores).
+/// Owned by ARES; Bastion consumes the signals for policy enforcement.
 pub struct WebacyClient {
     #[allow(dead_code)]
     api_key: String,
@@ -26,10 +26,8 @@ impl WebacyClient {
 }
 
 #[async_trait::async_trait]
-impl RiskOracle for WebacyClient {
-    async fn score(&self, _address: &Address) -> Result<RiskScore, RiskOracleError> {
-        // Placeholder: returns a safe default until Webacy API integration.
-        // TODO: implement actual HTTP call to Webacy risk endpoint.
+impl TrustSignalProvider for WebacyClient {
+    async fn address_risk(&self, _address: &Address) -> Result<RiskScore, TrustSignalError> {
         Ok(RiskScore::new(0))
     }
 

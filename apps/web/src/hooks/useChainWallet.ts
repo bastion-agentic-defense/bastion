@@ -25,6 +25,6 @@ export function useChainWallet(): ChainWalletState {
   return {
     connected: evmConnected,
     address: evmAddress ?? null,
-    chain: 'celo',
+    chain: 'evm',
   };
 }

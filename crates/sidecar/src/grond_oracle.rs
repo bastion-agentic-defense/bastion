@@ -1,4 +1,4 @@
-use bastion_core::{Address, RiskOracle, RiskOracleError, RiskScore};
+use bastion_core::{Address, TrustSignalProvider, TrustSignalError, RiskScore};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};

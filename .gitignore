@@ -12,3 +12,9 @@ agent_store/
 
 .env.local
 POSITIONING.md
+
+# graphify knowledge-graph output (generated; run `graphify update .` to refresh)
+graphify-out/
+
+# local OpenCode editor workspace
+.opencode/

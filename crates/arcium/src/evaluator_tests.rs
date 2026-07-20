@@ -191,10 +191,12 @@ mod tests {
                 Chain::Ethereum,
                 Chain::Polygon,
                 Chain::Arbitrum,
-                Chain::Celo
+                Chain::Celo,
+                Chain::ZkSync,
+                Chain::Robinhood
             ]
             .len(),
-            6
+            8
         );
     }
 

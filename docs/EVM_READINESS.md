@@ -6,7 +6,7 @@
 
 **Status legend:** ✅ done · 🟡 in progress · ⬜ not started
 
-Target chains: **Base**, **Celo**, **Ethereum mainnet** (Polygon dropped).
+Target chains: **Base**, **Celo**, **zkSync Era**, **Robinhood**, **Ethereum mainnet** (Polygon dropped).
 Stack: Solidity 0.8.28, Foundry, OpenZeppelin + Solady, `via_ir`. Contracts:
 `BastionFirewall` (ERC-7579 validator), `BastionPolicy`, `BastionAudit` (EIP-712),
 `BastionRegistry`, `BastionERC8004Registry` (soulbound identity), `BastionSidecar`.
@@ -91,14 +91,14 @@ Stack: Solidity 0.8.28, Foundry, OpenZeppelin + Solady, `via_ir`. Contracts:
 Testnet (ETH Sepolia) is deployed first and is **not** gated. Mainnet columns stay
 empty until the §6 audit clears.
 
-| Contract | ETH Sepolia (testnet) | Base | Celo | Ethereum (mainnet) |
+| Contract | ETH Sepolia (testnet) | zkSync Sepolia (testnet) | Robinhood Testnet | Base | Celo | Ethereum (mainnet) |
 |---|---|---|---|---|
-| BastionAudit | — (pending deploy) | — | — | 🚧 audit-gated |
-| BastionPolicy | — (pending deploy) | — | — | 🚧 audit-gated |
-| BastionRegistry | — (pending deploy) | — | — | 🚧 audit-gated |
-| BastionERC8004Registry | — (pending deploy) | — | — | 🚧 audit-gated |
-| BastionFirewall | — (pending deploy) | — | — | 🚧 audit-gated |
-| Owner (Safe) | — (pending deploy) | — | — | 🚧 audit-gated |
+| BastionAudit | — (pending deploy) | — | — | — | — | 🚧 audit-gated |
+| BastionPolicy | — (pending deploy) | — | — | — | — | 🚧 audit-gated |
+| BastionRegistry | — (pending deploy) | — | — | — | — | 🚧 audit-gated |
+| BastionERC8004Registry | — (pending deploy) | — | — | — | — | 🚧 audit-gated |
+| BastionFirewall | — (pending deploy) | — | — | — | — | 🚧 audit-gated |
+| Owner (Safe) | — (pending deploy) | — | — | — | — | 🚧 audit-gated |
 
 After deploying to Sepolia, paste the five contract addresses here **and** into the
 dashboard env (`apps/web/.env.local`: `VITE_BASTION_AUDIT_ADDRESS`, `…_POLICY_…`,

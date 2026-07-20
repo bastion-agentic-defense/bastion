@@ -105,7 +105,7 @@ async fn main() {
     }
     if evm_simulators.is_empty() {
         eprintln!(
-            "[bastion] No EVM simulators configured (set ETH_RPC_URL / BASE_RPC_URL / CELO_RPC_URL / ETH_SEPOLIA_RPC_URL to enable)"
+            "[bastion] No EVM simulators configured (set ETH_RPC_URL / BASE_RPC_URL / CELO_RPC_URL / ZKSYNC_RPC_URL / ROBINHOOD_RPC_URL / ETH_SEPOLIA_RPC_URL to enable)"
         );
     }
     let evm_simulators = Arc::new(evm_simulators);
