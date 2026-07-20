@@ -81,7 +81,7 @@ pnpm --filter @bastion/mcp-server dev:http`}
           </p>
           <ul className="font-sans text-xs space-y-1" style={{ color: 'var(--text-muted)' }}>
             <li><span className="text-green-400">pay.sh gateway:</span> X-Api-Key header injected by pay.sh after verifying payment. Trusted — skip x402.</li>
-            <li><span className="text-amber-400">Direct browser:</span> No X-Api-Key → x402 payment required for paid tools. Provide X-Payment header with Solana tx hash.</li>
+            <li><span className="text-amber-400">Direct browser:</span> No X-Api-Key → x402 payment required for paid tools. Provide X-Payment header with an Ethereum or Solana tx hash (set X-Payment-Chain accordingly).</li>
           </ul>
         </div>
       </div>
