@@ -25,11 +25,9 @@ use uuid::Uuid;
 pub mod agents;
 pub mod audit;
 mod auth;
-pub mod cases;
 pub mod core_adapter;
 pub mod did;
 pub mod grond_oracle;
-pub mod ingestion;
 pub mod logger;
 pub mod markdown;
 pub mod policy;
@@ -87,8 +85,6 @@ struct AppState {
     alchemy_sim: Option<Arc<crate::simulation::AlchemySimulator>>,
     event_tx: broadcast::Sender<String>,
     started_at: std::time::Instant,
-    case_store: Arc<RwLock<cases::CaseStore>>,
-    correlation_engine: Option<Arc<RwLock<bastion_correlation::engine::CorrelationEngine>>>,
     did_cache: Arc<RwLock<HashMap<String, did::DidResolveResult>>>,
     agent_store: Arc<agents::AgentStore>,
     did_auth_state: auth::DidAuthState,
@@ -2011,69 +2007,6 @@ async fn get_agent_audit(
     })))
 }
 
-// ── Robot Telemetry Handler ──
-
-#[derive(serde::Deserialize)]
-struct TelemetryRequest {
-    location: Option<(f64, f64)>,
-    firmware_version: Option<String>,
-    battery_level: Option<u8>,
-}
-
-async fn post_robot_telemetry(
-    State(state): State<AppState>,
-    Path(did): Path<String>,
-    Json(req): Json<TelemetryRequest>,
-) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    let _agent = state.agent_store.get_agent(&did).ok_or((
-        axum::http::StatusCode::NOT_FOUND,
-        Json(serde_json::json!({"error":"Agent not found"})),
-    ))?;
-
-    // Ingest robot telemetry as a SecurityEvent
-    let telemetry = bastion_core::event::PhysicalTelemetryEvent {
-        agent_did: did.clone(),
-        battery_level: req.battery_level,
-        firmware_version: req.firmware_version,
-        location: req.location,
-        sensor_data: None,
-        timestamp: std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_secs(),
-    };
-
-    // Convert to SecurityEvent and ingest
-    let event = telemetry.to_security_event();
-    let event_id = event.id.clone();
-    {
-        let logger = state.logger.clone();
-        let entry = crate::audit::AuditEntry {
-            timestamp: event.timestamp,
-            transaction_id: Some(event.id.clone()),
-            transaction_signature: None,
-            decision: crate::audit::Decision::Allowed,
-            simulation_result: None,
-            intent: Some(format!(
-                "[robot-telemetry] {} {}",
-                event.source,
-                event.description.unwrap_or_default()
-            )),
-            result: crate::audit::AuditResult::Allowed,
-            reasoning: format!("Telemetry from robot agent {}", did),
-            simulation_logs: vec![],
-            transaction_details: None,
-        };
-        let _ = logger.log(entry);
-    }
-
-    Ok(Json(serde_json::json!({
-        "event_id": event_id,
-        "ingested": true,
-        "did": did,
-    })))
-}
-
 // ── Alchemy Token Balances Handler ──
 
 #[derive(serde::Deserialize)]
@@ -2220,8 +2153,6 @@ pub fn build_app(
         alchemy_sim,
         event_tx,
         started_at: std::time::Instant::now(),
-        case_store: Arc::new(RwLock::new(cases::CaseStore::new())),
-        correlation_engine: None,
         did_cache: Arc::new(RwLock::new(HashMap::new())),
         agent_store,
         did_auth_state: did_auth_state.clone(),
@@ -2261,10 +2192,6 @@ pub fn build_app(
             "/circuit-breaker/disengage",
             post(disengage_circuit_breaker),
         )
-        .route("/ingest", post(ingestion::ingest_event))
-        .route("/cases", get(get_cases).post(post_case))
-        .route("/cases/:id", axum::routing::patch(patch_case))
-        .route("/cases/:id/evidence", post(post_case_evidence))
         .route("/agents", post(register_agent_handler))
         // State-changing evaluation + agent mutation endpoints are auth-protected.
         .route("/simulate", post(simulate))
@@ -2278,7 +2205,6 @@ pub fn build_app(
         )
         .route("/agents/:did/stake/unstake", post(post_agent_unstake))
         .route("/agents/:did/stake/claim", post(post_agent_claim))
-        .route("/robots/:did/telemetry", post(post_robot_telemetry))
         .route_layer(middleware::from_fn(auth::require_did_auth))
         .route_layer(axum::extract::Extension(did_auth_state.clone()))
         // === Unprotected routes ===

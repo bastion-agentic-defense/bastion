@@ -14,7 +14,7 @@ const SOLANA_SUPPORT = {
 
 const EVM_SUPPORT = {
   wallets: ['MetaMask', 'Rainbow', 'WalletConnect'],
-  rpc: 'Celo, Base, Polygon RPCs',
+  rpc: 'Celo, Base, zkSync, Robinhood, Ethereum RPCs',
   features: [
     'ERC-7579 validator module',
     'EIP-712 immutable audit trail',

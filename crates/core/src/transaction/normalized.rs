@@ -48,6 +48,8 @@ pub enum Chain {
     Polygon,
     Arbitrum,
     Celo,
+    ZkSync,
+    Robinhood,
 }
 
 /// Transaction type classification.

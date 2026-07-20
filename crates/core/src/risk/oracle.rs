@@ -2,7 +2,10 @@ use crate::transaction::Address;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-/// Risk score for an address. 0 = safe, 100 = high risk.
+/// Trust signal for an address. 0 = trusted, 100 = high risk.
+///
+/// Scores are produced by ARES (or any trust-signal provider); Bastion
+/// consumes them to make policy decisions. Bastion never computes scores.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RiskScore(pub u8);
 
@@ -28,9 +31,9 @@ impl RiskScore {
     }
 }
 
-/// Error type for risk oracle operations.
+/// Error type for trust signal provider operations.
 #[derive(Debug, Error)]
-pub enum RiskOracleError {
+pub enum TrustSignalError {
     #[error("provider error: {0}")]
     ProviderError(String),
     #[error("timeout")]
@@ -39,15 +42,18 @@ pub enum RiskOracleError {
     RateLimited,
 }
 
-/// Trait for risk scoring providers.
+/// Trait for trust signal providers.
 ///
-/// Implementations include Webacy, Chainalysis, OpenSanctions,
-/// and the internal ML anomaly model (Phase 4).
+/// Bastion **consumes** trust signals from ARES (or any provider)
+/// to enforce policy — it never computes intelligence.
+///
+/// Implementations include GrondOSINT (owned by ARES), Chainalysis,
+/// TRM Labs, and internal reputation models (ARES-owned).
 #[async_trait::async_trait]
-pub trait RiskOracle: Send + Sync {
-    /// Returns a risk score for the given address.
-    async fn score(&self, address: &Address) -> Result<RiskScore, RiskOracleError>;
+pub trait TrustSignalProvider: Send + Sync {
+    /// Returns a trust signal (risk 0-100) for the given address.
+    async fn address_risk(&self, address: &Address) -> Result<RiskScore, TrustSignalError>;
 
-    /// Human-readable name of this oracle provider.
+    /// Human-readable name of this provider.
     fn provider_name(&self) -> &str;
 }

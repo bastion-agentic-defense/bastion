@@ -44,6 +44,8 @@ fn normalize_request(req: &EvaluateRequest) -> NormalizedTransaction {
         Some("polygon") => Chain::Polygon,
         Some("arbitrum") => Chain::Arbitrum,
         Some("celo") => Chain::Celo,
+        Some("zksync") => Chain::ZkSync,
+        Some("robinhood") => Chain::Robinhood,
         _ => Chain::Solana,
     };
 

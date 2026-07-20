@@ -6,19 +6,20 @@
 //! - `NormalizedTransaction`: chain-agnostic transaction representation
 //! - `FirewallDecision`: the outcome of a policy evaluation
 //! - `PolicyEvaluator`: core evaluation loop
-//! - `RiskOracle`: trait for address risk scoring providers
+//! - `TrustSignalProvider`: trait for consuming trust signals from ARES or other providers
+//! - `TrustAdapter`: trait for chain-independent execution environments
 //! - `AuditRecord`: chain-agnostic audit event
 
+pub mod adapter;
 pub mod audit;
 pub mod decision;
-pub mod event;
 pub mod policy;
 pub mod risk;
 pub mod transaction;
 
+pub use adapter::{AgentIdentity, ExecutionReceipt, SimulationOutcome, TrustAdapter, TrustAdapterError};
 pub use audit::AuditRecord;
 pub use decision::FirewallDecision;
-pub use event::SecurityEvent;
 pub use policy::{PolicyEvaluator, PolicyRule, PolicySet};
-pub use risk::{RiskOracle, RiskOracleError, RiskScore, WebacyClient};
+pub use risk::{TrustSignalProvider, TrustSignalError, RiskScore, WebacyClient};
 pub use transaction::{Address, AgentId, Chain, NormalizedTransaction, TxType};

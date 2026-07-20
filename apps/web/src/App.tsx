@@ -6,12 +6,17 @@ import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
 import { SolflareWalletAdapter } from '@solana/wallet-adapter-solflare';
 import { BackpackWalletAdapter } from '@solana/wallet-adapter-backpack';
 import '@solana/wallet-adapter-react-ui/styles.css';
+import { WagmiProvider } from 'wagmi';
+import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import '@rainbow-me/rainbowkit/styles.css';
 
 import { ThemeProvider } from './context/ThemeContext';
 import { ChainProvider } from './context/ChainContext';
 import { RouteErrorBoundary } from './components/RouteErrorBoundary';
 import { SmoothScroll } from './components/SmoothScroll';
 import { CHAINS } from './lib/chains';
+import { config } from './lib/evmConfig';
 import Landing from './pages/Landing';
 import Docs from './pages/Docs';
 import Integrate from './pages/integrate/Integrate';
@@ -19,6 +24,8 @@ import Dashboard from './pages/Dashboard';
 import AgentList from './pages/AgentList';
 import AgentDetail from './pages/AgentDetail';
 import DeployAgent from './pages/DeployAgent';
+
+const queryClient = new QueryClient();
 
 function AppRoutes() {
   return (
@@ -66,18 +73,24 @@ function SolanaProviders({ children }: { children: React.ReactNode }) {
 
 export function App() {
   return (
-    <ThemeProvider>
-      <ChainProvider>
-        <SolanaProviders>
-          <BrowserRouter>
-            <SmoothScroll>
-              <RouteErrorBoundary>
-                <AppRoutes />
-              </RouteErrorBoundary>
-            </SmoothScroll>
-          </BrowserRouter>
-        </SolanaProviders>
-      </ChainProvider>
-    </ThemeProvider>
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider>
+          <ThemeProvider>
+            <ChainProvider>
+              <SolanaProviders>
+                <BrowserRouter>
+                  <SmoothScroll>
+                    <RouteErrorBoundary>
+                      <AppRoutes />
+                    </RouteErrorBoundary>
+                  </SmoothScroll>
+                </BrowserRouter>
+              </SolanaProviders>
+            </ChainProvider>
+          </ThemeProvider>
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }

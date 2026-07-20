@@ -19,6 +19,10 @@ import { IBastionAudit } from "../src/interfaces/IBastionAudit.sol";
 ///   forge script script/DeployBastion.s.sol --rpc-url celo --broadcast --verify
 ///   forge script script/DeployBastion.s.sol --rpc-url base --broadcast --verify
 ///   forge script script/DeployBastion.s.sol --rpc-url ethereum --broadcast --verify
+///   forge script script/DeployBastion.s.sol --rpc-url zksync_sepolia --broadcast --verify
+///   forge script script/DeployBastion.s.sol --rpc-url zksync --broadcast --verify
+///   forge script script/DeployBastion.s.sol --rpc-url robinhood_testnet --broadcast --verify
+///   forge script script/DeployBastion.s.sol --rpc-url robinhood --broadcast --verify
 contract DeployBastion is Script {
     function run() external {
         uint deployerPrivateKey = vm.envUint("PRIVATE_KEY");

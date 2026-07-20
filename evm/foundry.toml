@@ -33,6 +33,10 @@ ethereum_sepolia = "${ETH_SEPOLIA_RPC_URL}"
 celo = "${CELO_RPC_URL}"
 celo_testnet = "${CELO_TESTNET_RPC_URL}"
 celo_sepolia = "${CELO_SEPOLIA_RPC_URL}"
+zksync = "${ZKSYNC_RPC_URL}"
+zksync_sepolia = "${ZKSYNC_SEPOLIA_RPC_URL}"
+robinhood = "${ROBINHOOD_RPC_URL}"
+robinhood_testnet = "${ROBINHOOD_TESTNET_RPC_URL}"
 
 [etherscan]
 ethereum_sepolia = { key = "${ETHERSCAN_API_KEY}", chain = 11155111 }
