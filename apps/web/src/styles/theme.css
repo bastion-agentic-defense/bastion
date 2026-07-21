@@ -156,13 +156,7 @@ body.scrolled .nav-shell {
 }
 
 .band-stone {
-  background: linear-gradient(
-    172deg,
-    oklch(0.935 0.004 84.57) 0%,
-    oklch(0.918 0.004 84.57) 40%,
-    oklch(0.908 0.006 78) 78%,
-    oklch(0.898 0.008 72) 100%
-  );
+  background: oklch(0.918 0.004 84.57);
 
   --bg: oklch(0.918 0.004 84.57);
   --bg-subtle: oklch(0.895 0.004 84.57);
@@ -306,9 +300,6 @@ body.scrolled .nav-shell {
  * to a burnt shadow at the upper right, so it reads as one raking light rather
  * than a two-stop ramp. Grain sits on the substrate to keep the large field
  * from banding.
- *
- * The pseudo-element at the bottom bleeds the hero's deep orange into the next
- * section so the transition reads as a gradient, not a seam.
  * ─────────────────────────────────────────────────────────────────────────── */
 .hero-gradient {
   position: relative;
@@ -323,24 +314,6 @@ body.scrolled .nav-shell {
       oklch(0.5 0.152 38) 84%,
       oklch(0.41 0.122 35) 100%
     );
-}
-
-.hero-gradient::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 120px;
-  pointer-events: none;
-  z-index: 1;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    oklch(0.49 0.14 37 / 0.18) 35%,
-    oklch(0.33 0.08 40 / 0.42) 75%,
-    oklch(0.24 0.04 42 / 0.68) 100%
-  );
 }
 
 /* The mark, oversized and set into the field as a watermark. Two instances at
@@ -425,116 +398,4 @@ html {
   html {
     scroll-behavior: auto;
   }
-}
-
-/* ── Gradient dividers ────────────────────────────────────────────────────────
- * Horizontal rules that fade at both edges, reading as a luminous line rather
- * than a drawn border. Use instead of flat border-top/border-bottom between
- * sections of contrasting ground.
- * ─────────────────────────────────────────────────────────────────────────── */
-.gradient-divider {
-  height: 1px;
-  border: none;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    oklch(0.183 0.009 84.57 / 0.08) 18%,
-    oklch(0.183 0.009 84.57 / 0.14) 50%,
-    oklch(0.183 0.009 84.57 / 0.08) 82%,
-    transparent 100%
-  );
-}
-
-.dark .gradient-divider,
-.band-ink .gradient-divider {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    oklch(0.95 0.005 84.57 / 0.05) 18%,
-    oklch(0.95 0.005 84.57 / 0.1) 50%,
-    oklch(0.95 0.005 84.57 / 0.05) 82%,
-    transparent 100%
-  );
-}
-
-/* ── Band-ink gradient refinement ──────────────────────────────────────────────
- * The CTA and footer band-ink sections get a subtle directional wash so the
- * large dark field doesn't read as flat uniform colour.
- * ─────────────────────────────────────────────────────────────────────────── */
-.band-ink-cta {
-  background: linear-gradient(
-    142deg,
-    oklch(0.175 0.006 84.57) 0%,
-    oklch(0.165 0.006 84.57) 35%,
-    oklch(0.155 0.007 82) 70%,
-    oklch(0.148 0.008 78) 100%
-  );
-}
-
-.band-ink-cta ::before {
-  --bg: oklch(0.165 0.006 84.57);
-  --bg-subtle: oklch(0.205 0.006 84.57);
-  --surface: oklch(0.225 0.006 84.57);
-  --text-primary: oklch(0.955 0.004 84.57);
-  --text-secondary: oklch(0.79 0.005 84.57);
-  --accent-text: oklch(0.775 0.16 48);
-  color: var(--text-primary);
-}
-
-/* ── Panel accent ──────────────────────────────────────────────────────────────
- * A top-edge light reflection that gives panels a hint of depth against their
- * ground. On dark surfaces the reflection is warm; on light surfaces it reads
- * as a subtle paper shadow from above. Only applies when .panel is used inside
- * a band-ink or dark context; the default light panel already has an inset
- * highlight.
- * ─────────────────────────────────────────────────────────────────────────── */
-.band-ink .panel::before,
-.dark .panel::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 1px;
-  right: 1px;
-  height: 1px;
-  border-radius: 14px 14px 0 0;
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    oklch(1 0 0 / 0.06) 20%,
-    oklch(1 0 0 / 0.15) 50%,
-    oklch(1 0 0 / 0.06) 80%,
-    transparent 100%
-  );
-}
-
-/* ── Footer gradient ───────────────────────────────────────────────────────────
- * The footer fades from ink into a slightly deeper ground so the signature
- * wordmark reads as set into a darker substrate.
- * ─────────────────────────────────────────────────────────────────────────── */
-.band-footer {
-  background: linear-gradient(
-    to bottom,
-    oklch(0.165 0.006 84.57) 0%,
-    oklch(0.155 0.006 84.57) 50%,
-    oklch(0.14 0.007 82) 100%
-  );
-
-  --border: oklch(0.95 0.005 84.57 / 0.1);
-  --text-primary: oklch(0.955 0.004 84.57);
-  --text-secondary: oklch(0.79 0.005 84.57);
-  --text-muted: oklch(0.68 0.006 84.57);
-  color: var(--text-primary);
-}
-
-/* ── Marquee band gradient ────────────────────────────────────────────────────
- * A whisper of colour behind the running chain names.
- * ─────────────────────────────────────────────────────────────────────────── */
-.band-marquee {
-  background: linear-gradient(
-    to bottom,
-    oklch(1 0 0) 0%,
-    oklch(0.97 0.003 84.56) 40%,
-    oklch(0.96 0.004 78) 100%
-  );
 }
