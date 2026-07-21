@@ -284,12 +284,12 @@ export default function Landing() {
         {/* ── Runs on ──
           * The reference runs an investor wall here. Bastion has none to show and
           * inventing one would be a lie, so the beat carries something true. */}
-        <section className="py-12">
+        <section className="band-marquee py-12">
           <p className="band-kicker text-center">Runs on</p>
-          <div className="marquee" aria-label="Supported chains: Solana, Ethereum, Base, Celo, Arcium">
+          <div className="marquee" aria-label="Supported chains: Solana, Ethereum, Base, Celo, zkSync, Robinhood, Arcium">
             <div className="marquee-track marquee-track--reverse" aria-hidden="true">
               {Array.from({ length: 6 }).flatMap(() =>
-                ['Solana', 'Ethereum', 'Base', 'Celo', 'Arcium'],
+                ['Solana', 'Ethereum', 'Base', 'Celo', 'zkSync', 'Robinhood', 'Arcium'],
               ).map((chain, i) => (
                 <span key={i} className="inline-flex items-center gap-10">
                   <span
@@ -304,6 +304,8 @@ export default function Landing() {
             </div>
           </div>
         </section>
+
+        <div className="gradient-divider" />
 
         {/* ── Statement ── */}
         <section>
@@ -367,10 +369,13 @@ export default function Landing() {
           </div>
         </section>
 
+        <div className="gradient-divider" />
+
         {/* ── Pipeline marquee ──
           * The stages an intent passes through, running continuously. The text is
           * present and legible at every frame; only its offset animates. */}
-        <section className="marquee py-10" style={{ borderBottom: '1px solid var(--border)' }} aria-hidden="true">
+        <section className="marquee py-10" aria-hidden="true">
+          <div className="gradient-divider" />
           <div className="marquee-track">
             {[...PIPELINE, ...PIPELINE, ...PIPELINE, ...PIPELINE].map((stage, i) => (
               <span key={i} className="inline-flex items-center gap-10">
@@ -591,7 +596,8 @@ export default function Landing() {
         {/* ── Status ──
           * Published as-is. A runtime asking to be trusted should be honest about
           * what it has not finished. */}
-        <section id="status" style={{ borderTop: '1px solid var(--border)' }}>
+        <section id="status">
+          <div className="gradient-divider" />
           <div className="max-w-[1180px] mx-auto px-6 sm:px-10 py-24 sm:py-28">
             <p className="band-kicker">Status</p>
             <h2
@@ -632,7 +638,7 @@ export default function Landing() {
         </section>
 
         {/* ── Call to action ── */}
-        <section className="band-ink">
+        <section className="band-ink-cta">
           <div className="max-w-[1180px] mx-auto px-6 sm:px-10 py-24 sm:py-32">
             <h2
               className="band-title font-display"
@@ -721,10 +727,13 @@ export default function Landing() {
             </div>
           </div>
         </section>
+
+        <div className="gradient-divider" />
+
       </main>
 
       {/* ── Footer ── */}
-      <footer className="band-ink relative overflow-hidden">
+      <footer className="band-footer relative overflow-hidden">
         <div className="relative z-10 max-w-[1180px] mx-auto px-6 sm:px-10 pt-20">
           <div
             className="grid gap-x-12 gap-y-12 pb-16"

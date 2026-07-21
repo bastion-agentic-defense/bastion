@@ -137,7 +137,7 @@ export default function Dashboard() {
   const networkLastFetch = useRef(0);
   const [onChainStats, setOnChainStats] = useState<StatsData | null>(null);
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'logs' | 'policy' | 'cases'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'logs' | 'policy'>('overview');
   const [logs, setLogs] = useState<AuditEntryData[]>([]);
   const [policy, setPolicy] = useState<PolicyData | null>(null);
   const [stats, setStats] = useState<StatsData>({ total: 0, allowed: 0, blocked: 0 });
@@ -428,11 +428,11 @@ export default function Dashboard() {
         {/* Row 4: Data Tables */}
         <div className="max-w-7xl mx-auto mb-6">
           <div className="flex gap-1 mb-3 p-1 rounded-lg w-fit" style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.04)' }}>
-            {['overview', 'logs', 'policy', 'cases'].map((t) => (
+            {['overview', 'logs', 'policy'].map((t) => (
               <button key={t} onClick={() => setActiveTab(t as any)}
                 className="px-4 py-2 rounded-md font-sans text-xs font-medium transition-colors"
                 style={activeTab === t ? { background: '#fff', color: '#000' } : { background: 'transparent', color: '#71717a' }}>
-                {t === 'overview' ? 'Overview' : t === 'logs' ? 'Audit Logs' : t === 'policy' ? 'Policy' : 'Cases'}
+                {t === 'overview' ? 'Overview' : t === 'logs' ? 'Audit Logs' : 'Policy'}
               </button>
             ))}
           </div>
@@ -516,31 +516,11 @@ export default function Dashboard() {
             </div>
           )}
 
-          {activeTab === 'cases' && (
-            <div className="rounded-xl p-6" style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.04)' }}>
-              <p className="font-sans text-sm text-zinc-300 mb-2">Investigation Cases</p>
-              <p className="font-sans text-xs text-zinc-500 mb-4">Manage investigations linked to agent DIDs and audit events.</p>
-              {trackedAgents.length > 0 ? (
-                <div className="space-y-2 font-mono text-[10px] text-zinc-500">
-                  <p>Agents with investigation capability:</p>
-                  {trackedAgents.map(a => (
-                    <div key={a.did} className="flex items-center gap-2">
-                      <span className="text-zinc-600">{a.did.split(':').pop()?.slice(0, 10)}</span>
-                      <span>{a.name}</span>
-                      <span className="ml-auto text-zinc-600">{a.reputation_score}/100</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="font-sans text-xs text-zinc-600">No agents registered. Register agents via POST /agents to create investigation cases.</p>
-              )}
-            </div>
-          )}
-        </div>
+         </div>
 
         {/* Footer */}
         <footer className="max-w-7xl mx-auto pt-6 border-t border-white/[0.06] text-center">
-          <p className="font-sans text-[10px] text-zinc-600">Built by ZKOS Labs. Bastion v0.3.0. Apache 2.0. Auto-refresh: 30s. Multi-chain: <span className="text-purple-500">Solana</span> + <span style={{ color: '#627EEA' }}>Ethereum</span> <span className="text-zinc-700">+ Base + Celo</span> + <span className="text-emerald-400">Arcium</span>.</p>
+          <p className="font-sans text-[10px] text-zinc-600">Built by ZKOS Labs. Bastion v0.3.0. Apache 2.0. Auto-refresh: 30s. Multi-chain: <span className="text-purple-500">Solana</span> + <span style={{ color: '#627EEA' }}>Ethereum</span> <span className="text-zinc-700">+ Base + Celo + zkSync + Robinhood</span> + <span className="text-emerald-400">Arcium</span>.</p>
         </footer>
       </main>
     </div>

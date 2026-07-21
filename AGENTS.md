@@ -2,7 +2,7 @@
 
 > **Trust your Agent, but Verify every Transaction.**
 >
-> Bastion is a **Programmable Trust Runtime** for AI agents and autonomous systems. It orchestrates identity, policy, privacy, durable execution, and multi-chain settlement — composing existing Ethereum standards (ERC-4337, ERC-7579, ERC-8004, ERC-8126, EAS, Sign Protocol, x402, Pact Network) rather than replacing them.
+> Bastion is a **Programmable Trust Runtime** for AI agents and autonomous systems. It orchestrates identity, policy, durable execution, human approval, multi-chain settlement, and trust observability — composing existing standards (ERC-4337, ERC-7579, ERC-8004, ERC-8126, EAS, Sign Protocol, x402) rather than replacing them.
 >
 > **If you are an AI coding agent reading this:** see [`SKILL.md`](SKILL.md) for self-registration and integration instructions. You can register yourself with a running Bastion instance via `POST /agents` to receive a W3C DID, trackable identity, and delegation capabilities.
 >
@@ -19,7 +19,6 @@
 | **Rust Sidecar** | Rust (edition 2024), Axum 0.8, Tokio 1, Sled 0.34 | 1.85+ |
 | **Rust Core** | serde, thiserror, uuid, async-trait | 0.1.0 |
 | **Rust Web2 Firewall** | bastion-web2-firewall, http, url, reqwest | 0.1.0 |
-| **Rust Correlation** | bastion-correlation (SIEM correlation engine) | — |
 | **Solana On-Chain** | Anchor 0.30.1, solana-program 1.18, borsh 1 | 0.2.0 |
 | **EVM Contracts** | Solidity 0.8.28, Foundry, OpenZeppelin, Solady | — |
 | **Dashboard** | React 18, Vite 5, TailwindCSS 3.4, TypeScript 5 | 0.2.0 |
@@ -56,8 +55,7 @@ bastion/
 ├── crates/                    ← Rust workspace
 │   ├── core/                  ← Chain-agnostic policy engine (bastion-core)
 │   ├── sidecar/               ← HTTP evaluator server (Axum, bastion-sidecar)
-│   ├── web2-firewall/         ← Web2 API proxy firewall (bastion-web2-firewall) NEW
-│   ├── correlation/           ← SIEM correlation engine (bastion-correlation)
+│   ├── web2-firewall/         ← Web2 API proxy firewall (bastion-web2-firewall)
 │   └── solana/programs/       ← Anchor on-chain program (bastion-audit)
 ├── evm/                       ← Solidity contracts (Foundry)
 │   ├── src/                   ← BastionFirewall, BastionPolicy, BastionAudit,
@@ -203,7 +201,7 @@ Agent Operator (policy config, HITL review)
 
 ### How components relate
 
-1. **`crates/core`**, Chain-agnostic policy engine. Defines `NormalizedTransaction`, `FirewallDecision` (Pass/Block/PendingHITL), `PolicyEvaluator<O: RiskOracle>`, `PolicyRule`, `PolicySet`, `AuditRecord`, and `RiskOracle` trait.
+1. **`crates/core`**, Chain-agnostic policy engine. Defines `NormalizedTransaction`, `FirewallDecision`, `PolicyEvaluator<P: TrustSignalProvider>`, `PolicyRule` (11 variants), `PolicySet`, `TrustAdapter` trait, `TrustSignalProvider` trait, `Chain` enum (8 chains: Solana, Ethereum, Base, Polygon, Arbitrum, Celo, ZkSync, Robinhood), and `AuditRecord`.
 
 2. **`crates/sidecar`**, Axum HTTP server (port 3000) that runs the policy evaluator. Exposes REST API for simulation, audit logging, policy management, circuit breaker, and human override. Uses Helius API for Solana simulation, Sled DB for audit logs, GrondOSINT for risk oracle.
 

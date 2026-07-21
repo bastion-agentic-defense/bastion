@@ -25,7 +25,6 @@ uuid = { version = "1.20.0", features = ["v4"] }
 tower-http = { version = "0.5", features = ["fs", "cors"] }
 sha2 = "0.10"
 bastion-core = { path = "../core" }
-bastion-correlation = { path = "../correlation" }
 bastion-arcium = { path = "../arcium" }
 bastion-web2-firewall = { path = "../web2-firewall" }
 chrono = { version = "0.4", features = ["serde"] }

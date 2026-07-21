@@ -45,8 +45,8 @@ impl GrondOracle {
 }
 
 #[async_trait::async_trait]
-impl RiskOracle for GrondOracle {
-    async fn score(&self, address: &Address) -> Result<RiskScore, RiskOracleError> {
+impl TrustSignalProvider for GrondOracle {
+    async fn address_risk(&self, address: &Address) -> Result<RiskScore, TrustSignalError> {
         let addr_str = address.to_string();
 
         {
@@ -86,10 +86,7 @@ impl RiskOracle for GrondOracle {
                         "[grond] failed to parse risk response from {} for {}",
                         self.api_url, addr_str
                     );
-                    Err(RiskOracleError::ProviderError(format!(
-                        "grond: failed to parse risk response for {}",
-                        addr_str
-                    )))
+                    Err(TrustSignalError::ProviderError(format!("grond: failed to parse risk response for {}", addr_str)))
                 }
             },
             Err(e) => {
@@ -97,10 +94,7 @@ impl RiskOracle for GrondOracle {
                     "[grond] risk check failed for {} ({}): {}",
                     self.api_url, addr_str, e
                 );
-                Err(RiskOracleError::ProviderError(format!(
-                    "grond: risk check failed for {}: {}",
-                    addr_str, e
-                )))
+                Err(TrustSignalError::ProviderError(format!("grond: risk check failed for {}: {}", addr_str, e)))
             }
         }
     }

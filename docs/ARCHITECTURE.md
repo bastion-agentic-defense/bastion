@@ -1,11 +1,84 @@
 # Bastion Architecture
 
 > **The Programmable Trust Runtime for Autonomous Systems.**
-> Bastion orchestrates trust — it does not replace the protocols underneath.
+>
+> Bastion is the enforcement and execution layer in the ZKOS Labs ecosystem.
+> It sits beside DAEMON and ARES — not inside them.
+>
+> **DAEMON** decides. **ARES** analyzes. **Bastion** orchestrates trusted execution.
 
 ---
 
-## 1. Bastion's Proprietary Runtime
+## 1. Ecosystem Positioning
+
+```text
+                 DAEMON
+        Decision Intelligence
+           "What should happen?"
+                     │
+                     ▼
+                  ARES
+      Security Intelligence & Analysis
+           "What needs attention?"
+                     │
+                     ▼
+                Bastion
+         Programmable Trust Runtime
+           "Can we do this safely?"
+                     │
+                     ▼
+Ethereum · zkSync · Base · Celo · Robinhood · Solana · Arcium
+```
+
+| Product | Telemetry | Question |
+|---------|-----------|----------|
+| **DAEMON** | Business telemetry | *What should happen?* |
+| **ARES** | Security telemetry | *What needs attention?* |
+| **Bastion** | Trust observability | *Did the runtime execute safely?* |
+
+---
+
+## 2. What Bastion Owns
+
+Everything related to **trusted execution**:
+
+| Capability | Implementation |
+|-----------|---------------|
+| Identity verification | DID resolution, ERC-8004 agent registry, delegation tree |
+| Policy enforcement | `PolicyEvaluator` (11 rule types), `PolicySet`, `TrustSignalProvider` |
+| Human approval | HITL gate with `/override` endpoint, timeout-aware |
+| Durable execution | Transaction simulation (Helius + EVM `eth_call`), balance-change prediction |
+| Wallet orchestration | ERC-7579 validator module, ERC-4337 UserOps, multi-chain routing |
+| Multi-chain execution | 8 execution environments (Solana, Ethereum, Base, Celo, Arbitrum, zkSync Era, Robinhood, Arcium) |
+| Trust ledger | On-chain audit (Anchor PDA + EIP-712), off-chain Sled DB |
+| Cross-chain settlement | `TrustAdapter` trait for chain-independent execution |
+| Confidential execution | Arcium MXE integration for MPC-backed policy evaluation |
+| Trust observability | Metrics, traces, policy decisions, approval history, attestations |
+
+---
+
+## 3. What Bastion Does NOT Own
+
+Boundaries kept clean by design:
+
+| Concern | Owner |
+|---------|-------|
+| Ontology management | Altius |
+| Data pipelines / ETL | Altius |
+| AML investigation | DAEMON |
+| Case management | DAEMON |
+| Security scanning | ARES |
+| Threat intelligence / OSINT | ARES |
+| SIEM correlation | ARES |
+| Vulnerability analysis | ARES |
+| Kubernetes deployment | Orion |
+| Graph analytics | DAEMON |
+
+**Rule of thumb:** If it answers *"Should we do this?"* → DAEMON or ARES. If it answers *"Can we do this safely, and how do we execute it?"* → Bastion.
+
+---
+
+## 4. Bastion Runtime Components
 
 These are the components Bastion **owns**. Everything else is composable infrastructure.
 
@@ -16,32 +89,138 @@ These are the components Bastion **owns**. Everything else is composable infrast
 ────────────────────────────────────────────────────────
                    Bastion Runtime
 ────────────────────────────────────────────────────────
-Policy Compiler    · Risk Engine      · Transaction Firewall
-Trust Graph        · Evidence Aggregator · Audit Log
+Policy Compiler    · Trust Signal Consumer · Transaction Firewall
+Trust Graph        · Evidence Aggregator   · Audit Log
 Agent Session Manager · Human Approval Engine
 ────────────────────────────────────────────────────────
 ```
 
-| Component | Crate/File | What It Does |
-|-----------|-----------|--------------|
-| **Policy Compiler** | `crates/core/src/policy/evaluator.rs` | Normalizes chain-specific transactions, evaluates 11+ rule types against configured policy sets, returns Pass/Block/PendingHITL |
-| **Risk Engine** | `crates/core/src/risk/` | Pluggable oracle abstraction (Webacy, GrondOSINT) for address/agent risk scoring. Feeds scores into policy decisions. |
-| **Transaction Firewall** | `crates/sidecar/src/simulation.rs` + `simulation_evm.rs` | Pre-execution simulation (Helius for Solana, eth_call for EVM). Predicts balance changes before signing. |
-| **Trust Graph** | `crates/sidecar/src/did.rs` + `AgentStore` | Hierarchical agent delegation tree (parent → sub → sub-sub). Capability inheritance, budget enforcement, expiry. |
-| **Evidence Aggregator** | `crates/sidecar/src/audit.rs` | Collects every policy decision, simulation result, and approval action into the Sled DB audit log + optional on-chain record. |
-| **Audit Log** | `crates/solana/` (Anchor) + `evm/` (EIP-712) | Immutable on-chain audit trail. Every Pass/Block/HITL decision is recorded with cryptographic provenance. |
-| **Agent Session Manager** | `crates/sidecar/src/lib.rs` `/agents` routes | Agent lifecycle: register (DID), delegate, query tree, revoke. TrackedAgent with reputation, budget, expiry. |
-| **Human Approval Engine** | `crates/sidecar/src/lib.rs` `/override` route | HITL gate: `PendingHITL` decisions pause execution until human approves/rejects via `/override`. Timeout-aware. |
+| Component | Crate/File | Purpose |
+|-----------|-----------|---------|
+| **Policy Compiler** | `crates/core/src/policy/evaluator.rs` | Normalizes chain-specific transactions, evaluates 11 rule types, returns Pass/Block/PendingHITL |
+| **Trust Signal Consumer** | `crates/core/src/risk/` | `TrustSignalProvider` trait — Bastion consumes signals from ARES or any provider; never computes intelligence |
+| **Transaction Firewall** | `crates/sidecar/src/simulation.rs` + `simulation_evm.rs` | Pre-execution simulation (Helius for Solana, eth_call for EVM). Predicts balance changes before signing |
+| **Trust Graph** | `crates/sidecar/src/did.rs` + `AgentStore` | Hierarchical agent delegation tree (parent → sub-agent → sub-sub). Capability inheritance, budget enforcement |
+| **Evidence Aggregator** | `crates/sidecar/src/audit.rs` | Every policy decision, simulation result, and approval action → Sled DB + optional on-chain record |
+| **Audit Log** | `crates/solana/` (Anchor) + `evm/` (EIP-712) | Immutable on-chain audit trail. Cryptographic provenance for every trust decision |
+| **Agent Session Manager** | `crates/sidecar/src/lib.rs` `/agents` routes | Agent lifecycle: register (DID), delegate, query tree, revoke. Budget, reputation, expiry |
+| **Human Approval Engine** | `crates/sidecar/src/lib.rs` `/override` route | HITL gate — `PendingHITL` pauses execution until human approves/rejects. Timeout-aware |
 
 ---
 
-## 2. Capability Architecture
+## 5. Trust Observability
 
-Bastion's capabilities are organized into layers. Each layer has a **Bastion-owned component** (left) and **composable infrastructure** (right).
+Bastion records runtime-centric telemetry to prove correct execution — distinct from ARES security telemetry and DAEMON business telemetry.
+
+```
+Trust Observability
+├── Execution Traces       (per-transaction lifecycle)
+├── Policy Decisions       (Pass / Block / PendingHITL)
+├── Approval History       (human-in-the-loop events)
+├── Trust Signal Lookups   (source, score, confidence, TTL)
+├── Settlement Status      (on-chain finality)
+├── Attestations           (EAS / Sign Protocol / EIP-712)
+├── Cross-Chain Traces     (multi-chain execution chain)
+└── Runtime Metrics        (latency, throughput, reliability)
+```
+
+**What Bastion does NOT record here:** Threat indicators, IOC correlation, vulnerability findings, security incidents — those are ARES territory.
+
+---
+
+## 6. TrustAdapter — Chain Independence
+
+```rust
+/// Each execution environment implements this trait, making Bastion's
+/// runtime chain-independent.
+#[async_trait]
+pub trait TrustAdapter: Send + Sync {
+    async fn authenticate(&self, address: &Address) -> Result<AgentIdentity, TrustAdapterError>;
+    async fn verify(&self, tx: &NormalizedTransaction) -> Result<SimulationOutcome, TrustAdapterError>;
+    async fn execute(&self, tx: &NormalizedTransaction) -> Result<ExecutionReceipt, TrustAdapterError>;
+    async fn settle(&self, receipt: &ExecutionReceipt) -> Result<(), TrustAdapterError>;
+    fn chain_name(&self) -> &str;
+    fn chain(&self) -> Chain;
+}
+```
+
+| Adapter (planned) | Strengths |
+|-------------------|-----------|
+| `EthereumAdapter` | Trust anchor, final settlement, EAS/Sign attestations |
+| `ZkSyncAdapter` | Native AA, paymasters, gas sponsorship, ZK verification |
+| `SolanaAdapter` | High-perf workflow coordination, Helius simulation |
+| `ArciumAdapter` | Confidential MPC computation |
+| `MidnightAdapter` | Privacy-preserving selective disclosure |
+| `RobinhoodAdapter` | RWA settlement, Arbitrum Orbit L2 |
+
+---
+
+## 7. Execution Environments
+
+8 chains supported across 3 families:
+
+| Chain | Type | Chain ID | Role |
+|-------|------|----------|------|
+| **Solana** | High-perf L1 | — | Durable workflow coordination, on-chain audit program |
+| **Ethereum** | L1 | 1 | Trust anchoring, final settlement, attestations |
+| **Base** | OP Stack L2 | 8453 | Consumer applications, embedded wallets |
+| **Celo** | Mobile-first L1 | 42220 | Mobile-first agent operations |
+| **Arbitrum** | Optimistic rollup | 42161 | High-throughput EVM execution |
+| **zkSync Era** | ZK rollup, native AA | 324 | Native account abstraction, paymasters, gas sponsorship |
+| **Robinhood** | Arbitrum Orbit L2 | 4663 | Tokenized RWA settlement |
+| **Arcium MXE** | MPC network | — | Confidential policy evaluation |
+
+---
+
+## 8. Wallet Infrastructure
+
+| Standard | Provides | Bastion's Role |
+|----------|---------|---------------|
+| **ERC-4337** | Account abstraction — UserOps, bundlers, paymasters | Policy-aware execution, multi-chain routing |
+| **EIP-7702** | Smart EOAs — delegation without migration | Policy enforcement for EOA-based agents |
+| **ERC-7579** | Modular smart accounts — validators, executors, hooks | Bastion's policy validator as a pluggable module |
+| **Session Keys** | Temporary, scoped keys for agent sessions | Limit blast radius of compromised agent keys |
+| **ERC-7715** (future) | Standardized session key grants | When mature, standardized session key management |
+| **Safe** | Multisig (2-of-3 for agents) | Recovery and batching for high-value operations |
+| **Coinbase Smart Wallet** | Embedded wallet with passkey auth | Used by Base MCP for agent wallets |
+
+---
+
+## 9. Future: Trust Intent
+
+Rather than passing low-level execution requests, upstream systems (DAEMON, ARES) submit
+a **Trust Intent** — a declarative specification of *what* should happen. Bastion resolves
+*how* to carry it out under trust constraints.
+
+```yaml
+intent: transfer
+asset: USDC
+amount: 5000
+recipient: 0x...
+requirements:
+  - humanApproval
+  - sanctionsCheck
+  - maxRisk: medium
+  - settlement: ethereum
+```
+
+Bastion then resolves:
+- which `TrustSignalProvider`s to query
+- which `PolicySet` rules apply
+- whether human approval is required
+- which chain and account abstraction flow to use
+- how to execute and observe the workflow
+
+This keeps DAEMON and ARES focused on producing *what* should happen, while Bastion owns
+*how* it is carried out under trust constraints.
+
+---
+
+## 10. Capability Architecture
 
 ```text
 ────────────────────────────────────────────────────────────────────
-                     Bastion Runtime
+                      Bastion Runtime
 ────────────────────────────────────────────────────────────────────
   Bastion Owns                           Composable Infrastructure
 ────────────────────────────────────────────────────────────────────
@@ -50,9 +229,10 @@ IDENTITY & TRUST                       AGENT INTEROPERABILITY
   Trust Graph                            A2A · MCP · ACP (future)
   Agent Session Manager
 
-POLICY ENGINE                          POLICY BACKENDS
-  Policy Compiler                        OPA · Cedar · Runtime Rules
-  Risk Engine                            Human Approval Engine
+POLICY ENGINE                          TRUST SIGNAL PROVIDERS
+  Policy Compiler                        GrondOSINT (ARES-owned endpoint)
+  TrustSignalConsumer                    Chainalysis · TRM · Webacy
+  Human Approval Engine
 
 WALLET & AUTHORIZATION                 WALLET INFRASTRUCTURE
   Transaction Firewall                   ERC-4337 · EIP-7702 · ERC-7579
@@ -61,20 +241,21 @@ WALLET & AUTHORIZATION                 WALLET INFRASTRUCTURE
 
 EVIDENCE & PROVENANCE                  ATTESTATION PROTOCOLS
   Evidence Aggregator                    EAS · Sign Protocol · Sigil
-  Audit Log                              zkTLS · Reclaim · zkPass
+  Trust Ledger (on-chain + off-chain)    zkTLS · Reclaim · zkPass
                                          The Graph
 
 EXECUTION                              EXECUTION ENVIRONMENTS
-  (Planned: Execution Planner)           Solana · Ethereum · Midnight
-                                         Starknet (ZK + native AA)
+  TrustAdapter (chain abstraction)       Solana · Ethereum · Base · Celo
+                                         Arbitrum · zkSync Era · Robinhood
+                                         Arcium MXE
 
 CONFIDENTIAL COMPUTE                   PRIVACY INFRASTRUCTURE
   (Planned: Privacy Runtime)             Arcium MXE · SP1 · Lit
                                          Nillion · Aztec
 
-SETTLEMENT & SECURITY                  SETTLEMENT LAYERS
+SETTLEMENT                             SETTLEMENT LAYERS
   (Planned: Settlement Router)           Ethereum · Pact Network
-                                         EigenLayer (cryptoeconomic security)
+                                         EigenLayer
 
 CONNECTIVITY                           BRIDGING
   Web2 Firewall                          Across · LayerZero
@@ -87,219 +268,7 @@ PAYMENTS                               PAYMENT RAILS
 
 ---
 
-## 3. Agent Interoperability
-
-Agent-to-agent communication protocols that Bastion composes:
-
-| Protocol | Purpose | Integration |
-|----------|---------|-------------|
-| **A2A** (Google) | Agent discovery and communication | ERC-8004 service registry maps A2A endpoints |
-| **MCP** (Anthropic) | Model Context Protocol — LLM tool access | Bastion MCP server on port 3001, 15 tools + 3 prompts |
-| **ACP** (future) | Agent Communication Protocol | Planned |
-
----
-
-## 4. Evidence & Provenance
-
-Bastion's biggest differentiator. Every trust decision is verifiable.
-
-| Protocol | Provides | Bastion's Role |
-|----------|---------|---------------|
-| **EAS** | On-chain attestation registry | Stores execution approvals, compliance attestations, HITL outcomes |
-| **Sign Protocol** | Cross-chain attestations | Emits portable trust records verifiable across ecosystems |
-| **Sigil** | On-chain provenance | Verifiable records of agent actions and decisions |
-| **zkTLS / Reclaim / zkPass** | Verified web data proofs | Policy inputs: "this agent has verified GitHub org membership" |
-| **The Graph** | Blockchain indexing | Fast ERC-8004 agent discovery via subgraph queries |
-
----
-
-## 5. Confidential Compute (Separate from Execution)
-
-Confidential compute is about **how** computation happens (private). Execution is about **where** it happens (which chain).
-
-| Protocol | Model | Chain | Bastion's Role |
-|----------|-------|-------|---------------|
-| **Arcium MXE** | MPC (dishonest majority) | Solana | Confidential policy evaluation — private thresholds, private allowlists |
-| **SP1** | ZKVM (Succinct) | Ethereum | General-purpose ZK proof generation and verification |
-| **Lit Protocol** | Threshold cryptography | Multichain | Key management + decryption for confidential execution policies |
-| **Nillion** | MPC + blind compute | Multichain | Privacy-preserving computation for sensitive data |
-| **Aztec** | ZK-rollup with private state | Ethereum L2 | Private smart contract execution on Ethereum |
-
----
-
-## 6. Execution Environments
-
-Where Bastion executes agent workflows, each chosen for its properties.
-
-| Network | Properties | Bastion's Role |
-|---------|-----------|---------------|
-| **Solana** | High throughput, low cost | Durable workflow coordination, on-chain audit program |
-| **Starknet** | ZK-verified, native AA, L1-L2 messaging | Provably correct execution with smart-account agent wallets by default |
-| **Ethereum** | Highest security, L1 finality | Trust anchoring and settlement |
-| **Midnight** | ZK privacy, selective disclosure | Privacy-preserving execution for sensitive workflows |
-
----
-
-## 7. Settlement & Security
-
-| Protocol | Category | Bastion's Role |
-|----------|---------|---------------|
-| **Ethereum** | Settlement | Final trust anchoring. Contracts deployed, testnet-only |
-| **Pact Network** | Settlement | On-chain x402 refund guarantees for agent API calls |
-| **EigenLayer** | Cryptoeconomic Security | Operator accountability via AVS slashing/rewards (planned) |
-
----
-
-## 8. Trust Services
-
-Pluggable infrastructure organized by function:
-
-### Attestation
-- **EAS** — on-chain attestations
-- **Sign Protocol** — cross-chain attestations
-
-### Identity
-- **ERC-8004** — agent identity + reputation (20+ chains)
-- **ERC-8126** — agent verification
-- **Privado ID / Polygon ID** — privacy-preserving identity
-- **ENS** — human-readable names
-- **DID / VC** — W3C decentralized identifiers
-
-### Oracles
-- **Chainlink** — price feeds, VRF, Automation, CCIP
-- **Pyth** — low-latency price feeds (Solana + EVM)
-- **Chronicle** — MakerDAO-backed verifiable oracles
-
-### Randomness
-- **Chainlink VRF** — provably random, verifiable on-chain
-
-### Restaking
-- **EigenLayer** — cryptoeconomic security for AVS operators
-
-### Key Management
-- **Lit Protocol** — threshold cryptography, programmable key management
-
----
-
-## 9. Wallet Infrastructure
-
-| Standard | Provides | Bastion's Role |
-|----------|---------|---------------|
-| **ERC-4337** | Account abstraction — UserOps, bundlers, paymasters | Policy-aware execution, multi-chain routing |
-| **EIP-7702** | Smart EOAs (live May 2025) — delegation without migration | Policy enforcement for EOA-based agents |
-| **ERC-7579** | Modular smart accounts — validators, executors, hooks | Bastion's policy validator as a pluggable module |
-| **Session Keys** | Temporary, scoped keys for agent sessions | Limit blast radius of compromised agent keys |
-| **ERC-7715** (future) | Standardized session key grants | When mature, standardized session key management |
-| **Safe** | Multisig (2-of-3 for agents: agent + human hot + human cold) | Recovery and batching for high-value operations |
-| **Coinbase Smart Wallet** | Embedded wallet with passkey auth | Used by Base MCP for agent wallets |
-
----
-
-## 10. Connectivity & Bridging
-
-| Protocol | Model | Purpose |
-|----------|-------|---------|
-| **Across** | Intents-based, optimistic oracle | Fast cross-chain transfers |
-| **LayerZero** | Omnichain messaging (80+ chains) | Cross-chain agent actions |
-| **Wormhole** | Generic message passing + token bridging | Solana-native, now multichain |
-| **Hyperlane** | Permissionless interop | Deploy to new chains without governance |
-
----
-
-## 11. Complete Runtime Architecture
-
-```text
-                         Applications
-              AI Agents · Enterprises · DAEMON
-                                │
-    ────────────────────────────────────────────────────────────
-                         Bastion Runtime
-    ────────────────────────────────────────────────────────────
-    Policy Compiler  · Risk Engine      · Transaction Firewall
-    Trust Graph      · Evidence Aggregator · Audit Log
-    Agent Session Manager · Human Approval Engine
-    ────────────────────────────────────────────────────────────
-
-    Identity & Trust              Agent Interoperability
-    ├── ERC-8004 · ERC-8126      ├── A2A
-    ├── ENS · DID/VC             ├── MCP
-    └── Privado ID               └── ACP (future)
-
-    Policy Backends               Wallet Infrastructure
-    ├── OPA · Cedar              ├── ERC-4337 · EIP-7702
-    ├── Runtime Rules            ├── ERC-7579 · ERC-7715
-    └── Human Approval           ├── Session Keys · Safe
-                                 └── Coinbase Smart Wallet
-
-    Evidence & Provenance         Confidential Compute
-    ├── EAS · Sign Protocol      ├── Arcium MXE (MPC)
-    ├── Sigil · zkTLS            ├── SP1 (ZKVM)
-    └── Reclaim · zkPass         ├── Lit (Threshold Crypto)
-                                 ├── Nillion (Blind Compute)
-    Trust Services               └── Aztec (ZK Private State)
-    ├── Attestation: EAS · Sign
-    ├── Identity: ERC-8004 · ENS  Execution
-    ├── Oracles: Chainlink · Pyth ├── Solana
-    │   · Chronicle              ├── Starknet (ZK + native AA)
-    ├── Randomness: VRF          ├── Ethereum
-    └── Restaking: EigenLayer    └── Midnight (ZK privacy)
-
-    Settlement & Security         Connectivity & Bridging
-    ├── Ethereum                 ├── Across
-    ├── Pact Network             ├── LayerZero
-    └── EigenLayer               ├── Wormhole
-                                 └── Hyperlane
-
-    Payments
-    ├── x402
-    ├── Pact Network
-    └── EIP-3009 · ERC-2612
-    ────────────────────────────────────────────────────────────
-```
-
----
-
-## 12. Component Architecture (Existing Codebase)
-
-### crates/core — Chain-Agnostic Policy Engine
-
-The shared foundation. Every chain-specific adapter normalizes its native transaction format into `NormalizedTransaction` and passes it through `PolicyEvaluator`. Returns `FirewallDecision`: `Pass`, `Block { reason, policy_id }`, or `PendingHITL { approval_id, reason }`.
-
-| Type | Purpose |
-|------|---------|
-| `NormalizedTransaction` | Chain-agnostic tx representation (agent_id, from, to, amount, currency, tx_type, chain, metadata) |
-| `FirewallDecision` | Enum: Pass, Block, PendingHITL |
-| `PolicyRule` | 11 enum variants: AmountLimit, Destination, Frequency, HITL, Reputation, TxTypeAllowlist, StakeWeighted, Geofence, SpeedLimit, EnergyBudget, OperatingHours |
-| `PolicySet` | Ordered, composable rule collection |
-| `PolicyEvaluator<O: RiskOracle>` | Core evaluation loop with optional risk oracle |
-| `RiskOracle` | Trait for address risk scoring (Webacy, GrondOSINT) |
-| `AuditRecord` | Chain-agnostic audit event structure |
-
-### crates/sidecar — Off-Chain Evaluator (Axum HTTP)
-
-Bridges non-Rust chain implementations to the Rust policy engine. Also hosts Web2 proxy endpoints, MCP reverse proxy, agent registry, case management, DID resolution, and robot telemetry.
-
-**Key endpoints:** `/simulate`, `/api/v2/simulate-evm`, `/api/v2/evaluate`, `/events` (SSE), `/agents`, `/policy`, `/circuit-breaker`, `/cases`, `/ingest`, `/did/resolve`, `/robots/:did/telemetry`.
-
-### crates/web2-firewall — Web2 API Proxy
-
-Proxies AI agent HTTP calls through policy evaluation before forwarding to target providers. Provider adapters for OpenAI, Stripe, Slack, GitHub. OpenAPI spec-based auto-configuration.
-
-### crates/correlation — SIEM Correlation Engine
-
-Sliding time window event correlation. Matches SecurityEvent sequences against YAML-defined rules. Integrates with GrondOSINT for threat enrichment and MITRE ATT&CK mapping.
-
-### crates/solana — Anchor On-Chain Program
-
-Solana devnet program (`A29V5MUVs73y7XBHHxPpPcAW7h4gGHupbDdwYSwA2n9D`). Provides `AuditState`, `AuditEntry`, `Agent`, `Policy` accounts. Instructions: `initialize`, `logAudit`, `registerAgent`, `updateAgentReputation`, `setPolicy`, `emergencyPause`, `emergencyResume`.
-
-### evm/ — Solidity Contracts (Foundry)
-
-Six contracts: `BastionFirewall` (ERC-7579 validator), `BastionPolicy` (per-agent rules), `BastionAudit` (EIP-712 audit), `BastionRegistry` (agent directory), `BastionERC8004Registry` (ERC-8004 identity), `BastionSidecar` (oracle pattern). ~54 Foundry tests.
-
----
-
-## 13. Data Flow
+## 11. Data Flow
 
 ### Transaction Evaluation
 
@@ -308,6 +277,17 @@ Agent → Chain adapter → normalize → PolicyEvaluator::evaluate()
   ├── Pass → sign + broadcast
   ├── Block → reject + audit log
   └── PendingHITL → suspend + wait for /override
+```
+
+### Trust Signal Flow
+
+```
+ARES (Threat Intelligence)
+  └── Trust Signals API (risk scores, sanctions, reputation)
+         │
+         ▼
+Bastion (Policy Engine)
+  └── TrustSignalProvider trait — queries, caches (5 min TTL), evaluates
 ```
 
 ### Web2 API Proxy
@@ -321,7 +301,54 @@ Agent → BastionWeb2Client → ProxyEngine::evaluate(ApiEvent)
 
 ---
 
-## 14. Agent Delegation System
+## 12. Component Architecture (Existing Codebase)
+
+### crates/core — Chain-Agnostic Policy Engine
+
+The shared foundation. Every chain normalizes its native transactions into `NormalizedTransaction` for evaluation against `PolicySet`.
+
+| Type | Purpose |
+|------|---------|
+| `NormalizedTransaction` | Chain-agnostic tx (agent_id, from, to, amount, currency, tx_type, chain, metadata) |
+| `FirewallDecision` | Enum: Pass, Block, PendingHITL |
+| `PolicyRule` | 11 variants: AmountLimit, Destination, Frequency, HITL, Reputation, TxTypeAllowlist, StakeWeighted, Geofence, SpeedLimit, EnergyBudget, OperatingHours |
+| `PolicySet` | Ordered, composable rule collection |
+| `PolicyEvaluator<P: TrustSignalProvider>` | Core evaluation loop with optional trust signal provider |
+| `TrustSignalProvider` | Trait for consuming trust signals (ARES-owned; Bastion queries) |
+| `TrustAdapter` | Trait for chain-independent execution environments |
+| `Chain` | Enum: Solana, Base, Ethereum, Polygon, Arbitrum, Celo, ZkSync, Robinhood |
+| `AuditRecord` | Chain-agnostic audit event structure |
+
+### crates/sidecar — Off-Chain Evaluator (Axum HTTP)
+
+HTTP server (port 3000) that runs the policy evaluator. Bridges non-Rust chains to the Rust policy engine.
+
+**Key endpoints:** `/simulate`, `/api/v2/simulate-evm`, `/api/v2/evaluate`, `/events` (SSE), `/agents`, `/policy`, `/circuit-breaker`, `/override`, `/did/resolve`, `/health`.
+
+### crates/web2-firewall — Web2 API Proxy
+
+Proxies AI agent HTTP calls through policy evaluation before forwarding to target providers. Provider adapters for OpenAI, Stripe, Slack, GitHub. OpenAPI spec-based auto-configuration.
+
+### crates/solana — Anchor On-Chain Program
+
+Solana devnet program (`A29V5MUVs73y7XBHHxPpPcAW7h4gGHupbDdwYSwA2n9D`). Provides `AuditState`, `AuditEntry`, `Agent`, `Policy` accounts. Instructions: `initialize`, `logAudit`, `registerAgent`, `updateAgentReputation`, `setPolicy`, `emergencyPause`, `emergencyResume`.
+
+### evm/ — Solidity Contracts (Foundry)
+
+Six contracts targeting 8 EVM chains. ~62 Foundry tests.
+
+| Contract | Standard | Purpose |
+|----------|----------|---------|
+| `BastionFirewall` | ERC-7579 | Validator module — gates UserOps through policy |
+| `BastionPolicy` | — | Per-agent rules (allowlists, limits, cooldowns) |
+| `BastionAudit` | EIP-712 | Immutable audit trail with signed entries |
+| `BastionRegistry` | — | Agent + target directory |
+| `BastionERC8004Registry` | ERC-8004 | Soulbound agent identity |
+| `BastionSidecar` | — | Oracle request/fulfill pattern |
+
+---
+
+## 13. Agent Delegation System
 
 Hierarchical: parent → sub-agent → sub-sub-agent (max depth 3).
 
@@ -333,18 +360,17 @@ Hierarchical: parent → sub-agent → sub-sub-agent (max depth 3).
 
 ---
 
-## 15. Technology Stack
+## 14. Technology Stack
 
 | Component | Technology | Version |
 |-----------|-----------|---------|
 | Rust Sidecar | Rust (edition 2024), Axum, Tokio, Sled | 1.85+ |
 | Rust Core | serde, thiserror, uuid, async-trait | 0.1.0 |
 | Rust Web2 Firewall | bastion-web2-firewall, http, url, reqwest | 0.1.0 |
-| Rust Correlation | bastion-correlation | — |
 | Solana On-Chain | Anchor, solana-program, borsh | 0.30.1 / 1.18 / 1 |
 | EVM Contracts | Solidity, Foundry, OpenZeppelin, Solady | 0.8.28 |
 | Arcium MXE | Arcis (Rust MPC circuits) | mainnet-alpha |
-| Dashboard | React, Vite, TailwindCSS, TypeScript | 18 / 5 / 3.4 / 5 |
+| Dashboard | React, Vite, TailwindCSS, wagmi, RainbowKit | 18 / 5 / 3.4 / 2.12 / 2.2 |
 | SDK | TypeScript, Anchor, @solana/web3.js | 5 / 0.30.1 / 1.91 |
 | MCP Server | TypeScript, @modelcontextprotocol/sdk, SSE | — |
 | CI/CD | GitHub Actions, Netlify, Vercel, Fly.io, Docker | — |

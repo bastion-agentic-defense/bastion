@@ -12,8 +12,8 @@ export default function McpSection() {
       <p className="font-sans text-sm mb-6 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
         Bastion exposes a Model Context Protocol (MCP) server with SSE transport.
         In production, MCP is proxied through the sidecar at <code className="font-mono text-xs">/mcp/*</code> — no separate process needed.
-        AI agents connect via MCP to access 15 security tools: simulate transactions, read policy,
-        override blocks, manage cases, and more.
+        AI agents connect via MCP to access security tools: simulate transactions, read policy,
+        override blocks, enforce trust decisions, and more.
       </p>
 
       <div className="space-y-4">

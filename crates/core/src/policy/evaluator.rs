@@ -32,8 +32,8 @@ impl<P: TrustSignalProvider> PolicyEvaluator<P> {
         }
     }
 
-    /// Create a new evaluator with a risk oracle.
-    pub fn with_oracle(oracle: O) -> Self {
+    /// Create a new evaluator with a trust signal provider.
+    pub fn with_oracle(oracle: P) -> Self {
         Self {
             rate_state: Mutex::new(RateLimitState::default()),
             oracle: Some(oracle),
@@ -247,7 +247,7 @@ impl<P: TrustSignalProvider> PolicyEvaluator<P> {
         minimum_score: u8,
     ) -> FirewallDecision {
         if let Some(ref oracle) = self.oracle {
-            match oracle.score(&tx.to).await {
+            match oracle.address_risk(&tx.to).await {
                 Ok(score) if score.value() >= minimum_score => FirewallDecision::Pass,
                 Ok(score) => FirewallDecision::Block {
                     reason: format!(

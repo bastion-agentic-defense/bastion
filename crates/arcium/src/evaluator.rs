@@ -5,7 +5,7 @@
 //! Falls back to local evaluation on Arcium failure.
 
 use bastion_core::{
-    FirewallDecision, NormalizedTransaction, PolicyEvaluator, PolicySet, RiskOracle,
+    FirewallDecision, NormalizedTransaction, PolicyEvaluator, PolicySet, TrustSignalProvider,
     transaction::Chain,
 };
 
@@ -17,14 +17,14 @@ use crate::types::{ArciumError, MxeConfig};
 /// For Solana transactions, runs evaluation through Arcium if configured.
 /// Falls back to local `PolicyEvaluator` on Arcium failure when fallback
 /// is enabled.
-pub struct ArcumPolicyEvaluator<C: ArciumClient, R: RiskOracle> {
+pub struct ArcumPolicyEvaluator<C: ArciumClient, R: TrustSignalProvider> {
     local: PolicyEvaluator<R>,
     arcium: Option<C>,
     config: MxeConfig,
     fallback: bool,
 }
 
-impl<C: ArciumClient, R: RiskOracle> ArcumPolicyEvaluator<C, R> {
+impl<C: ArciumClient, R: TrustSignalProvider> ArcumPolicyEvaluator<C, R> {
     /// Create a new evaluator with an Arcium client.
     pub fn new(arcium: C, config: MxeConfig) -> Self {
         Self {

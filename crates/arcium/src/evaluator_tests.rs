@@ -6,16 +6,15 @@ mod tests {
     use bastion_core::{
         Address, FirewallDecision, NormalizedTransaction, PolicyEvaluator, PolicyRule, PolicySet,
         TxType,
-        risk::{RiskOracle, RiskOracleError, RiskScore},
+        risk::{TrustSignalProvider, TrustSignalError, RiskScore},
         transaction::Chain,
     };
 
-    /// Mock risk oracle for testing.
-    struct MockRiskOracle;
+    struct MockTrustSignalProvider;
 
     #[async_trait::async_trait]
-    impl RiskOracle for MockRiskOracle {
-        async fn score(&self, _address: &Address) -> Result<RiskScore, RiskOracleError> {
+    impl TrustSignalProvider for MockTrustSignalProvider {
+        async fn address_risk(&self, _address: &Address) -> Result<RiskScore, TrustSignalError> {
             Ok(RiskScore(0))
         }
         fn provider_name(&self) -> &str {
@@ -135,7 +134,7 @@ mod tests {
 
     #[tokio::test]
     async fn local_evaluator_passes_under_limit() {
-        let evaluator: PolicyEvaluator<MockRiskOracle> = PolicyEvaluator::new();
+        let evaluator: PolicyEvaluator<MockTrustSignalProvider> = PolicyEvaluator::new();
         let tx = test_tx();
         let policy = test_policy();
         let decision = evaluator.evaluate(&tx, &policy).await;
@@ -144,7 +143,7 @@ mod tests {
 
     #[tokio::test]
     async fn local_evaluator_blocks_over_limit() {
-        let evaluator: PolicyEvaluator<MockRiskOracle> = PolicyEvaluator::new();
+        let evaluator: PolicyEvaluator<MockTrustSignalProvider> = PolicyEvaluator::new();
         let tx = blocking_tx();
         let policy = test_policy();
         let decision = evaluator.evaluate(&tx, &policy).await;
@@ -223,7 +222,7 @@ mod tests {
     #[tokio::test]
     async fn arcium_passes_through_to_local() {
         let mock = MockArciumClient::pass();
-        let evaluator: ArcumPolicyEvaluator<MockArciumClient, MockRiskOracle> =
+        let evaluator: ArcumPolicyEvaluator<MockArciumClient, MockTrustSignalProvider> =
             ArcumPolicyEvaluator::new(mock, test_config());
         let tx = test_tx();
         let policy = test_policy();
@@ -235,7 +234,7 @@ mod tests {
     #[tokio::test]
     async fn arcium_blocks_override_local() {
         let mock = MockArciumClient::block("Arcium says no");
-        let evaluator: ArcumPolicyEvaluator<MockArciumClient, MockRiskOracle> =
+        let evaluator: ArcumPolicyEvaluator<MockArciumClient, MockTrustSignalProvider> =
             ArcumPolicyEvaluator::new(mock, test_config());
         let tx = test_tx(); // Would pass local eval (0.5 SOL < 1 SOL limit)
         let policy = test_policy();
@@ -247,7 +246,7 @@ mod tests {
     #[tokio::test]
     async fn arcium_timeout_falls_back_to_local() {
         let failing = FailingArciumClient;
-        let evaluator: ArcumPolicyEvaluator<FailingArciumClient, MockRiskOracle> =
+        let evaluator: ArcumPolicyEvaluator<FailingArciumClient, MockTrustSignalProvider> =
             ArcumPolicyEvaluator::new(failing, test_config()).with_fallback(true);
         let tx = test_tx(); // 0.5 SOL — passes local eval
         let policy = test_policy();
@@ -259,7 +258,7 @@ mod tests {
     #[tokio::test]
     async fn arcium_timeout_blocks_without_fallback() {
         let failing = FailingArciumClient;
-        let evaluator: ArcumPolicyEvaluator<FailingArciumClient, MockRiskOracle> =
+        let evaluator: ArcumPolicyEvaluator<FailingArciumClient, MockTrustSignalProvider> =
             ArcumPolicyEvaluator::new(failing, test_config()).with_fallback(false);
         let tx = test_tx();
         let policy = test_policy();
@@ -272,7 +271,7 @@ mod tests {
     async fn evaluator_chain_filter() {
         // Arcium should only run for Solana chain
         let mock = MockArciumClient::pass();
-        let evaluator: ArcumPolicyEvaluator<MockArciumClient, MockRiskOracle> =
+        let evaluator: ArcumPolicyEvaluator<MockArciumClient, MockTrustSignalProvider> =
             ArcumPolicyEvaluator::new(mock, test_config());
         let tx = NormalizedTransaction::new(
             "agent-1",
