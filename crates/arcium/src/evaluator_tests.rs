@@ -6,7 +6,7 @@ mod tests {
     use bastion_core::{
         Address, FirewallDecision, NormalizedTransaction, PolicyEvaluator, PolicyRule, PolicySet,
         TxType,
-        risk::{TrustSignalProvider, TrustSignalError, RiskScore},
+        risk::{RiskScore, TrustSignalError, TrustSignalProvider},
         transaction::Chain,
     };
 

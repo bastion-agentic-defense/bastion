@@ -1,4 +1,4 @@
-use bastion_core::{Address, TrustSignalProvider, TrustSignalError, RiskScore};
+use bastion_core::{Address, RiskScore, TrustSignalError, TrustSignalProvider};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -86,7 +86,10 @@ impl TrustSignalProvider for GrondOracle {
                         "[grond] failed to parse risk response from {} for {}",
                         self.api_url, addr_str
                     );
-                    Err(TrustSignalError::ProviderError(format!("grond: failed to parse risk response for {}", addr_str)))
+                    Err(TrustSignalError::ProviderError(format!(
+                        "grond: failed to parse risk response for {}",
+                        addr_str
+                    )))
                 }
             },
             Err(e) => {
@@ -94,7 +97,10 @@ impl TrustSignalProvider for GrondOracle {
                     "[grond] risk check failed for {} ({}): {}",
                     self.api_url, addr_str, e
                 );
-                Err(TrustSignalError::ProviderError(format!("grond: risk check failed for {}: {}", addr_str, e)))
+                Err(TrustSignalError::ProviderError(format!(
+                    "grond: risk check failed for {}: {}",
+                    addr_str, e
+                )))
             }
         }
     }

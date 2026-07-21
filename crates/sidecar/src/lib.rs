@@ -1352,9 +1352,7 @@ struct Web2ProxyDecisionResponse {
     approval_id: Option<String>,
 }
 
-fn map_web2_decision(
-    decision: bastion_web2_firewall::ProxyDecision,
-) -> Web2ProxyDecisionResponse {
+fn map_web2_decision(decision: bastion_web2_firewall::ProxyDecision) -> Web2ProxyDecisionResponse {
     use bastion_web2_firewall::ProxyDecision as PD;
     match decision {
         PD::Pass => Web2ProxyDecisionResponse {

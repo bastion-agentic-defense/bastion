@@ -57,10 +57,16 @@ pub trait TrustAdapter: Send + Sync {
     async fn authenticate(&self, address: &Address) -> Result<AgentIdentity, TrustAdapterError>;
 
     /// Simulate a normalized transaction and predict balance changes.
-    async fn verify(&self, tx: &NormalizedTransaction) -> Result<SimulationOutcome, TrustAdapterError>;
+    async fn verify(
+        &self,
+        tx: &NormalizedTransaction,
+    ) -> Result<SimulationOutcome, TrustAdapterError>;
 
     /// Execute a transaction on-chain and return the receipt.
-    async fn execute(&self, tx: &NormalizedTransaction) -> Result<ExecutionReceipt, TrustAdapterError>;
+    async fn execute(
+        &self,
+        tx: &NormalizedTransaction,
+    ) -> Result<ExecutionReceipt, TrustAdapterError>;
 
     /// Record the execution result in the audit log.
     async fn settle(&self, receipt: &ExecutionReceipt) -> Result<(), TrustAdapterError>;

@@ -95,12 +95,14 @@ async fn main() {
     // than silently routing to a different network.
     let mut evm_simulators: HashMap<String, Arc<EvmSimulator>> = HashMap::new();
     for (chain, env_var) in bastion_sidecar::simulation_evm::EVM_CHAIN_ENV_VARS {
-        if let Ok(url) = env::var(env_var) {
-            if !url.is_empty() {
-                eprintln!("[bastion] EVM simulator enabled for {chain}: {url}");
-                evm_simulators
-                    .insert((*chain).to_string(), Arc::new(EvmSimulator::for_chain(*chain, url)));
-            }
+        if let Ok(url) = env::var(env_var)
+            && !url.is_empty()
+        {
+            eprintln!("[bastion] EVM simulator enabled for {chain}: {url}");
+            evm_simulators.insert(
+                (*chain).to_string(),
+                Arc::new(EvmSimulator::for_chain(*chain, url)),
+            );
         }
     }
     if evm_simulators.is_empty() {

@@ -279,7 +279,10 @@ mod tests {
         assert_eq!(evm_rpc_env_var("zksync_sepolia"), "ZKSYNC_SEPOLIA_RPC_URL");
         // Robinhood chains
         assert_eq!(evm_rpc_env_var("robinhood"), "ROBINHOOD_RPC_URL");
-        assert_eq!(evm_rpc_env_var("robinhood_testnet"), "ROBINHOOD_TESTNET_RPC_URL");
+        assert_eq!(
+            evm_rpc_env_var("robinhood_testnet"),
+            "ROBINHOOD_TESTNET_RPC_URL"
+        );
         // Unknown chains fall back to the derived form.
         assert_eq!(evm_rpc_env_var("polygon"), "POLYGON_RPC_URL");
     }

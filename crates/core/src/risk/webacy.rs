@@ -1,4 +1,4 @@
-use crate::risk::oracle::{TrustSignalProvider, TrustSignalError, RiskScore};
+use crate::risk::oracle::{RiskScore, TrustSignalError, TrustSignalProvider};
 use crate::transaction::Address;
 
 /// Webacy trust signal client.

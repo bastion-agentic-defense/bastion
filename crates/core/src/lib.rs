@@ -17,9 +17,11 @@ pub mod policy;
 pub mod risk;
 pub mod transaction;
 
-pub use adapter::{AgentIdentity, ExecutionReceipt, SimulationOutcome, TrustAdapter, TrustAdapterError};
+pub use adapter::{
+    AgentIdentity, ExecutionReceipt, SimulationOutcome, TrustAdapter, TrustAdapterError,
+};
 pub use audit::AuditRecord;
 pub use decision::FirewallDecision;
 pub use policy::{PolicyEvaluator, PolicyRule, PolicySet};
-pub use risk::{TrustSignalProvider, TrustSignalError, RiskScore, WebacyClient};
+pub use risk::{RiskScore, TrustSignalError, TrustSignalProvider, WebacyClient};
 pub use transaction::{Address, AgentId, Chain, NormalizedTransaction, TxType};

@@ -1275,7 +1275,10 @@ async fn simulate_evm_unconfigured_chain_returns_503_with_clear_message() {
     let (app, _tmp) = test_app_with_evm(&[]);
 
     let response = app
-        .oneshot(json_request("/api/v2/simulate-evm", evm_sim_payload("ethereum")))
+        .oneshot(json_request(
+            "/api/v2/simulate-evm",
+            evm_sim_payload("ethereum"),
+        ))
         .await
         .expect("response");
 
@@ -1285,7 +1288,10 @@ async fn simulate_evm_unconfigured_chain_returns_503_with_clear_message() {
         .expect("body");
     let body = String::from_utf8(body.to_vec()).expect("utf8");
     assert!(body.contains("ethereum"), "message names the chain: {body}");
-    assert!(body.contains("ETH_RPC_URL"), "message names the env var: {body}");
+    assert!(
+        body.contains("ETH_RPC_URL"),
+        "message names the env var: {body}"
+    );
 }
 
 #[tokio::test]
