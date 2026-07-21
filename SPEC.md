@@ -1,4 +1,4 @@
-# Bastion: AI Agent Firewall
+# Bastion: Programmable Trust Runtime
 
 **Tagline:** "Trust your Agent, but Verify every Transaction."
 **Web2 tagline:** "Trust your Agent, but Verify every Call."
@@ -10,7 +10,7 @@ AI Agents are non-deterministic. They hallucinate. Prompt injection attacks can 
 Currently, agents sign whatever the LLM outputs and call whatever APIs the LLM suggests. This is a massive security risk.
 
 ## The Solution
-**Bastion** is a Rust-based middleware firewall that sits between the Agent's "Brain" (LLM) and both the "Wallet" (Signing) and the "Internet" (API calls).
+**Bastion** is a Rust-based policy engine that sits between the Agent's "Brain" (LLM) and both the "Wallet" (Signing) and the "Internet" (API calls).
 It intercepts every transaction request and every HTTP API call, **Simulates** them, and checks against a strict **Policy Engine**.
 
 ## Current Capabilities
@@ -46,7 +46,7 @@ It intercepts every transaction request and every HTTP API call, **Simulates** t
 - TypeScript SDK (@zkos-labs/web2-sdk v0.1.0)
 - Rust policy engine (bastion-web2-firewall crate)
 
-### SIEM & Correlation (Planned)
+### SIEM & Correlation (Partially shipped: event ingest in MCP server, full correlation engine planned)
 - Universal event ingestion (CloudTrail, syslog, webhooks)
 - Cross-event correlation engine (YAML rules, sliding windows)
 - Case management dashboard
@@ -89,30 +89,30 @@ It intercepts every transaction request and every HTTP API call, **Simulates** t
 ## Roadmap
 
 ### Phase 1: Core Interceptor (Day 1-2)
-- [x] Rust Proxy & Policy Parser (from Sentinel)
+- [x] Rust Proxy & Policy Parser
 - [x] Transaction validation
-- [ ] Policy API improvements
+- [x] Policy API improvements
 
 ### Phase 2: On-Chain Audit (Day 3-4)
-- [ ] Anchor program structure
-- [ ] PDA-based audit storage
-- [ ] CPI from interceptor to program
+- [x] Anchor program structure
+- [x] PDA-based audit storage
+- [x] CPI from interceptor to program
 
 ### Phase 3: Agent Registry (Day 5-6)
-- [ ] On-chain agent registration
-- [ ] Capability bitmasks
-- [ ] Reputation tracking
+- [x] On-chain agent registration
+- [x] Capability bitmasks
+- [x] Reputation tracking
 
 ### Phase 4: Dashboard (Day 7-8)
-- [ ] Real-time policy editor
-- [ ] Transaction feed + alerts
-- [ ] Agent status overview
+- [x] Real-time policy editor
+- [x] Transaction feed + alerts
+- [x] Agent status overview
 
 ### Phase 5: Advanced Security (Day 9-10)
-- [ ] Prompt injection detection
-- [ ] Rate limiting per agent
-- [ ] Anomaly detection hooks
-- [ ] Emergency circuit breaker
+- [x] Prompt injection detection
+- [x] Rate limiting per agent
+- [x] Anomaly detection hooks
+- [x] Emergency circuit breaker
 
 ## Why This Wins
 It's a "Pick and Shovel" play. Every autonomous agent needs security.

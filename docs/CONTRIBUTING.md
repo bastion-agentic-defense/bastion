@@ -39,7 +39,6 @@ bastion/
 ├── crates/core/          → cargo test -p bastion-core
 ├── crates/sidecar/       → cargo test -p bastion-sidecar
 ├── crates/web2-firewall/ → cargo test -p bastion-web2-firewall
-├── crates/correlation/   → cargo test -p bastion-correlation
 ├── crates/solana/        → cd crates/solana && anchor test
 ├── evm/                  → cd evm && forge test
 ├── apps/web/             → cd apps/web && pnpm dev
@@ -180,7 +179,7 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 GitHub Actions runs on every push and PR (see `.github/workflows/ci.yml`):
 
-- Rust: `cargo fmt --check`, `cargo clippy`, `cargo test` (core, sidecar, web2-firewall, correlation, solana)
+- Rust: `cargo fmt --check`, `cargo clippy`, `cargo test` (core, sidecar, web2-firewall, solana)
 - EVM: `forge build`, `forge test -vvv`
 - Dashboard: `pnpm install`, `pnpm --filter bastion-dashboard build`
 - SDK: `pnpm install`, `pnpm --filter @zkos-labs/sdk build`

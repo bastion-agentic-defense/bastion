@@ -6,7 +6,7 @@
 
 | Version | Supported |
 |---------|-----------|
-| 0.5.2 | Yes |
+| latest | Yes |
 
 ## Reporting a Vulnerability
 
@@ -84,7 +84,7 @@ Bastion uses the Solana SDK which has transitive dependencies with known advisor
 
 Bastion protects against six threat actor classes:
 
-1. **Compromised Agent**, LLM manipulated through prompt injection, firewall is last line of defense
+1. **Compromised Agent**, LLM manipulated through prompt injection, trust runtime provides the final policy enforcement layer
 2. **Malicious Operator**, On-chain policy lives where operator cannot modify it unilaterally
 3. **Policy Bypass**, Aggregate behavioral analysis with sliding window counters
 4. **Intent Observer** (Arcium MXE), MPC confidentiality prevents strategy extraction from transaction metadata

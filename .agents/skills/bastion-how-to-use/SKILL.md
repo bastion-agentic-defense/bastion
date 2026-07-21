@@ -1,11 +1,11 @@
 ---
 name: bastion-how-to-use
-description: Guides agent developers on integrating Bastion (AI Agent Firewall for Solana). Covers SDK usage (BastionClient), REST API endpoints (/simulate, /policy, /override, /logs), interpreting audit logs and simulation results, configuring policy rules (allowlists, SOL caps, rate limits, blockint security checks), on-chain program interaction (audit trail, agent registry, circuit breaker), and deployment. Use when the user asks about integrating an AI agent with Bastion, sending transactions through the firewall, configuring security policies, reading audit trails, or deploying the Bastion middleware alongside autonomous agents on Solana.
+description: Guides agent developers on integrating Bastion (Programmable Trust Runtime). Covers SDK usage (BastionClient), REST API endpoints (/simulate, /policy, /override, /logs), interpreting audit logs and simulation results, configuring policy rules (allowlists, SOL caps, rate limits, blockint security checks), on-chain program interaction (audit trail, agent registry, circuit breaker), and deployment. Use when the user asks about integrating an AI agent with Bastion, sending transactions through the trust runtime, configuring security policies, reading audit trails, or deploying Bastion alongside autonomous agents.
 ---
 
 # Bastion — How to Use (Agent Developer Guide)
 
-Bastion is a Rust middleware (Axum) + Anchor on-chain program that sits between an AI agent and Solana. Every transaction the agent wants to sign passes through Bastion first: simulate, policy-check, optionally log on-chain, then either sign or block.
+Bastion is a **Programmable Trust Runtime** (Axum sidecar + on-chain audit programs) that sits between AI agents and their execution environments. Every action an agent intends to take passes through Bastion first: identity verification, policy evaluation, simulation, optionally human review, then either execute or block — with every decision recorded as a verifiable audit record.
 
 This skill covers what an agent developer needs to integrate with Bastion.
 

@@ -1,6 +1,6 @@
 # Bastion SDK
 
-TypeScript SDK for interacting with the Bastion on-chain audit program and REST API.
+TypeScript SDK for the Bastion Programmable Trust Runtime. Identity, policy, execution, and observability for autonomous systems.
 
 > **Package moved:** this package was previously published as `@bastion-agentique/sdk`.
 > It now ships as **`@zkos-labs/sdk`** following the move to the zkOS Labs org. Update your

@@ -268,4 +268,8 @@ Apache-2.0
 
 **Built by zkOS Labs**
 
-*Advancing programmable trust infrastructure for Ethereum and interoperable open networks.*
+**Bastion is the programmable Trust Runtime for the agentic internet. It provides the identity, policy, execution, and observability layer that autonomous systems rely on to act safely across programmable networks.**
+
+While agent frameworks determine **what** autonomous systems do, Bastion determines **how** those actions are executed safely, verifiably, and under programmable trust policies.
+
+Bastion is foundational trust infrastructure for agentic applications.

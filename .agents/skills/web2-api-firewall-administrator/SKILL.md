@@ -1,11 +1,11 @@
 ---
 name: web2-api-firewall-administrator
-description: Guides configuring Bastion Web2 API firewall proxy policies. Covers endpoint allowlists, provider budgets, rate limits, content inspection (PII/secrets detection), header filters, and OpenAPI spec-based auto-configuration. Use when configuring API call security for AI agents, setting provider spending caps, inspecting outbound API traffic, or setting up the Web2 proxy.
+description: Guides configuring Bastion Web2 API adapter policies for the Trust Runtime. Covers endpoint allowlists, provider budgets, rate limits, content inspection (PII/secrets detection), header filters, and OpenAPI spec-based auto-configuration. Use when configuring API call security for AI agents, setting provider spending caps, inspecting outbound API traffic, or setting up the Web2 adapter.
 ---
 
-# Bastion Web2 API Firewall — Administrator Guide
+# Bastion Web2 API Adapter — Administrator Guide
 
-This skill covers configuring the Bastion Web2 API gateway firewall for AI agents calling external REST/gRPC/GraphQL APIs (OpenAI, Stripe, Slack, GitHub, AWS, etc.).
+This skill covers configuring the Bastion Web2 API adapter for AI agents calling external REST/gRPC/GraphQL APIs (OpenAI, Stripe, Slack, GitHub, AWS, etc.).
 
 ## Architecture
 

@@ -512,6 +512,104 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* ── TrustIntent ──
+          * Declarative intent over imperative API calls. The strategic abstraction
+          * that separates what an agent wants from how Bastion executes it. */}
+        <section className="band-stone">
+          <div className="max-w-[1180px] mx-auto px-6 sm:px-10 py-24 sm:py-32">
+            <p className="band-kicker">Abstraction</p>
+            <h2
+              className="font-display"
+              style={{
+                fontSize: 'clamp(1.8rem, 3.2vw, 2.5rem)',
+                letterSpacing: '-0.03em',
+                lineHeight: 1.14,
+                margin: '0 0 1.6rem',
+                maxWidth: '20ch',
+              }}
+            >
+              Agents declare what they want. Bastion determines how to execute it safely.
+            </h2>
+            <p
+              className="font-sans"
+              style={{ fontSize: '15.5px', lineHeight: 1.65, color: 'var(--text-secondary)', maxWidth: '56ch', margin: '0 0 3.5rem' }}
+            >
+              Instead of agents writing low-level transaction calls and API
+              requests, they submit a TrustIntent — a declarative specification
+              of what should happen. Bastion resolves the chain, the wallet
+              strategy, the policy checks, the simulation, and the human gate.
+            </p>
+
+            <div className="grid gap-x-16 gap-y-10" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))' }}>
+              <div>
+                <p className="font-sans font-semibold" style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: '0 0 0.6rem', letterSpacing: '0.04em' }}>
+                  WHAT AGENTS WRITE TODAY
+                </p>
+                <pre
+                  className="font-mono"
+                  style={{
+                    fontSize: '13px',
+                    lineHeight: 1.6,
+                    background: 'var(--panel)',
+                    padding: '1.4rem',
+                    borderRadius: '8px',
+                    color: 'var(--text-primary)',
+                    margin: 0,
+                    overflow: 'auto',
+                    border: '1px solid var(--card-border)',
+                  }}
+                >{`wallet.send(usdcToken, {
+  amount: new BN(500_000_000),
+  recipient: "7xKX...",
+  chain: "solana"
+});
+
+// ⚠ Who checks sanctions?
+// ⚠ Who requires approval?
+// ⚠ Who decides the chain?`}</pre>
+              </div>
+
+              <div>
+                <p className="font-sans font-semibold" style={{ fontSize: '13.5px', color: 'var(--text-muted)', margin: '0 0 0.6rem', letterSpacing: '0.04em' }}>
+                  WHAT AGENTS DECLARE WITH BASTION
+                </p>
+                <pre
+                  className="font-mono"
+                  style={{
+                    fontSize: '13px',
+                    lineHeight: 1.6,
+                    background: 'var(--accent-emphasis)',
+                    padding: '1.4rem',
+                    borderRadius: '8px',
+                    color: 'var(--text-primary)',
+                    margin: 0,
+                    overflow: 'auto',
+                    border: '1px solid var(--accent)',
+                  }}
+                >{`intent: transfer
+asset: USDC
+amount: 500
+recipient: 0x...
+requirements:
+  - humanApproval
+  - sanctionsCheck
+  - maxRisk: medium
+  - settlement: ethereum`}</pre>
+              </div>
+            </div>
+
+            <p
+              className="font-sans mt-8"
+              style={{ fontSize: '14px', lineHeight: 1.65, color: 'var(--text-muted)', maxWidth: '52ch', margin: '2.5rem 0 0' }}
+            >
+              TrustIntent keeps agent frameworks focused on producing{' '}
+              <em>what</em> should happen, while Bastion owns <em>how</em> it
+              is carried out under programmable trust policies — identity,
+              simulation, routing, settlement, audit.
+            </p>
+          </div>
+        </section>
+
         {/* ── Case studies ── */}
         <section className="band-stone">
           <div className="max-w-[1180px] mx-auto px-6 sm:px-10 py-24 sm:py-32">

@@ -3,7 +3,7 @@
 > **Date:** 2026-06-12 &nbsp;·&nbsp; **Status:** Analysis complete, improvement plan active
 >
 > Litebeam is an AI microservice routing layer (MCP-native, Base/USDC settlement, real-time auction across 6,000+ services).
-> Bastion is an AI agent security firewall (multi-chain simulation, policy engine, on-chain audit).
+> Bastion is a Programmable Trust Runtime (multi-chain simulation, policy engine, on-chain audit).
 > **These are complementary products, not direct competitors.** The strategy is integration + differentiation, not head-to-head.
 
 ---
@@ -590,7 +590,7 @@ Content:
 | Build a payment layer | Bastion's value is security, not routing. Don't split focus. |
 | Add USDC settlement on Base | Litebeam's lane. Bastion doesn't need its own wallet. |
 | Try to match "6,000+ services" breadth | Focus on being the best at 1 thing (security), not mediocre at both. |
-| Copy Litebeam's "auction" model | Bastion is a firewall, not a marketplace. Policy evaluation, not price comparison. |
+| Copy Litebeam's "auction" model | Bastion is a Trust Runtime, not a marketplace. Policy evaluation, not price comparison. |
 | Build agent-facing API key management | Litebeam's problem to solve. Bastion secures, doesn't provision. |
 | Remove the sidecar HTTP API in favor of MCP-only | Some use cases (headless deploy, K8s, non-MCP clients) need the REST API. Keep both. |
 | Chase Litebeam's 0.5% fee model | Bastion is open-source middleware. Monetize via service/hosting, not per-call fees. |
@@ -699,7 +699,7 @@ Content:
 
 | Aspect | Bastion | Litebeam |
 |---|---|---|
-| **Category** | Security middleware | Routing + payment |
+| **Category** | Trust Runtime | Routing + payment |
 | **Primary user** | AI agent operators (security) | AI agent developers (connectivity) |
 | **Integration model** | HTTP REST API + MCP + on-chain program | MCP server (primary) + REST API |
 | **Simulation** | Yes (Helius + EVM) | No |

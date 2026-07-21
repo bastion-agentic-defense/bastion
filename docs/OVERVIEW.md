@@ -3,16 +3,16 @@
 > This is the detailed, endpoint-level technical reference (formerly the root README). For the
 > high-level product vision and status, see the root [`README.md`](../README.md).
 
-## AI Agent Firewall for Solana
+## Programmable Trust Runtime
 
 [![npm](https://img.shields.io/npm/v/@zkos-labs/sdk?label=sdk)](https://www.npmjs.com/package/@zkos-labs/sdk)
 [![npm](https://img.shields.io/npm/v/@zkos-labs/web2-sdk?label=web2-sdk)](https://www.npmjs.com/package/@zkos-labs/web2-sdk)
 
 > Bastion is in alpha testing. Use with caution in production environments.
 
-Bastion is a high-performance security middleware for autonomous AI agents on Solana. It acts as a deterministic barrier between an agent's non-deterministic logic and its wallet, ensuring that every transaction aligns with human-defined safety policies before being signed and broadcast to the network.
+Bastion is a **Programmable Trust Runtime** for autonomous systems. It provides the identity, policy, execution, and observability layer that AI agents and applications rely on to act safely across programmable networks. Every transaction an agent intends to submit passes through Bastion's policy engine, simulation, and human-in-the-loop review before being signed — with every decision recorded as a verifiable audit record.
 
-A Web2 API proxy firewall is in progress that extends Bastion's policy engine to HTTP API calls made by AI agents to providers like OpenAI, Stripe, Slack, and GitHub. See `@zkos-labs/web2-sdk` and `docs/WEB2_EXPANSION_PLAN.md`.
+A Web2 API adapter extends Bastion's policy engine to HTTP API calls made by AI agents to providers like OpenAI, Stripe, Slack, and GitHub. See `@zkos-labs/web2-sdk` and `docs/WEB2_EXPANSION_PLAN.md`.
 
 ## Table of Contents
 
@@ -33,7 +33,7 @@ A Web2 API proxy firewall is in progress that extends Bastion's policy engine to
 
 ## Overview
 
-Bastion is an upgraded fork of Sentinel (by ClawdieLabs), built for the Solana Frontier Hackathon Infrastructure track. Sentinel v1 was a proof-of-concept Rust proxy with basic policy parsing. Bastion upgrades it with **on-chain audit, agent identity registry, multi-agent support, and an enhanced policy engine**, transforming a local proxy into a verifiable, on-chain security layer for autonomous agents. It provides:
+Bastion provides a Programmable Trust Runtime for autonomous systems. The on-chain audit program, agent identity registry, multi-agent delegation, policy engine, and human-in-the-loop review compose into a verifiable trust layer between agents and their execution environments:
 
 - Transaction validation and simulation
 - Policy-based access control
@@ -47,7 +47,7 @@ Bastion is an upgraded fork of Sentinel (by ClawdieLabs), built for the Solana F
 
 **Bastion's Unfair Advantage:** Only security tool with on-chain verifiable reputation + audit:
 
-| Feature | Bastion | Sentinel v1 | AgentGuard | Agent Guardrails | Sigil |
+| Feature | Bastion | AgentGuard | Agent Guardrails | Sigil |
 |---------|---------|-------------|-----------|-------------------|------|
 | On-chain audit | Yes (Anchor) | No | No | No | No |
 | Agent reputation | Yes (on-chain) | No | No | No | No |
@@ -55,7 +55,7 @@ Bastion is an upgraded fork of Sentinel (by ClawdieLabs), built for the Solana F
 | Human override | Yes | No | Yes | Yes | No |
 | Helius simulation | Yes | No | No | No | No |
 | TypeScript SDK | Yes | No | Yes | No | No |
-| Web2 API firewall | Yes (in progress) | No | No | No | No |
+| Web2 API adapter | Yes | No | No | No | No |
 | Dashboard | Yes | No | No | No | No |
 
 **Why this wins:**
@@ -451,4 +451,4 @@ Apache-2.0 License - See LICENSE file for details.
 
 ---
 
-Built for the Solana Frontier Hackathon by Bastion Agentique.
+Built by zkOS Labs.
