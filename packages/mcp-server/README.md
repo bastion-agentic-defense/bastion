@@ -2,7 +2,7 @@
 
 Model Context Protocol server for the Bastion Programmable Trust Runtime. 15 tools and 3 prompts for AI agents to interact with Bastion trust operations over SSE or stdio transport.
 
-Bastion is a non-profit trust runtime, like Grafana. The core infrastructure is free and open source under Apache 2.0.
+Bastion is an open-source community project developed by ZKOS Labs. Released under Apache 2.0.
 
 ## Installation
 

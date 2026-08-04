@@ -267,7 +267,7 @@ export default function Landing() {
                 className="font-sans mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
                 style={{ fontSize: '11.5px', color: 'oklch(1 0 0 / 0.82)', background: 'oklch(1 0 0 / 0.10)', width: 'fit-content' }}
               >
-                Non-profit, open source. Like Grafana for autonomous execution.
+                Open-source community project by ZKOS Labs. Self-host or use the hosted sidecar.
               </p>
 
               <div className="mt-10 flex flex-wrap items-center gap-7">
@@ -847,7 +847,7 @@ requirements:
             <div style={{ maxWidth: '32ch' }}>
               <BastionLockup size={22} color="oklch(0.955 0.004 84.57)" markColor="var(--accent)" />
               <p className="band-body font-sans" style={{ fontSize: '13.5px', lineHeight: 1.7, margin: '1.2rem 0 0' }}>
-                A programmable trust runtime for autonomous systems. Non-profit, open source. Built by ZKOS
+                A programmable trust runtime for autonomous systems. Open-source community project. Built by ZKOS
                 Labs.
               </p>
             </div>

@@ -1,7 +1,7 @@
 /**
  * MCP HTTP Server - SSE transport for browser-native access.
  *
- * Bastion is a non-profit trust runtime, like Grafana.
+ * Bastion is an open-source community project developed by ZKOS Labs.
  * The core infrastructure is free and open source (Apache 2.0).
  * Backend API calls are optionally paid via USDT/USDC to cover
  * infrastructure costs. No tokens, no treasuries, no paywalls.
@@ -24,7 +24,7 @@ const SIDECAR_URL = SIDECAR;
 const server = new McpServer({
   name: 'bastion-mcp',
   version: '0.3.0',
-  description: 'Bastion Programmable Trust Runtime - simulate, audit, and secure every transaction before signing. Non-profit, open source.',
+  description: 'Bastion Programmable Trust Runtime. Simulate, audit, and secure every transaction before signing. Open-source community project.',
 });
 
 createToolDefinitions(server);
@@ -52,7 +52,7 @@ const httpServer = createServer(async (req, res) => {
       port: PORT,
       sidecar: SIDECAR_URL,
       version: '0.3.0',
-      non_profit: true,
+      community_project: true,
     }));
     return;
   }
@@ -61,7 +61,7 @@ const httpServer = createServer(async (req, res) => {
     const pricing = getPricingTable();
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
-      notice: 'Bastion is a non-profit trust runtime. Free tier resets on 1st of each month. Backend API calls are optionally paid via USDT/USDC to cover infrastructure costs.',
+      notice: 'Bastion is an open-source community project. Free tier resets on 1st of each month. Optional paid backend API calls via USDT/USDC.',
       tools: pricing,
     }));
     return;
@@ -102,5 +102,5 @@ httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`[bastion-mcp] SSE endpoint: http://localhost:${PORT}/mcp/sse`);
   console.log(`[bastion-mcp] Messages endpoint: http://localhost:${PORT}/mcp/messages`);
   console.log(`[bastion-mcp] Sidecar: ${SIDECAR_URL}`);
-  console.log(`[bastion-mcp] Bastion is a non-profit trust runtime. Backend API calls optional paid via USDT/USDC.`);
+  console.log(`[bastion-mcp] Bastion is an open-source community project. Self-host or use the hosted sidecar.`);
 });

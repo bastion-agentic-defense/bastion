@@ -14,10 +14,14 @@ export default function PricingSection() {
         style={{ background: 'rgba(34, 197, 94, 0.06)', border: '1px solid rgba(34, 197, 94, 0.15)' }}
       >
         <p className="font-sans text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
-          Bastion is a <strong>non-profit trust runtime</strong>, like Grafana.
-          The core infrastructure is free and open source under Apache 2.0.
-          Backend API calls are optionally paid via USDT or USDC to cover infrastructure costs.
-          No tokens, no treasuries, no paywalls.
+          Bastion is an <strong>open-source community project</strong> developed by ZKOS Labs.
+          Released under Apache 2.0. Free to use, modify, self-host, and redistribute.
+          No protocol fees, tokens, ICOs, or mandatory hosted services.
+        </p>
+        <p className="font-sans text-xs mt-2 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+          The hosted sidecar is provided as a convenience. A small number of compute-intensive
+          operations have usage limits and optional pricing after a generous free tier.
+          Developers who self-host Bastion retain full functionality without any platform fees.
         </p>
       </div>
 

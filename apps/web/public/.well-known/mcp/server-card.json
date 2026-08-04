@@ -2,7 +2,16 @@
   "serverInfo": {
     "name": "Bastion",
     "version": "0.3.0",
-    "description": "Programmable Trust Runtime for autonomous systems. Simulates, validates, and audits every transaction before signing. Non-profit, open source."
+    "description": "Programmable Trust Runtime for autonomous systems. Simulates, validates, and audits every transaction before signing. Open-source community project."
+  },
+  "transport": {
+    "type": "sse",
+    "endpoint": "https://bastion-agentique.fly.dev/mcp/sse",
+    "messages": "https://bastion-agentique.fly.dev/mcp/messages"
+  },
+  "capabilities": {
+    "tools": [
+      { "name": "bastion_simulate_transaction", "description": "Simulate a Solana transaction through Bastion's policy engine." },
   },
   "transport": {
     "type": "sse",
@@ -33,7 +42,7 @@
       { "name": "bastion_incident_response", "description": "Guide for responding to a blocked transaction: investigate, override, or pause." }
     ],
     "pricing": {
-      "notice": "Bastion is a non-profit trust runtime, like Grafana. Free and open source under Apache 2.0.",
+      "notice": "Bastion is an open-source community project under Apache 2.0. Self-host or use the hosted sidecar.",
       "monthly_reset": "Free tier resets on the 1st of each month",
       "free_tier": {
         "bastion_simulate_transaction": "100 calls/month",

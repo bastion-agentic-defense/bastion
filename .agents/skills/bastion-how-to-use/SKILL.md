@@ -5,7 +5,7 @@ description: Guides agent developers on integrating Bastion (Programmable Trust 
 
 # Bastion — How to Use (Agent Developer Guide)
 
-Bastion is a **Programmable Trust Runtime** (Axum sidecar + on-chain audit programs) that sits between AI agents and their execution environments. Every action an agent intends to take passes through Bastion first: identity verification, policy evaluation, simulation, optionally human review, then either execute or block — with every decision recorded as a verifiable audit record.
+Bastion is a **Programmable Trust Runtime** (Axum sidecar + on-chain audit programs) that sits between AI agents and their execution environments. Open-source community project developed by ZKOS Labs. Every action an agent intends to take passes through Bastion first: identity verification, policy evaluation, simulation, optionally human review, then either execute or block. Every decision recorded as a verifiable audit record.
 
 This skill covers what an agent developer needs to integrate with Bastion.
 
@@ -335,7 +335,7 @@ Endpoints:
 
 ## Pricing
 
-Bastion is a non-profit trust runtime, like Grafana. Read operations always free. Backend API calls optionally paid via USDT/USDC:
+Bastion is an open-source community project, released under Apache 2.0. Read operations always free. Backend API calls optionally paid via USDT/USDC:
 
 | Tool | Free/Month | Price (USD) |
 |------|-----------|-------------|

@@ -1,6 +1,6 @@
 # Bastion - Provider Spec
 name: bastion
-description: Bastion Programmable Trust Runtime. Non-profit, open source. Free tier with optional paid backend API calls via USDT/USDC.
+description: Bastion Programmable Trust Runtime. Open-source community project. Free tier with optional paid backend API calls via USDT/USDC.
 
 endpoints:
   - id: health

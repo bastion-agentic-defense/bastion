@@ -43,7 +43,11 @@ Autonomous workflows must survive failures, prevent duplicate actions, enforce o
 
 Bastion provides the runtime that makes autonomous systems safe to deploy in production.
 
-**Bastion is a non-profit trust runtime, like Grafana.** The core infrastructure is free and open source under Apache 2.0. Backend API calls are optionally paid via USDT or USDC to cover infrastructure costs. No tokens, no treasuries, no paywalls.
+**Bastion is an open-source community project developed by ZKOS Labs.** The core Trust Runtime is released under Apache 2.0. It is free to use, modify, self-host, and redistribute. There are no protocol fees, tokens, ICOs, or mandatory hosted services. Any developer, agent framework, or blockchain network can integrate Bastion without permission or licensing costs.
+
+The hosted Bastion sidecar is provided as a convenience for developers who do not wish to self-host. A small number of compute-intensive operations such as transaction simulation, policy updates, human overrides, and circuit breaker operations are subject to usage limits and optional usage-based pricing after a generous free tier.
+
+Developers who self-host Bastion retain full functionality without any platform fees. Hosted pricing exists solely to operate and maintain the public infrastructure. Community members can also support ongoing development through GitHub Sponsors.
 
 ---
 
@@ -267,7 +271,7 @@ Please open an issue to discuss new features, architecture proposals, or bug rep
 
 ## Support
 
-Bastion is a non-profit trust runtime sustained by the community.
+Bastion is an open-source community project sustained by the community.
 If Bastion helps your team deploy autonomous agents safely, consider:
 
 - **[GitHub Sponsors](https://github.com/sponsors/zkos-labs)** — one-time or monthly donation

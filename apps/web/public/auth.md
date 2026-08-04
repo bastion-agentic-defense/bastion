@@ -37,7 +37,7 @@ Bastion uses API key authentication for mutating endpoints:
 
 ## Pricing
 
-Bastion is a non-profit trust runtime, like Grafana. The core infrastructure is free and open source under Apache 2.0. Read operations are always free. Backend API calls are optionally paid via USDT or USDC to cover infrastructure costs. See `/mcp/pricing` for current prices.
+Bastion is an open-source community project developed by ZKOS Labs. The core Trust Runtime is released under Apache 2.0. Read operations are always free. Backend API calls are optionally paid via USDT or USDC. See `/mcp/pricing` for current prices.
 
 ## MCP Server Authentication
 
