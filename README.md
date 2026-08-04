@@ -265,6 +265,16 @@ Please open an issue to discuss new features, architecture proposals, or bug rep
 
 ---
 
+## Support
+
+Bastion is a non-profit trust runtime sustained by the community.
+If Bastion helps your team deploy autonomous agents safely, consider:
+
+- **[GitHub Sponsors](https://github.com/sponsors/zkos-labs)** — one-time or monthly donation
+- **Star the repo** — helps others discover the project
+
+---
+
 ## License
 
 Apache-2.0

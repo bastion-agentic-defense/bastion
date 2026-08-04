@@ -283,6 +283,15 @@ export default function Landing() {
                 >
                   Source ↗
                 </a>
+                <a
+                  href="https://github.com/sponsors/zkos-labs"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-sans no-underline"
+                  style={{ fontSize: '14px', color: 'oklch(1 0 0 / 0.88)', textDecoration: 'none' }}
+                >
+                  Donate ♥
+                </a>
               </div>
             </div>
           </div>
@@ -866,9 +875,9 @@ requirements:
                 head: 'Project',
                 links: [
                   ['GitHub', 'https://github.com/zkos-labs/bastion'],
+                  ['Donate', 'https://github.com/sponsors/zkos-labs'],
                   ['X', 'https://x.com/BastionAgntque'],
                   ['Discord', 'https://discord.gg/hXVFB2Tz2t'],
-                  ['Contact', 'mailto:hello@bastionagentique.com'],
                 ],
               },
             ].map(col => (

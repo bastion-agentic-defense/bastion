@@ -52,6 +52,18 @@ export default function PricingSection() {
           </tbody>
         </table>
       </div>
+
+      <div className="mt-6 text-center">
+        <a
+          href="https://github.com/sponsors/zkos-labs"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-sans text-sm no-underline"
+          style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.25)' }}
+        >
+          ♥ Donate to support Bastion development
+        </a>
+      </div>
     </section>
   );
 }

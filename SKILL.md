@@ -36,7 +36,7 @@ cd bastion && cargo build --release
 - **Agent Registry**: On-chain agent identity and reputation (v2).
 - **GrondOSINT Oracle**: Address risk scoring via Grond's agentic OSINT pipeline (Tavily, Shodan, Twitter).
 - **MCP HTTP Server (SSE)**: 15 tools + 3 prompts on port 3001 for Claude, Cursor, browser agents.
-- **Non-Profit**: Bastion is a non-profit trust runtime, like Grafana. The core infrastructure is free and open source. Backend API calls are optionally paid via USDT/USDC to cover infrastructure costs.
+- **Non-Profit**: Bastion is a non-profit trust runtime, like Grafana. The core infrastructure is free and open source. Backend API calls are optionally paid via USDT/USDC to cover infrastructure costs. [Support development](https://github.com/sponsors/zkos-labs).
 
 ## Skills Ecosystem
 
