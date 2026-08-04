@@ -250,8 +250,8 @@ EXECUTION                              EXECUTION ENVIRONMENTS
                                          Arcium MXE
 
 CONFIDENTIAL COMPUTE                   PRIVACY INFRASTRUCTURE
-  (Planned: Privacy Runtime)             Arcium MXE · SP1 · Lit
-                                         Nillion · Aztec
+  ConfidentialPolicyGate                  Arcium MXE · CAPV (Noir, ZK verdicts)
+  (ZK secret policy + public rules)       SP1 · Lit · Nillion · Aztec
 
 SETTLEMENT                             SETTLEMENT LAYERS
   (Planned: Settlement Router)           Ethereum · Pact Network

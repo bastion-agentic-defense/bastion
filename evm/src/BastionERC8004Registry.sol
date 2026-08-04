@@ -10,15 +10,17 @@ import {
 import { EIP712 } from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { IERC1271 } from "@openzeppelin/contracts/interfaces/IERC1271.sol";
+import { IERC165 } from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import { IIdentityRegistry } from "@agent-ercs/identity/ERC8004/IIdentityRegistry.sol";
 
 /// @title BastionERC8004Registry
 /// @notice ERC-8004 Identity Registry for Bastion AI agents.
-/// Implements the full ERC-8004 Trustless Agents Identity Registry specification.
+/// Implements the IIdentityRegistry interface from trustless-ai/agent-ercs.
 /// Every agent registered through Bastion receives an ERC-721 identity token that
 /// is discoverable across the entire agent ecosystem.
 ///
 /// ERC-8004 spec: https://eips.ethereum.org/EIPS/eip-8004
-contract BastionERC8004Registry is ERC721URIStorage, EIP712, Ownable {
+contract BastionERC8004Registry is ERC721URIStorage, EIP712, Ownable, IIdentityRegistry {
     using ECDSA for bytes32;
 
     /// @notice EIP-712 typehash for the setAgentWallet signature.
@@ -32,16 +34,7 @@ contract BastionERC8004Registry is ERC721URIStorage, EIP712, Ownable {
 
     mapping(uint agentId => mapping(string metadataKey => bytes metadataValue)) private _metadata;
 
-    event Registered(uint indexed agentId, string agentURI, address indexed owner);
-
     event URIUpdated(uint indexed agentId, string newURI, address indexed updatedBy);
-
-    event MetadataSet(
-        uint indexed agentId,
-        string indexed indexedMetadataKey,
-        string metadataKey,
-        bytes metadataValue
-    );
 
     error InvalidAgentId();
     error InvalidDeadline();
@@ -61,7 +54,7 @@ contract BastionERC8004Registry is ERC721URIStorage, EIP712, Ownable {
     /// @return agentId The ERC-721 tokenId assigned to the new agent.
     function register(
         string calldata agentURI
-    ) external returns (uint agentId) {
+    ) external override returns (uint agentId) {
         agentId = _nextAgentId++;
         _safeMint(msg.sender, agentId);
         _setTokenURI(agentId, agentURI);
@@ -71,7 +64,7 @@ contract BastionERC8004Registry is ERC721URIStorage, EIP712, Ownable {
 
     /// @notice Register a new agent without a URI (to be set later via setAgentURI).
     /// @return agentId The ERC-721 tokenId assigned to the new agent.
-    function register() external returns (uint agentId) {
+    function register() external override returns (uint agentId) {
         agentId = _nextAgentId++;
         _safeMint(msg.sender, agentId);
 
@@ -82,7 +75,7 @@ contract BastionERC8004Registry is ERC721URIStorage, EIP712, Ownable {
     function register(
         string calldata agentURI,
         MetadataEntry[] calldata metadataEntries
-    ) external returns (uint agentId) {
+    ) external override returns (uint agentId) {
         agentId = _nextAgentId++;
         _safeMint(msg.sender, agentId);
         _setTokenURI(agentId, agentURI);
@@ -99,7 +92,7 @@ contract BastionERC8004Registry is ERC721URIStorage, EIP712, Ownable {
     function setAgentURI(
         uint agentId,
         string calldata newURI
-    ) external {
+    ) external override {
         address owner = _requireOwned(agentId);
         _checkAuthorized(owner, msg.sender, agentId);
         _setTokenURI(agentId, newURI);
@@ -114,7 +107,7 @@ contract BastionERC8004Registry is ERC721URIStorage, EIP712, Ownable {
     function getMetadata(
         uint agentId,
         string calldata metadataKey
-    ) external view returns (bytes memory) {
+    ) external view override returns (bytes memory) {
         return _metadata[agentId][metadataKey];
     }
 
@@ -125,7 +118,7 @@ contract BastionERC8004Registry is ERC721URIStorage, EIP712, Ownable {
         uint agentId,
         string calldata metadataKey,
         bytes calldata metadataValue
-    ) external {
+    ) external override {
         address owner = _requireOwned(agentId);
         _checkAuthorized(owner, msg.sender, agentId);
         _setMetadata(agentId, metadataKey, metadataValue);
@@ -153,7 +146,7 @@ contract BastionERC8004Registry is ERC721URIStorage, EIP712, Ownable {
     /// @notice Get the agent's payment wallet address.
     function getAgentWallet(
         uint agentId
-    ) external view returns (address) {
+    ) external view override returns (address) {
         bytes memory raw = _metadata[agentId][METADATA_KEY_AGENT_WALLET];
         if (raw.length == 0) return address(0);
         return abi.decode(raw, (address));
@@ -167,7 +160,7 @@ contract BastionERC8004Registry is ERC721URIStorage, EIP712, Ownable {
         address newWallet,
         uint deadline,
         bytes calldata signature
-    ) external {
+    ) external override {
         _requireOwned(agentId);
         _checkAuthorized(ownerOf(agentId), msg.sender, agentId);
         if (block.timestamp > deadline) revert InvalidDeadline();
@@ -196,7 +189,7 @@ contract BastionERC8004Registry is ERC721URIStorage, EIP712, Ownable {
     /// Only the agent owner may call.
     function unsetAgentWallet(
         uint agentId
-    ) external {
+    ) external override {
         _requireOwned(agentId);
         _checkAuthorized(ownerOf(agentId), msg.sender, agentId);
         delete _metadata[agentId][METADATA_KEY_AGENT_WALLET];
@@ -215,7 +208,7 @@ contract BastionERC8004Registry is ERC721URIStorage, EIP712, Ownable {
 
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override(ERC721URIStorage) returns (bool) {
+    ) public view override(ERC721URIStorage, IERC165) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 
@@ -334,10 +327,4 @@ contract BastionERC8004Registry is ERC721URIStorage, EIP712, Ownable {
         }
         return b;
     }
-}
-
-/// @dev Metadata entry struct for register() with metadata.
-struct MetadataEntry {
-    string metadataKey;
-    bytes metadataValue;
 }

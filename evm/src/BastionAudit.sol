@@ -5,16 +5,19 @@ pragma solidity ^0.8.28;
 import { EIP712 } from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IBastionAudit } from "./interfaces/IBastionAudit.sol";
+import { IOnChainProof } from "@agent-ercs/anchor/ERC8263/IOnChainProof.sol";
 
 /// @title BastionAudit
 /// @notice Immutable on-chain audit trail for all agent transactions.
-/// Every transaction that passes through the firewall is recorded here.
-/// Uses EIP-712 typed structured data for verifiable audit entries.
+/// Implements ERC-8263 (OnChain Proof Anchor) from trustless-ai/agent-ercs.
+/// Every transaction that passes through the firewall is recorded here
+/// with both EIP-712 typed structured data and an AnchorProof event
+/// for trustless recompute verification.
 /// Entries are append-only and never deleted.
 /// @dev Writes are restricted to the configured firewall so entries cannot be
 /// forged or spammed by arbitrary callers. The owner (a multisig on mainnet)
 /// sets the firewall once after deployment via {setFirewall}.
-contract BastionAudit is IBastionAudit, EIP712, Ownable {
+contract BastionAudit is IBastionAudit, IOnChainProof, EIP712, Ownable {
     bytes32 public constant AUDIT_ENTRY_TYPEHASH = keccak256(
         "AuditEntry(bytes32 id,address agent,address target,bytes4 selector,uint256 value,uint256 gasUsed,bool allowed,bytes reason,uint256 timestamp,uint256 blockNumber)"
     );
@@ -107,7 +110,46 @@ contract BastionAudit is IBastionAudit, EIP712, Ownable {
 
         emit AuditRecorded(_id, agent, target, selector, allowed, block.timestamp);
 
+        // ERC-8263 AnchorProof: makes this audit entry recompute-able
+        // by trustless-ai/agent-sdk. agentIdScheme 0x01 = ERC-8004 REGISTRY.
+        emit AnchorProof(
+            0x01,
+            bytes32(uint256(uint160(agent))),
+            _id,
+            msg.sender,
+            reason
+        );
+
         return _id;
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // ERC-8263 — OnChain Proof Anchor
+    // ──────────────────────────────────────────────────────────────
+
+    /// @notice Anchor a proof without recording a full audit entry.
+    /// Callable by the firewall. Emits an AnchorProof event for
+    /// trustless recompute verification by external indexers and
+    /// trustless-ai/agent-sdk.
+    function anchor(
+        uint8 agentIdScheme,
+        bytes32 agentId,
+        bytes32 proofHash
+    ) external override onlyFirewall {
+        emit AnchorProof(agentIdScheme, agentId, proofHash, msg.sender, "");
+    }
+
+    /// @notice Anchor a proof with opaque aux bytes for adjacent protocols.
+    /// Callable by the firewall. The aux field can carry OCP digests
+    /// (ERC-8281), session IDs, or parent-proof references without
+    /// breaking the canonical event signature.
+    function anchorWithAux(
+        uint8 agentIdScheme,
+        bytes32 agentId,
+        bytes32 proofHash,
+        bytes calldata aux
+    ) external override onlyFirewall {
+        emit AnchorProof(agentIdScheme, agentId, proofHash, msg.sender, aux);
     }
 
     // ──────────────────────────────────────────────────────────────

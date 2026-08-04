@@ -5,6 +5,8 @@ libs = ["lib"]
 remappings = [
     "@openzeppelin/=lib/openzeppelin-contracts/",
     "@solady/=lib/solady/src/",
+    "@agent-ercs/=lib/agent-ercs/contracts/",
+    "@capv/=lib/confidential-agent-policy-verdicts/src/",
 ]
 solc = "0.8.28"
 optimizer = true

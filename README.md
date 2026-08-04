@@ -82,8 +82,12 @@ Bastion orchestrates — it does not replace — the Ethereum ecosystem's trust 
 | Lit Protocol | Key management | Confidential execution policies |
 | EigenLayer | Shared trust | Runtime coordination using cryptoeconomic trust |
 | Pact Network | Payment refunds | Auto-insured outbound API calls for agent payments |
+| trustless-ai / agent-ercs | ERC-8004, ERC-8263, ERC-8281, ERC-8299 | Standard agent identity, anchor proofs, OCP/WYRIWE provenance — recompute-able |
+| CAPV (ZK verdicts) | Confidential agent policy verdicts | ZK proofs that a committed (secret) policy allows an action — Noir + UltraHonk |
 
 See [`docs/COMPETITIVE_LANDSCAPE.md`](docs/COMPETITIVE_LANDSCAPE.md) for the full competitive analysis.
+
+Bastion composes with the [trustless-ai](https://github.com/trustless-ai) ERC stack and [confidential-agent-policy-verdicts](https://github.com/zexoverz/confidential-agent-policy-verdicts) for the full confidentiality spectrum: secret organizational policies (ZK) layered with transparent programmable trust rules (Bastion). See [`docs/TRUSTLESS_AI_INTEGRATION.md`](docs/TRUSTLESS_AI_INTEGRATION.md).
 
 ---
 

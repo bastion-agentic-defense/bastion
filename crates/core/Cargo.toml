@@ -2,10 +2,7 @@
 name = "bastion-core"
 version = "0.1.0"
 edition = "2024"
-description = "Chain-agnostic core types and policy engine for Bastion Agentique"
-
-[dev-dependencies]
-tokio = { version = "1", features = ["macros", "rt"] }
+description = "Chain-agnostic core types and policy engine for the Bastion Trust Runtime"
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
@@ -13,3 +10,5 @@ serde_json = "1"
 thiserror = "2"
 uuid = { version = "1", features = ["v4"] }
 async-trait = "0.1"
+sha2 = "0.10"
+hex = "0.4"

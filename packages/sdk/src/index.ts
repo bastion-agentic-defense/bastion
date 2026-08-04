@@ -8,6 +8,9 @@ import type {
   Policy,
 } from "./types";
 
+// Recompute verification (trustless-ai compatible)
+export * as verify from "./verify";
+
 export { AGENT_CAPABILITIES, DECISION, BastionEventStream } from "./types";
 export { BastionSidecar } from "./sidecar";
 export { Bastion } from "./execute";

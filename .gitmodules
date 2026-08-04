@@ -7,3 +7,9 @@
 [submodule "evm/lib/solady"]
 	path = evm/lib/solady
 	url = https://github.com/Vectorized/solady
+[submodule "evm/lib/agent-ercs"]
+	path = evm/lib/agent-ercs
+	url = https://github.com/trustless-ai/agent-ercs.git
+[submodule "evm/lib/confidential-agent-policy-verdicts"]
+	path = evm/lib/confidential-agent-policy-verdicts
+	url = https://github.com/zexoverz/confidential-agent-policy-verdicts.git
