@@ -36,9 +36,7 @@ cd bastion && cargo build --release
 - **Agent Registry**: On-chain agent identity and reputation (v2).
 - **GrondOSINT Oracle**: Address risk scoring via Grond's agentic OSINT pipeline (Tavily, Shodan, Twitter).
 - **MCP HTTP Server (SSE)**: 15 tools + 3 prompts on port 3001 for Claude, Cursor, browser agents.
-- **x402 Payments**: Pay-per-call with Solana SOL transfers + free monthly tier.
-- **pay.sh Provider**: One-command gateway with automatic payment handling.
-- **Auth: pay.sh + x402.** pay.sh pre-verifies payment before proxying to sidecar. x402 on MCP server handles tool payment. Sidecar REST API is open.
+- **Non-Profit**: Bastion is a non-profit trust runtime, like Grafana. The core infrastructure is free and open source. Backend API calls are optionally paid via USDT/USDC to cover infrastructure costs.
 
 ## Skills Ecosystem
 
@@ -79,28 +77,24 @@ For stdio transport (Claude Desktop / Cursor / Codex):
 pnpm --filter @bastion/mcp-server dev
 ```
 
-## Payments (x402)
+## Pricing
 
-Paid tools require Solana SOL transfer to treasury before execution:
+Bastion is a non-profit trust runtime, like Grafana. Read operations are always free. Backend API calls are optionally paid via USDT/USDC:
 
-| Tool | Free/Month | Price (SOL) | Price (USD) |
-|------|-----------|-------------|-------------|
-| `bastion_simulate_transaction` | 100 | 0.001 | $0.10 |
-| `bastion_override_block` | 10 | 0.01 | $1.00 |
-| `bastion_update_policy` | 5 | 0.05 | $5.00 |
-| `bastion_circuit_breaker_toggle` | 3 | 0.1 | $10.00 |
-| All read-only tools | ∞ | Free | Free |
-
-**Flow:** Transfer SOL → `E9PsSz9XWgNR3TmSC57NHC2ZxJzF5NmbrWsDKEe7A7yM`, then retry with `X-Payment: <tx_hash>, X-Payment-Chain: solana` headers.
-
-**pay.sh:** `pay --sandbox server start packages/mcp-server/bastion-provider.yml`, no manual headers needed.
+| Tool | Free/Month | Price (USD) |
+|------|-----------|-------------|
+| `bastion_simulate_transaction` | 100 | $0.10 |
+| `bastion_override_block` | 10 | $1.00 |
+| `bastion_update_policy` | 5 | $5.00 |
+| `bastion_circuit_breaker_toggle` | 3 | $10.00 |
+| All read-only tools | Unlimited | Free |
 
 ## CORS
 
 Sidecar supports browser-native access with:
 ```
 Access-Control-Allow-Origin: *
-Access-Control-Allow-Headers: Content-Type, Authorization, X-Api-Key, X-Payment, X-Payment-Chain, X-Agent-Id
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Api-Key, X-Agent-Id
 Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
 ```
 

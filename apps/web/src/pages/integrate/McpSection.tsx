@@ -80,8 +80,8 @@ pnpm --filter @bastion/mcp-server dev:http`}
             <strong style={{ color: 'var(--text-primary)' }}>Two auth modes:</strong>
           </p>
           <ul className="font-sans text-xs space-y-1" style={{ color: 'var(--text-muted)' }}>
-            <li><span className="text-green-400">pay.sh gateway:</span> X-Api-Key header injected by pay.sh after verifying payment. Trusted — skip x402.</li>
-            <li><span className="text-amber-400">Direct browser:</span> No X-Api-Key → x402 payment required for paid tools. Provide X-Payment header with an Ethereum or Solana tx hash (set X-Payment-Chain accordingly).</li>
+            <li><span className="text-green-400">Free tier:</span> Read operations and the first N backend calls each month are free.</li>
+            <li><span className="text-blue-400">Paid:</span> After the free tier, backend API calls are optionally paid via USDT or USDC to cover infrastructure costs.</li>
           </ul>
         </div>
       </div>

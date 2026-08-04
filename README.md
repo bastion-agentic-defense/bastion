@@ -43,6 +43,8 @@ Autonomous workflows must survive failures, prevent duplicate actions, enforce o
 
 Bastion provides the runtime that makes autonomous systems safe to deploy in production.
 
+**Bastion is a non-profit trust runtime, like Grafana.** The core infrastructure is free and open source under Apache 2.0. Backend API calls are optionally paid via USDT or USDC to cover infrastructure costs. No tokens, no treasuries, no paywalls.
+
 ---
 
 ## Core Capabilities
@@ -61,7 +63,6 @@ Bastion provides the runtime that makes autonomous systems safe to deploy in pro
 | Dashboard & monitoring | 🟡 |
 | Durable workflow execution | 🚧 design phase — see [Epic A](docs/IMPLEMENTATION_PLAN.md#phase-1-durable-workflow-engine--epic-a-1700-loc-2-3-weeks) |
 | Confidential computation (Arcium) | 🚧 stubbed — noop client, behind audit gate |
-| Payment guarantees (Pact Network) | 🚧 planned — see [Epic D](docs/IMPLEMENTATION_PLAN.md#phase-5-pact-network--epic-d-300-loc-3-5-days) |
 | Secrets management (Vault) | 🚧 planned — see [Epic E](docs/IMPLEMENTATION_PLAN.md#phase-3-secrets-management--epic-e-500-loc-1-week) |
 | General-purpose policy (OPA) | 🚧 planned — see [Epic F](docs/IMPLEMENTATION_PLAN.md#phase-2-general-purpose-policy--epic-f-600-loc-1-week) |
 

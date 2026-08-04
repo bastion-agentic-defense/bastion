@@ -35,26 +35,15 @@ Bastion uses API key authentication for mutating endpoints:
 
 **Auth is optional**: When `BASTION_API_KEY` is not set in the sidecar environment, all endpoints are open.
 
-## x402 Payment Authentication
+## Pricing
 
-Paid MCP tools require Solana SOL transfer to the treasury address before execution:
-
-| Header | Value |
-|--------|-------|
-| `X-Payment` | Solana transaction hash of the payment transfer |
-| `X-Payment-Chain` | `solana` |
-
-**Treasury Address:** `E9PsSz9XWgNR3TmSC57NHC2ZxJzF5NmbrWsDKEe7A7yM`
+Bastion is a non-profit trust runtime, like Grafana. The core infrastructure is free and open source under Apache 2.0. Read operations are always free. Backend API calls are optionally paid via USDT or USDC to cover infrastructure costs. See `/mcp/pricing` for current prices.
 
 ## MCP Server Authentication
 
-The MCP HTTP server supports two auth modes:
-
-### pay.sh (pre-verified)
-Requests arriving through the pay.sh gateway carry `X-Api-Key` injected by the gateway after payment verification. These are trusted and skip x402 checks.
-
-### Direct browser (x402)
-Requests without `X-Api-Key` must provide `X-Payment` header with a valid Solana transaction hash proving payment to the treasury.
+The MCP HTTP server supports direct access:
+- Read operations: no auth required, always free
+- Backend API calls: free tier with monthly reset, optional paid via USDT/USDC after exhaustion
 
 ## Token Format
 

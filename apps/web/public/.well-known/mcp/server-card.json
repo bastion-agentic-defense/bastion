@@ -1,8 +1,8 @@
 {
   "serverInfo": {
-    "name": "Bastion Agentique",
+    "name": "Bastion",
     "version": "0.3.0",
-    "description": "AI Agent Firewall for Solana — simulates, validates, and audits every transaction before signing."
+    "description": "Programmable Trust Runtime for autonomous systems. Simulates, validates, and audits every transaction before signing. Non-profit, open source."
   },
   "transport": {
     "type": "sse",
@@ -11,9 +11,9 @@
   },
   "capabilities": {
     "tools": [
-      { "name": "bastion_simulate_transaction", "description": "Simulate a Solana transaction through Bastion's firewall and policy engine." },
-      { "name": "bastion_get_policy", "description": "Read current firewall policy (allowlists, caps, rate limits)." },
-      { "name": "bastion_update_policy", "description": "Update firewall policy configuration (paid)." },
+      { "name": "bastion_simulate_transaction", "description": "Simulate a Solana transaction through Bastion's policy engine." },
+      { "name": "bastion_get_policy", "description": "Read current trust policy configuration." },
+      { "name": "bastion_update_policy", "description": "Update trust policy configuration (paid)." },
       { "name": "bastion_get_audit_logs", "description": "Retrieve paginated audit trail of all transaction decisions." },
       { "name": "bastion_get_audit_stats", "description": "Get aggregate audit statistics (total, allowed, blocked)." },
       { "name": "bastion_override_block", "description": "Human-in-the-loop override for blocked transactions (paid)." },
@@ -33,8 +33,7 @@
       { "name": "bastion_incident_response", "description": "Guide for responding to a blocked transaction: investigate, override, or pause." }
     ],
     "pricing": {
-      "treasury": "E9PsSz9XWgNR3TmSC57NHC2ZxJzF5NmbrWsDKEe7A7yM",
-      "x402_header": "X-Payment: <tx_hash>, X-Payment-Chain: solana",
+      "notice": "Bastion is a non-profit trust runtime, like Grafana. Free and open source under Apache 2.0.",
       "monthly_reset": "Free tier resets on the 1st of each month",
       "free_tier": {
         "bastion_simulate_transaction": "100 calls/month",
@@ -43,10 +42,10 @@
         "bastion_circuit_breaker_toggle": "3 calls/month"
       },
       "paid": {
-        "bastion_simulate_transaction": "0.001 SOL ($0.10)/call",
-        "bastion_override_block": "0.01 SOL ($1.00)/call",
-        "bastion_update_policy": "0.05 SOL ($5.00)/call",
-        "bastion_circuit_breaker_toggle": "0.1 SOL ($10.00)/call"
+        "bastion_simulate_transaction": "$0.10/call (USDT/USDC)",
+        "bastion_override_block": "$1.00/call (USDT/USDC)",
+        "bastion_update_policy": "$5.00/call (USDT/USDC)",
+        "bastion_circuit_breaker_toggle": "$10.00/call (USDT/USDC)"
       }
     }
   }

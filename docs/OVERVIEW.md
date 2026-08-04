@@ -92,8 +92,6 @@ Bastion intercepts transaction requests, simulates them via Helius Simulation AP
 | Agent Registry | On-chain agent identity + reputation |
 | Agent Delegation | Parent agents spawn sub-agents with delegated authority, capability inheritance, budget limits |
 | MCP HTTP Server | 15 tools + 3 prompts via SSE, proxied at `/mcp/*` on fly.dev |
-| x402 Payments | Pay-per-call pricing with Solana SOL transfers and free monthly tier |
-| pay.sh Provider | One-command gateway: `pay --sandbox server start bastion-provider.yml` |
 | CORS Support | Browser-native access via SSE with `Access-Control-Allow-Origin: *` |
 | SOL Staking | AgentStake PDA, stake SOL for higher transaction limits via StakeWeighted policy |
 | Emergency Pause | Circuit breaker for protocol |
@@ -109,8 +107,7 @@ Bastion consists of nine main components:
 4. **Web2 Proxy Firewall**, HTTP API gateway for AI agent calls to OpenAI, Stripe, Slack, GitHub, AWS
 5. **MCP HTTP Server**, SSE transport proxied via sidecar, 15 security tools for AI agents
 6. **Agent Registry**, W3C DID-based agent identity with hierarchical delegation
-7. **x402 Payment Gateway**, Pay-per-call pricing with Solana SOL transfers
-8. **GrondOSINT Oracle**, Address and API endpoint risk scoring via Daemon BlockInt
+7. **GrondOSINT Oracle**, Address and API endpoint risk scoring via Daemon BlockInt
 9. **On-Chain Audit Program**, Anchor program for immutable records on Solana
 
 ## Quick Start
@@ -166,14 +163,6 @@ pnpm --filter @bastion/mcp-server dev
 # Local development (SSE transport, browser agents)
 BASTION_SIDECAR_URL=http://localhost:3000 \
 pnpm --filter @bastion/mcp-server dev:http
-```
-
-### Run via pay.sh
-
-```bash
-pay --sandbox server start packages/mcp-server/bastion-provider.yml
-# Gateway on http://127.0.0.1:1402
-# pay --sandbox curl http://127.0.0.1:1402/v1/simulate -d '{...}'
 ```
 
 ### Use the SDK
@@ -428,7 +417,7 @@ See [`evm/README.md`](evm/README.md) for deployment details.
 | Confidentiality Engine | Arcium MXEs, Arcis (Rust MPC circuits) |
 | Web2 Firewall | Rust (bastion-web2-firewall), OpenAPI parser |
 | MCP Server | TypeScript, @modelcontextprotocol/sdk, SSE |
-| Payments | x402 (Solana), pay.sh |
+| Payments | USDT/USDC (optional paid backend calls) |
 | SDK | TypeScript (@zkos-labs/sdk) |
 | Web2 SDK | TypeScript (@zkos-labs/web2-sdk) |
 | Dashboard | React, Vite, TailwindCSS |

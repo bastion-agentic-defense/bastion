@@ -29,8 +29,6 @@ It intercepts every transaction request and every HTTP API call, **Simulates** t
 - Human-in-the-loop override for blocked transactions
 - SOL staking for higher transaction limits
 - MCP HTTP server (15 tools, 3 prompts, SSE transport)
-- x402 pay-per-call pricing with Solana SOL transfers
-- pay.sh provider gateway
 - CORS support for browser-native access
 - Robot/physical agent telemetry ingestion
 

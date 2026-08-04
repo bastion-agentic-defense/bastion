@@ -333,33 +333,22 @@ Endpoints:
 
 **3 prompts:** `bastion_verify_transaction`, `bastion_security_review`, `bastion_incident_response`.
 
-## x402 Payments
+## Pricing
 
-Paid tools require Solana SOL transfer before execution. Free monthly tier resets on the 1st.
+Bastion is a non-profit trust runtime, like Grafana. Read operations always free. Backend API calls optionally paid via USDT/USDC:
 
-| Tool | Free/Month | Price (SOL) |
+| Tool | Free/Month | Price (USD) |
 |------|-----------|-------------|
-| `bastion_simulate_transaction` | 100 | 0.001 |
-| `bastion_override_block` | 10 | 0.01 |
-| `bastion_update_policy` | 5 | 0.05 |
-| `bastion_circuit_breaker_toggle` | 3 | 0.1 |
-
-Replay protection: used tx hashes tracked in `USED_PAYMENTS` Set.
-
-## pay.sh Integration
-
-```bash
-pay --sandbox server start packages/mcp-server/bastion-provider.yml
-pay --sandbox curl -X POST http://127.0.0.1:1402/v1/simulate -d '{"transaction":"...","intent":"..."}'
-```
-
-`routing.auth` injects `X-Api-Key` after payment verification — server treats as pre-verified.
+| `bastion_simulate_transaction` | 100 | $0.10 |
+| `bastion_override_block` | 10 | $1.00 |
+| `bastion_update_policy` | 5 | $5.00 |
+| `bastion_circuit_breaker_toggle` | 3 | $10.00 |
 
 ## CORS
 
 ```
 Access-Control-Allow-Origin: *
-Access-Control-Allow-Headers: Content-Type, Authorization, X-Api-Key, X-Payment, X-Payment-Chain, X-Agent-Id
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Api-Key, X-Agent-Id
 Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
 ```
 

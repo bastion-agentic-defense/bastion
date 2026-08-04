@@ -2,6 +2,8 @@
 
 Model Context Protocol server for the Bastion Programmable Trust Runtime. 15 tools and 3 prompts for AI agents to interact with Bastion trust operations over SSE or stdio transport.
 
+Bastion is a non-profit trust runtime, like Grafana. The core infrastructure is free and open source under Apache 2.0.
+
 ## Installation
 
 ```bash
@@ -64,14 +66,14 @@ pnpm --filter @bastion/mcp-server dev
 
 ## Pricing
 
-Read operations are free. Write operations use x402 pay-per-call pricing with Solana SOL.
+Read operations are always free, no limits. Backend API calls are optionally paid via USDT/USDC to cover infrastructure costs. No tokens, no treasuries, no paywalls.
 
-| Tool | Free per Month | Price (SOL) |
+| Tool | Free per Month | Price (USD) |
 |------|---------------|-------------|
-| `bastion_simulate_transaction` | 100 | 0.001 |
-| `bastion_override_block` | 10 | 0.01 |
-| `bastion_update_policy` | 5 | 0.05 |
-| `bastion_circuit_breaker_toggle` | 3 | 0.1 |
+| `bastion_simulate_transaction` | 100 | $0.10 |
+| `bastion_override_block` | 10 | $1.00 |
+| `bastion_update_policy` | 5 | $5.00 |
+| `bastion_circuit_breaker_toggle` | 3 | $10.00 |
 | All read-only tools | Unlimited | Free |
 
 ## License
