@@ -42,6 +42,7 @@ pub struct TrustPolicy {
     pub kind: String,
 
     /// Policy metadata (name, agent binding, labels)
+    #[serde(default)]
     pub metadata: PolicyMetadata,
 
     /// Policy specification (match, validate, mutate, generate, exceptions)
@@ -52,10 +53,12 @@ pub struct TrustPolicy {
     pub status: Option<PolicyStatus>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct PolicyMetadata {
-    /// Unique policy name.
+    /// Unique policy name. Defaults to empty string if not set (CRUD endpoints
+    /// may enforce non-empty separately).
+    #[serde(default)]
     pub name: String,
 
     /// Agent DID this policy applies to. Empty = applies to all agents.
