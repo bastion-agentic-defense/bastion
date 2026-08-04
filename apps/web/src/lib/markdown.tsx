@@ -253,7 +253,7 @@ export function renderMarkdown(src: string): ReactNode[] {
       continue;
     }
 
-    // Paragraph — consume until a blank line or a block-level construct.
+    // Paragraph - consume until a blank line or a block-level construct.
     const para: string[] = [];
     while (
       i < lines.length &&

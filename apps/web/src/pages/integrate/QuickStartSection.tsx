@@ -8,7 +8,7 @@ const res = await fetch("${SIDECAR}/did/generate", {
 });
 const { did, authority_pubkey, secret_key_base64 } = await res.json();
 // did: "did:bastion:solana:AbCd..."
-// Store secret_key_base64 securely — shown once
+// Store secret_key_base64 securely - shown once
 
 // ── Step 2: Register your agent ─────────────────────
 await fetch("${SIDECAR}/agents", {
@@ -74,7 +74,7 @@ export default function QuickStartSection() {
         className="font-sans text-xs uppercase tracking-wider mb-4"
         style={{ color: 'var(--text-muted)' }}
       >
-        Step 2: Quick Start — DID Auth Flow
+        Step 2: Quick Start - DID Auth Flow
       </h3>
 
       <p className="font-sans text-sm mb-4" style={{ color: 'var(--text-muted)' }}>

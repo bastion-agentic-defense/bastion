@@ -7,23 +7,23 @@ description: Describes how blockchain analytics platforms work in practice, typi
 
 **Blockchain analytics** is the **collection, interpretation, and presentation** of on-chain data, usually with **extra metadata** (clusters, labels, risk flags) beyond raw explorers.
 
-Educational only—not a substitute for **sanctions lists**, **legal process**, or **licensed** compliance programs.
+Educational only-not a substitute for **sanctions lists**, **legal process**, or **licensed** compliance programs.
 
 ## Core techniques (conceptual)
 
-- **Clustering** — See **address-clustering-attribution** skill for heuristics (UTXO vs account-based).
-- **Attribution** — Naming clusters via OSINT, partnerships, investigations.
-- **Risk / pattern flags** — Interactions with high-risk services, peel-like patterns, mixer proximity; **taint** scoring varies by product.
+- **Clustering** - See **address-clustering-attribution** skill for heuristics (UTXO vs account-based).
+- **Attribution** - Naming clusters via OSINT, partnerships, investigations.
+- **Risk / pattern flags** - Interactions with high-risk services, peel-like patterns, mixer proximity; **taint** scoring varies by product.
 
 ## Typical use-case buckets
 
 | Bucket | Examples |
 |--------|-----------|
 | **Markets & asset management** | Treasury visibility, staking ops, ETF-related reconciliation |
-| **Compliance & AML** | Counterparty screening, transaction monitoring—**official lists and policy** beat third-party tags |
+| **Compliance & AML** | Counterparty screening, transaction monitoring-**official lists and policy** beat third-party tags |
 | **Law enforcement / recovery** | Long-horizon tracing; **tx hashes** as verifiable evidence anchors |
 | **Tax / reporting** | Declared vs observed activity where jurisdiction applies |
-| **Market integrity** | Abuse-pattern research—often needs **statistics** + context |
+| **Market integrity** | Abuse-pattern research-often needs **statistics** + context |
 
 ## Tool layers (vendor-neutral)
 
@@ -35,4 +35,4 @@ Heuristics **misfire**; privacy tech and custodial hops obscure flows. Analytics
 
 ## See also
 
-- **blockchain-spider-toolkit** — [BlockchainSpider](https://github.com/wuzhy1ng/BlockchainSpider) (open-source Scrapy-based) for **building** raw or structured on-chain **datasets** (EVM/Solana) when you need offline pipelines; pair with this skill for **interpretation** and **limits** of analytics.
+- **blockchain-spider-toolkit** - [BlockchainSpider](https://github.com/wuzhy1ng/BlockchainSpider) (open-source Scrapy-based) for **building** raw or structured on-chain **datasets** (EVM/Solana) when you need offline pipelines; pair with this skill for **interpretation** and **limits** of analytics.

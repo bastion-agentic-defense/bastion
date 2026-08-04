@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
-// @notice: UNDER ACTIVE DEVELOPMENT — Not production-ready. Bastion's primary deployment target is Solana.
+// @notice: UNDER ACTIVE DEVELOPMENT - Not production-ready. Bastion's primary deployment target is Solana.
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
@@ -65,7 +65,7 @@ contract BastionFirewall is IBastionFirewall, Ownable, Pausable, ReentrancyGuard
     /// @dev ERC-4337 validation MUST be side-effect free with respect to external
     /// contract storage (bundlers reject ops whose validation touches storage outside
     /// the validator/account). We therefore only read the policy (a view call) here and
-    /// return a validation code — 0 when allowed, SIG_VALIDATION_FAILED when the policy
+    /// return a validation code - 0 when allowed, SIG_VALIDATION_FAILED when the policy
     /// blocks. The audit-trail write and the hard revert-on-block happen in {enforce},
     /// which the account calls in the execution phase where state writes are permitted.
     function validateUserOp(

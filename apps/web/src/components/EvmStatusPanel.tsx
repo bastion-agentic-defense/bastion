@@ -5,7 +5,7 @@ const DECISION_COLORS: Record<string, string> = { ALLOWED: '#22c55e', BLOCKED: '
 
 const CARD = { background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.06)' } as const;
 
-// Deployed contract addresses come from Vite env (set after the Sepolia deploy —
+// Deployed contract addresses come from Vite env (set after the Sepolia deploy -
 // see docs/EVM_READINESS.md §7). Absent → "not deployed" state, never a crash.
 const AUDIT_ADDRESS = import.meta.env.VITE_BASTION_AUDIT_ADDRESS as string | undefined;
 const EXPLORER_URL = import.meta.env.VITE_EVM_EXPLORER_URL || 'https://sepolia.etherscan.io';
@@ -44,7 +44,7 @@ export default function EvmStatusPanel() {
     return () => clearInterval(iv);
   }, [load]);
 
-  // Not deployed yet — honest placeholder, no crash.
+  // Not deployed yet - honest placeholder, no crash.
   if (!deployed) {
     return (
       <div className="max-w-7xl mx-auto mb-4 rounded-xl p-6" style={CARD}>
@@ -52,7 +52,7 @@ export default function EvmStatusPanel() {
         <p className="font-sans text-sm text-zinc-400">Bastion contracts are not yet deployed on this frontend.</p>
         <p className="font-sans text-xs text-zinc-600 mt-1">
           Set <code className="text-zinc-500">VITE_BASTION_AUDIT_ADDRESS</code> (and the policy / firewall / registry
-          addresses) after the Sepolia deploy — see <code className="text-zinc-500">docs/EVM_READINESS.md §7</code>.
+          addresses) after the Sepolia deploy - see <code className="text-zinc-500">docs/EVM_READINESS.md §7</code>.
           Testnet-only; mainnet is behind the external-audit gate.
         </p>
       </div>
@@ -84,15 +84,15 @@ export default function EvmStatusPanel() {
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="rounded-lg p-3" style={CARD}>
               <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Audit Entries</p>
-              <p className="font-mono text-xl font-bold tabular-nums" style={{ color: '#627EEA' }}>{stats?.total ?? '—'}</p>
+              <p className="font-mono text-xl font-bold tabular-nums" style={{ color: '#627EEA' }}>{stats?.total ?? '-'}</p>
             </div>
             <div className="rounded-lg p-3" style={CARD}>
               <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Allowed</p>
-              <p className="font-mono text-xl font-bold tabular-nums" style={{ color: '#22c55e' }}>{stats?.allowed ?? '—'}</p>
+              <p className="font-mono text-xl font-bold tabular-nums" style={{ color: '#22c55e' }}>{stats?.allowed ?? '-'}</p>
             </div>
             <div className="rounded-lg p-3" style={CARD}>
               <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Blocked</p>
-              <p className="font-mono text-xl font-bold tabular-nums" style={{ color: '#ef4444' }}>{stats?.blocked ?? '—'}</p>
+              <p className="font-mono text-xl font-bold tabular-nums" style={{ color: '#ef4444' }}>{stats?.blocked ?? '-'}</p>
             </div>
           </div>
 

@@ -67,7 +67,7 @@ pub struct TelemetryUpdateRequest {
 pub struct GeneratedDID {
     pub did: String,
     pub authority_pubkey: String,
-    /// Base64-encoded Ed25519 secret key. Shown once — agent must store it.
+    /// Base64-encoded Ed25519 secret key. Shown once - agent must store it.
     pub secret_key_base64: String,
 }
 

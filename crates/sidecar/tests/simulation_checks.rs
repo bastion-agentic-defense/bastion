@@ -1,4 +1,4 @@
-//! Phase 5 — Simulation-check unit tests.
+//! Phase 5 - Simulation-check unit tests.
 //!
 //! Verifies `NoErrorCheck`, `MaxUnitsCheck`, and `MaxBalanceDrainCheck` in
 //! isolation, covering boundary values and multiple-account scenarios.

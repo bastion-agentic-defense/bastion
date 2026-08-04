@@ -96,7 +96,7 @@ New bits for physical agents:
 
 | Bit | Value | Capability |
 |-----|-------|-----------|
-| 7 | `1 << 7` | `ACTUATE` — physical actuator control |
-| 8 | `1 << 8` | `NAVIGATE` — autonomous movement |
-| 9 | `1 << 9` | `CHARGE` — initiate charging |
-| 10 | `1 << 10` | `DOCK` — dock/undock operations |
+| 7 | `1 << 7` | `ACTUATE` - physical actuator control |
+| 8 | `1 << 8` | `NAVIGATE` - autonomous movement |
+| 9 | `1 << 9` | `CHARGE` - initiate charging |
+| 10 | `1 << 10` | `DOCK` - dock/undock operations |

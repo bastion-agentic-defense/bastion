@@ -17,7 +17,7 @@ struct RateLimitState {
     volume_24h: HashMap<String, (u64, Instant)>,
 }
 
-/// Core policy evaluator — evaluates a normalized transaction against a policy set.
+/// Core policy evaluator - evaluates a normalized transaction against a policy set.
 pub struct PolicyEvaluator<P: TrustSignalProvider> {
     rate_state: Mutex<RateLimitState>,
     oracle: Option<P>,
@@ -354,7 +354,7 @@ impl<P: TrustSignalProvider> PolicyEvaluator<P> {
         max_joules_24h: u64,
     ) -> FirewallDecision {
         if let Some(joules) = tx.metadata.get("energy_joules").and_then(|v| v.as_u64()) {
-            // Track energy against 24h budget (simplified — uses same rate_state volume bucket)
+            // Track energy against 24h budget (simplified - uses same rate_state volume bucket)
             let mut state = self.rate_state.lock().unwrap();
             let now = Instant::now();
             let window = Duration::from_secs(86400);

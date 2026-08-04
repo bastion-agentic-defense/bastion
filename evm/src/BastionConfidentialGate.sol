@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
-// @notice: UNDER ACTIVE DEVELOPMENT — Not production-ready.
+// @notice: UNDER ACTIVE DEVELOPMENT - Not production-ready.
 
 import {IConfidentialPolicyVerdict, Verdict} from "@capv/IConfidentialPolicyVerdict.sol";
 import {PolicyAction, PolicyActionLib} from "@capv/PolicyAction.sol";
@@ -14,11 +14,11 @@ import {IBastionPolicy} from "./interfaces/IBastionPolicy.sol";
 ///
 ///         1. CONFIDENTIAL (ZK): A Noir circuit proves the action was evaluated
 ///            against a committed secret policy and permitted. The policy rules
-///            are NEVER revealed on-chain — only the ZK proof.
+///            are NEVER revealed on-chain - only the ZK proof.
 ///
 ///         2. PUBLIC (Bastion): Bastion's transparent policy engine evaluates
 ///            the action against programmable rules (amount caps, allowlists,
-///            rate limits, HITL gates, etc.) — fully auditable.
+///            rate limits, HITL gates, etc.) - fully auditable.
 ///
 ///         This gives deployments the full confidentiality spectrum: secret
 ///         organizational policies guarded by ZK proofs, layered with

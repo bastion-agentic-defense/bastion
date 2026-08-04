@@ -1,4 +1,4 @@
-# Bastion — Improvement Roadmap
+# Bastion - Improvement Roadmap
 
 > Inspired by a competitive analysis with [Bento](https://bentoguard.xyz/) during the Superteam Earn Beta Bounty (June 2026).
 > Each feature below is grounded in the existing codebase structure.
@@ -11,11 +11,11 @@
 
 ### What's missing
 
-`AgentStore::update_agent()` in `crates/sidecar/src/agents.rs` only takes a manual `reputation_score` argument — nothing calls it automatically after a `Decision::Blocked` audit entry is written.
+`AgentStore::update_agent()` in `crates/sidecar/src/agents.rs` only takes a manual `reputation_score` argument - nothing calls it automatically after a `Decision::Blocked` audit entry is written.
 
 ### Implementation
 
-**Step 1 — Add strike counter to `TrackedAgent`**
+**Step 1 - Add strike counter to `TrackedAgent`**
 
 In `crates/sidecar/src/agents.rs`, add to `TrackedAgent`:
 
@@ -24,7 +24,7 @@ pub strike_count: u32,
 pub last_strike_at: Option<i64>,
 ```
 
-**Step 2 — Wire strike accumulation after every block**
+**Step 2 - Wire strike accumulation after every block**
 
 In `crates/sidecar/src/lib.rs`, wherever `AuditLogger::log()` is called with `Decision::Blocked`, call a new helper immediately after:
 
@@ -50,7 +50,7 @@ pub fn record_strike(&self, did: &str) -> Result<(), String> {
 }
 ```
 
-**Step 3 — Sync to on-chain program**
+**Step 3 - Sync to on-chain program**
 
 `crates/sidecar/src/program_client.rs` already has `update_agent_reputation()`. Call it after `record_strike()` when `BASTION_ON_CHAIN=true`:
 
@@ -60,7 +60,7 @@ if env::var("BASTION_ON_CHAIN").is_ok() {
 }
 ```
 
-**Step 4 — Expose strike count in API response**
+**Step 4 - Expose strike count in API response**
 
 Add `strike_count` to the `/agents/{did}` GET response and to the `FirewallDecision::Block` context so clients see it.
 
@@ -88,12 +88,12 @@ strike_ttl_hours = 24           # strikes reset after this window
 
 ### Implementation
 
-**Step 1 — Pending queue API**
+**Step 1 - Pending queue API**
 
 Add to `crates/sidecar/src/lib.rs`:
 
 ```rust
-// GET /pending — returns all audit entries with Decision::PendingApproval
+// GET /pending - returns all audit entries with Decision::PendingApproval
 async fn list_pending_approvals(State(state): State<AppState>) -> Json<Vec<AuditEntry>> {
     let entries = state.audit_logger.get_logs_filtered(
         None, None, None, 0, 100
@@ -107,7 +107,7 @@ async fn list_pending_approvals(State(state): State<AppState>) -> Json<Vec<Audit
 }
 ```
 
-**Step 2 — Dashboard panel (`apps/web/src/pages/Dashboard.tsx`)**
+**Step 2 - Dashboard panel (`apps/web/src/pages/Dashboard.tsx`)**
 
 Add a new `PendingApprovals` component:
 
@@ -159,7 +159,7 @@ export function PendingApprovals() {
 }
 ```
 
-**Step 3 — Override endpoint must resolve the pending entry**
+**Step 3 - Override endpoint must resolve the pending entry**
 
 Ensure `POST /override` in the sidecar updates the stored audit entry from `PendingApproval` → `Allowed` or `Blocked`, and broadcasts the result back to the waiting agent (use a `tokio::sync::oneshot` channel per `approval_id` stored in `AppState`).
 
@@ -175,7 +175,7 @@ When `Decision::Blocked` is written, operators have no way to know unless they p
 
 ### Implementation
 
-**Step 1 — Webhook config**
+**Step 1 - Webhook config**
 
 Add to `config.toml`:
 
@@ -186,7 +186,7 @@ on_strike_threshold = ["https://your-ops-system.example.com/bastion-alerts"]
 secret = "your-hmac-secret"   # used to sign the payload
 ```
 
-**Step 2 — `WebhookDispatcher` in the sidecar**
+**Step 2 - `WebhookDispatcher` in the sidecar**
 
 New file `crates/sidecar/src/webhook.rs`:
 
@@ -226,7 +226,7 @@ impl WebhookDispatcher {
 }
 ```
 
-**Step 3 — Add dispatcher to `AppState` and call it**
+**Step 3 - Add dispatcher to `AppState` and call it**
 
 In `crates/sidecar/src/lib.rs`, add `webhook: Arc<WebhookDispatcher>` to `AppState`. After every `Decision::Blocked` audit log:
 
@@ -238,7 +238,7 @@ tokio::spawn(async move {
 });
 ```
 
-**Step 4 — Webhook payload schema**
+**Step 4 - Webhook payload schema**
 
 ```json
 {
@@ -263,7 +263,7 @@ Track per-agent transaction patterns over time, then flag when behavior deviates
 
 ### Implementation
 
-**Step 1 — Per-agent behavioral profile in `AgentStore`**
+**Step 1 - Per-agent behavioral profile in `AgentStore`**
 
 Add to `TrackedAgent`:
 
@@ -289,7 +289,7 @@ pub struct AgentBaseline {
 }
 ```
 
-**Step 2 — Online baseline update after every allowed transaction**
+**Step 2 - Online baseline update after every allowed transaction**
 
 In `AgentStore`, add:
 
@@ -316,7 +316,7 @@ pub fn update_baseline(&self, did: &str, tx_value: u64, program_ids: &[String]) 
 }
 ```
 
-**Step 3 — Anomaly check in policy evaluator**
+**Step 3 - Anomaly check in policy evaluator**
 
 Add new `PolicyRule` variant in `crates/core/src/policy/types.rs`:
 
@@ -359,7 +359,7 @@ PolicyRule::BehavioralBaseline { stddev_threshold, min_samples, on_anomaly } => 
 }
 ```
 
-**Step 4 — Pass baseline into `NormalizedTransaction`**
+**Step 4 - Pass baseline into `NormalizedTransaction`**
 
 Add `agent_baseline: Option<AgentBaselineSnapshot>` to `NormalizedTransaction` in `crates/core/src/transaction/`. The sidecar populates this from `AgentStore` before calling `PolicyEvaluator::evaluate()`.
 
@@ -388,7 +388,7 @@ Instead of (or alongside) rule-based blocking, score the *intent* of an action 0
 
 ### Implementation
 
-**Step 1 — `IntentScorer` struct**
+**Step 1 - `IntentScorer` struct**
 
 New file `crates/sidecar/src/intent_scorer.rs`:
 
@@ -458,7 +458,7 @@ impl IntentScorer {
 }
 ```
 
-**Step 2 — Add `intent_score` to `AuditEntry`**
+**Step 2 - Add `intent_score` to `AuditEntry`**
 
 In `crates/sidecar/src/audit.rs`:
 
@@ -470,7 +470,7 @@ pub struct AuditEntry {
 }
 ```
 
-**Step 3 — Add `IntentScore` policy rule**
+**Step 3 - Add `IntentScore` policy rule**
 
 In `crates/core/src/policy/types.rs`:
 
@@ -482,11 +482,11 @@ IntentScoreThreshold {
 },
 ```
 
-**Step 4 — Expose score in API response**
+**Step 4 - Expose score in API response**
 
 Add `intent_score` and `intent_signals` to the `/simulate` response body so SDK consumers can show the score to their operator.
 
-### Phase 2 — LLM-backed scoring (optional)
+### Phase 2 - LLM-backed scoring (optional)
 
 Once the heuristic baseline is established, replace `IntentScorer::score()` with a call to a local LLM (via `ollama` sidecar) or an external API:
 
@@ -507,7 +507,7 @@ hitl_above = 50
 block_above = 80
 
 [intent_scorer]
-# Phase 2 only — leave empty to use heuristic scorer
+# Phase 2 only - leave empty to use heuristic scorer
 llm_endpoint = ""   # e.g. "http://localhost:11434/api/generate"
 llm_model = "llama3"
 ```
@@ -518,11 +518,11 @@ llm_model = "llama3"
 
 | Priority | Feature | Effort | Impact |
 |----------|---------|--------|--------|
-| 1 | Reputation feedback loop | Low — ~100 lines Rust | Closes the on-chain accountability gap |
-| 2 | Webhook on block | Low — ~80 lines Rust | Immediate operator value |
-| 3 | HITL dashboard UI | Medium — ~150 lines React | Completes the PendingHITL flow that already exists |
-| 4 | AI intent scoring (heuristic) | Medium — ~200 lines Rust | Differentiates from rule-only firewalls |
-| 5 | Behavioral baseline | High — requires data pipeline | Strongest long-term moat |
+| 1 | Reputation feedback loop | Low - ~100 lines Rust | Closes the on-chain accountability gap |
+| 2 | Webhook on block | Low - ~80 lines Rust | Immediate operator value |
+| 3 | HITL dashboard UI | Medium - ~150 lines React | Completes the PendingHITL flow that already exists |
+| 4 | AI intent scoring (heuristic) | Medium - ~200 lines Rust | Differentiates from rule-only firewalls |
+| 5 | Behavioral baseline | High - requires data pipeline | Strongest long-term moat |
 
 ---
 

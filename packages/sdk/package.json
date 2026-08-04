@@ -1,7 +1,7 @@
 {
   "name": "@zkos-labs/sdk",
   "version": "0.6.2",
-  "description": "TypeScript SDK for the Bastion Programmable Trust Runtime — identity, policy, execution, and observability for autonomous systems.",
+  "description": "TypeScript SDK for the Bastion Programmable Trust Runtime - identity, policy, execution, and observability for autonomous systems.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

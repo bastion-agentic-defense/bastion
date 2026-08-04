@@ -278,9 +278,9 @@ The current MVP implements delegation entirely in the sidecar (off-chain). Futur
    - On-chain budget tracking and expiry enforcement
 
 2. **Sidecar Sync:**
-   - `OnChainClient.fetch_agent()` — read Agent PDA data
-   - `AgentStore.sync_from_chain()` — periodic sync of on-chain state
-   - `AgentStore.register_agent()` — verify Agent PDA exists on-chain before registering
+   - `OnChainClient.fetch_agent()` - read Agent PDA data
+   - `AgentStore.sync_from_chain()` - periodic sync of on-chain state
+   - `AgentStore.register_agent()` - verify Agent PDA exists on-chain before registering
 
 3. **Policy Engine:**
    - `DelegationConstraint` rule type

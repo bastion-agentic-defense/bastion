@@ -3,7 +3,7 @@ name: bastion-how-to-use
 description: Guides agent developers on integrating Bastion (Programmable Trust Runtime). Covers SDK usage (BastionClient), REST API endpoints (/simulate, /policy, /override, /logs), interpreting audit logs and simulation results, configuring policy rules (allowlists, SOL caps, rate limits, blockint security checks), on-chain program interaction (audit trail, agent registry, circuit breaker), and deployment. Use when the user asks about integrating an AI agent with Bastion, sending transactions through the trust runtime, configuring security policies, reading audit trails, or deploying Bastion alongside autonomous agents.
 ---
 
-# Bastion — How to Use (Agent Developer Guide)
+# Bastion - How to Use (Agent Developer Guide)
 
 Bastion is a **Programmable Trust Runtime** (Axum sidecar + on-chain audit programs) that sits between AI agents and their execution environments. Open-source community project developed by ZKOS Labs. Every action an agent intends to take passes through Bastion first: identity verification, policy evaluation, simulation, optionally human review, then either execute or block. Every decision recorded as a verifiable audit record.
 
@@ -86,7 +86,7 @@ curl -s "https://bastion-agentique.fly.dev//agents/did:bastion:solana:DID/tree" 
 
 ## REST API Reference
 
-### `POST /simulate` — Validate a transaction
+### `POST /simulate` - Validate a transaction
 
 Request:
 ```json
@@ -117,7 +117,7 @@ Response `403 BLOCKED`:
 
 The `intent` field is logged alongside the decision for later audit review.
 
-### `POST /override` — Human override for blocked transactions
+### `POST /override` - Human override for blocked transactions
 
 ```json
 {
@@ -128,7 +128,7 @@ The `intent` field is logged alongside the decision for later audit review.
 
 Actions: `ALLOW` or `REJECT`.
 
-### `GET /logs` — Fetch audit logs
+### `GET /logs` - Fetch audit logs
 
 ```
 GET /logs?limit=10&offset=0&result=BLOCKED
@@ -157,13 +157,13 @@ Returns:
 }
 ```
 
-### `GET /logs/tx/:transaction_id` — Lookup by transaction hash
+### `GET /logs/tx/:transaction_id` - Lookup by transaction hash
 
-### `GET /logs/signature/:signature` — Lookup by on-chain signature
+### `GET /logs/signature/:signature` - Lookup by on-chain signature
 
-### `GET /policy` — Current policy settings
+### `GET /policy` - Current policy settings
 
-### `PUT /policy` — Update core policy
+### `PUT /policy` - Update core policy
 
 ```json
 {
@@ -176,7 +176,7 @@ Returns:
 }
 ```
 
-### `PUT /policy/full` — Full policy update including blockint rules
+### `PUT /policy/full` - Full policy update including blockint rules
 
 All fields from `/policy` plus:
 ```json
@@ -192,11 +192,11 @@ All fields from `/policy` plus:
 
 ### Circuit breaker endpoints
 
-- `GET /circuit-breaker/status` — Returns `{ engaged: true/false }`
-- `POST /circuit-breaker/engage` — Pauses all transaction processing (also calls `emergencyPause` on-chain if configured)
-- `POST /circuit-breaker/disengage` — Resumes (calls `emergencyResume` on-chain)
+- `GET /circuit-breaker/status` - Returns `{ engaged: true/false }`
+- `POST /circuit-breaker/engage` - Pauses all transaction processing (also calls `emergencyPause` on-chain if configured)
+- `POST /circuit-breaker/disengage` - Resumes (calls `emergencyResume` on-chain)
 
-### `GET /health` — Health check (returns `"Hello, Bastion!"`)
+### `GET /health` - Health check (returns `"Hello, Bastion!"`)
 
 ## Policy Configuration
 
@@ -324,10 +324,10 @@ pnpm --filter @bastion/mcp-server dev:http
 ```
 
 Endpoints:
-- `GET /mcp/sse` — SSE connection
-- `POST /mcp/messages` — MCP JSON-RPC messages (with `?sessionId=<id>`)
-- `GET /mcp/health` — Health check
-- `GET /mcp/pricing` — Tool pricing + free tier info
+- `GET /mcp/sse` - SSE connection
+- `POST /mcp/messages` - MCP JSON-RPC messages (with `?sessionId=<id>`)
+- `GET /mcp/health` - Health check
+- `GET /mcp/pricing` - Tool pricing + free tier info
 
 **15 tools** (same as stdio MCP): simulate, ingest, get/update policy, audit logs/stats, override, pending, circuit breaker, cases, DID, token balances.
 
@@ -354,6 +354,6 @@ Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
 
 ## Related Skills
 
-- **blockchain-intelligence-playbook** — Broader blockchain investigation methodology
-- **solana-onchain-intelligence-resources** — Solana-specific tools and data sources
-- **defi-security-audit-agent** — DeFi security patterns that complement Bastion policy rules
+- **blockchain-intelligence-playbook** - Broader blockchain investigation methodology
+- **solana-onchain-intelligence-resources** - Solana-specific tools and data sources
+- **defi-security-audit-agent** - DeFi security patterns that complement Bastion policy rules

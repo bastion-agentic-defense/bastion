@@ -1,4 +1,4 @@
-# Integrate Bastion — SDK & API
+# Integrate Bastion - SDK & API
 
 Bastion provides a TypeScript SDK and REST API for integrating the
 Programmable Trust Runtime into your application.
@@ -25,7 +25,7 @@ const result = await client.simulate({
 if (result.status === "allowed") {
   // Proceed to sign and broadcast
 } else if (result.blockId) {
-  // Human approval needed — show block_id to user
+  // Human approval needed - show block_id to user
   console.log("Block reason:", result.error);
 }
 ```

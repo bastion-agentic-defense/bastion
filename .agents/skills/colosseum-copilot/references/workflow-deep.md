@@ -1,4 +1,4 @@
-# Research Workflow — Deep Reference
+# Research Workflow - Deep Reference
 
 This is the detailed reference for the 8-step research workflow. For a quick overview, see the main skill file.
 
@@ -28,17 +28,17 @@ Your output should help a founder explore and refine an idea. That means:
 
 3. **Address the hard questions.** Two-sided marketplace? Say so and explain the cold start problem. Regulatory risk? Name the jurisdictions. Don't hide friction.
 
-4. **Map the landscape for research and inspiration.** Show founders what's already been built, who the key players are, and where the interesting angles lie. Competition is normal and healthy — most incumbents aren't unbeatable. Frame existing players as market validation and learning opportunities, not deterrents.
+4. **Map the landscape for research and inspiration.** Show founders what's already been built, who the key players are, and where the interesting angles lie. Competition is normal and healthy - most incumbents aren't unbeatable. Frame existing players as market validation and learning opportunities, not deterrents.
 
 5. **Connect to foundational concepts.** The archives contain cypherpunk wisdom on escrow, bearer certificates, reputation systems, etc. Use them to validate or challenge ideas.
 
-6. **Research before deep-diving.** Before claiming a gap exists, search for what existing players already offer. "Lots of hackathon projects building X" doesn't mean "X is unsolved" — it might mean the space has strong demand and existing traction worth studying. Use this research to help founders find their unique angle.
+6. **Research before deep-diving.** Before claiming a gap exists, search for what existing players already offer. "Lots of hackathon projects building X" doesn't mean "X is unsolved" - it might mean the space has strong demand and existing traction worth studying. Use this research to help founders find their unique angle.
 
 7. **No execution chatter in user-facing output.** Don't narrate your process ("Now let me search...",
    "I'll check the archives next..."). Perform verification internally; present findings directly.
 
 8. **Surface relevant context.** "Tokamai (C2, funded) is building monitoring infrastructure
-   with paying customers — study their approach for inspiration" is more useful than vague
+   with paying customers - study their approach for inspiration" is more useful than vague
    hand-waving. Founders benefit from knowing who else is in the space so they can learn
    from them and find their own differentiated angle.
 
@@ -53,7 +53,7 @@ Place these as a brief note near the top of the "Similar Projects" section.
 
 ### Reusing Prior Results
 
-If this deep dive follows a conversational exchange on the same topic, carry forward any results already obtained (project lists, archive citations, Grid data). In Step 2, skip calls that duplicate prior coverage — only run searches for dimensions not yet explored. In Step 5, mark checklist items as satisfied when prior evidence already covers them.
+If this deep dive follows a conversational exchange on the same topic, carry forward any results already obtained (project lists, archive citations, Grid data). In Step 2, skip calls that duplicate prior coverage - only run searches for dimensions not yet explored. In Step 5, mark checklist items as satisfied when prior evidence already covers them.
 
 For archives specifically: if Step 2b already returned highly relevant documents (similarity > 0.40), skip the Step 7c search query and instead fetch the full text of the best Step 2b results using the `/archives/:documentId` endpoint with `maxChars=8000`. Only run a new Step 7c search if your Step 2b results were tangential to the deep-dive opportunity.
 
@@ -63,15 +63,15 @@ Extract from the user's input:
 - **Core concept** (1-2 sentences summarizing what to research)
 - **Target audience** (builders, researchers, investors, etc.)
 - **Key dimensions** (technical depth, historical context, market analysis)
-- **Domain context** (if mentioned — e.g., "DeFi", "privacy", "infrastructure")
+- **Domain context** (if mentioned - e.g., "DeFi", "privacy", "infrastructure")
 
 If the topic is broad, identify the most relevant angles to explore.
 
 ### Step 2: Parallel Search [execute in parallel when possible]
 
-> **Concurrency note:** The API allows 2 in-flight requests, enforced server-side. Submit all Step 2 calls in a single response — your runtime serializes overflow automatically. If you get `429 RATE_LIMITED`, honor the `Retry-After` header before retrying; for concurrency hits specifically, wait for in-flight requests to complete.
+> **Concurrency note:** The API allows 2 in-flight requests, enforced server-side. Submit all Step 2 calls in a single response - your runtime serializes overflow automatically. If you get `429 RATE_LIMITED`, honor the `Retry-After` header before retrying; for concurrency hits specifically, wait for in-flight requests to complete.
 
-> **Context budget:** After each sub-step, extract only the data you need going forward (top 3-5 results with names, slugs, scores; relevant tags; saturation counts). Do not carry raw API JSON into later steps — summarize inline and discard full payloads. If you need dropped details later, re-fetch rather than persisting large payloads.
+> **Context budget:** After each sub-step, extract only the data you need going forward (top 3-5 results with names, slugs, scores; relevant tags; saturation counts). Do not carry raw API JSON into later steps - summarize inline and discard full payloads. If you need dropped details later, re-fetch rather than persisting large payloads.
 
 Execute all Step 2 searches in a single response:
 
@@ -79,7 +79,7 @@ Execute all Step 2 searches in a single response:
 
 Run **at least 2 `search/projects` calls** with distinct formulations:
 
-**Query 1 — Semantic rewrite:** Rephrase the topic in natural language, focusing on what the user is trying to accomplish.
+**Query 1 - Semantic rewrite:** Rephrase the topic in natural language, focusing on what the user is trying to accomplish.
 ```bash
 curl -s -X POST "$COLOSSEUM_COPILOT_API_BASE/search/projects" \
   -H "Authorization: Bearer $COLOSSEUM_COPILOT_PAT" \
@@ -94,7 +94,7 @@ curl -s -X POST "$COLOSSEUM_COPILOT_API_BASE/search/projects" \
   }'
 ```
 
-**Query 2 — Problem-space rewrite:** Reframe around the underlying problem or user pain point rather than the solution category.
+**Query 2 - Problem-space rewrite:** Reframe around the underlying problem or user pain point rather than the solution category.
 ```bash
 curl -s -X POST "$COLOSSEUM_COPILOT_API_BASE/search/projects" \
   -H "Authorization: Bearer $COLOSSEUM_COPILOT_PAT" \
@@ -113,7 +113,7 @@ curl -s -X POST "$COLOSSEUM_COPILOT_API_BASE/search/projects" \
 
 **Dedup check:** If multiple results share the same GitHub URL or team name (e.g., `credencechain-1` and `credencechain-2`), treat them as one project with multiple submissions. Count competitors by distinct teams, not submission slugs.
 
-**Tag-filtered follow-up:** Use the `problemTags` or `solutionTags` from your **top 3 search results** (not the global `facets` distribution) to pick follow-up filter tags. Note: `facets` returned by `includeFacets: true` reflect corpus-wide tag counts, not tags specific to your search results — they show landscape density but are misleading for targeted follow-ups. For filter-only follow-ups, omit `query` entirely (do not send `""`):
+**Tag-filtered follow-up:** Use the `problemTags` or `solutionTags` from your **top 3 search results** (not the global `facets` distribution) to pick follow-up filter tags. Note: `facets` returned by `includeFacets: true` reflect corpus-wide tag counts, not tags specific to your search results - they show landscape density but are misleading for targeted follow-ups. For filter-only follow-ups, omit `query` entirely (do not send `""`):
 ```bash
 curl -s -X POST "$COLOSSEUM_COPILOT_API_BASE/search/projects" \
   -H "Authorization: Bearer $COLOSSEUM_COPILOT_PAT" \
@@ -127,7 +127,7 @@ curl -s -X POST "$COLOSSEUM_COPILOT_API_BASE/search/projects" \
   }'
 ```
 
-**Query 3 — Accelerator portfolio check (REQUIRED):**
+**Query 3 - Accelerator portfolio check (REQUIRED):**
 After Queries 1-2 complete, run a third search targeting accelerator companies:
 
 ```bash
@@ -147,7 +147,7 @@ curl -s -X POST "$COLOSSEUM_COPILOT_API_BASE/search/projects" \
 - If no accelerator results match → note "No accelerator portfolio overlap found."
 
 #### 2b. Search Archives (Dual-Track Semantic Search)
-Run **two** archive searches in parallel — one conceptual, one implementation-focused:
+Run **two** archive searches in parallel - one conceptual, one implementation-focused:
 
 **A) Conceptual query** (timeless primitive):
 ```bash
@@ -224,9 +224,9 @@ Use the tag distributions to identify which areas are **crowded** (high count) v
 
 #### 2e. Ecosystem Check (The Grid) [3-PHASE]
 
-Query The Grid to identify **established products** in this space. Run all three phases — they serve different purposes.
+Query The Grid to identify **established products** in this space. Run all three phases - they serve different purposes.
 
-**Phase 1: Category Search** (highest precision — start here)
+**Phase 1: Category Search** (highest precision - start here)
 
 Map your research topic to 1-3 `productType` slugs from the cheat sheet below, then query products filtered by those slugs with Solana ecosystem scoping. The triple-OR Solana filter covers deployments, support edges, and profile tags for maximum recall:
 
@@ -262,15 +262,15 @@ QUERY
 | RWA / tokenized credit | `rwa_tokenisation_platform`, `decentralised_borrowing_and_lending` |
 | Credit scoring / risk | `risk_assessment`, `decentralised_identity` |
 
-**Top 30 product type slugs by count:** `developer_tooling` (599), `wallet` (331), `decentralised_exchange` (207), `centralised_exchange` (182), `financial_services_platform` (174), `merchant_payment_gateway` (159), `on_off_ramp` (145), `l1` (144), `payments_infrastructure_and_orchestration` (136), `game` (131), `decentralised_borrowing_and_lending` (114), `yield_aggregator` (113), `block_explorer` (113), `ai_agent` (104), `bridge` (101), `onchain_data_api` (100), `dex_aggregator` (81), `depin` (80), `ai_agent_platform` (77), `cross_chain_infrastructure` (73), `stablecoin_issuance` (71), `nft_marketplace` (68), `peer_to_peer_and_remittance` (67), `decentralised_identity` (55), `oracle` (46), `derivatives` (46), `embedded_wallet` (46), `rpc_provider` (44), `prediction_markets` (28), `ai_agent_framework` (27). Total: 115 slugs — query `productTypes` for the full list.
+**Top 30 product type slugs by count:** `developer_tooling` (599), `wallet` (331), `decentralised_exchange` (207), `centralised_exchange` (182), `financial_services_platform` (174), `merchant_payment_gateway` (159), `on_off_ramp` (145), `l1` (144), `payments_infrastructure_and_orchestration` (136), `game` (131), `decentralised_borrowing_and_lending` (114), `yield_aggregator` (113), `block_explorer` (113), `ai_agent` (104), `bridge` (101), `onchain_data_api` (100), `dex_aggregator` (81), `depin` (80), `ai_agent_platform` (77), `cross_chain_infrastructure` (73), `stablecoin_issuance` (71), `nft_marketplace` (68), `peer_to_peer_and_remittance` (67), `decentralised_identity` (55), `oracle` (46), `derivatives` (46), `embedded_wallet` (46), `rpc_provider` (44), `prediction_markets` (28), `ai_agent_framework` (27). Total: 115 slugs - query `productTypes` for the full list.
 
 **Topic doesn't map to existing slugs?** If no confident 1-3 slugs emerge from the mapping table:
 1. Skip Phase 1 (category search) and run Phase 2 (keyword search) first
 2. Extract recurring `productType.slug` values from keyword hits and pick up to 3 inferred slugs
 3. Re-run Phase 1 + Phase 3 with inferred slugs if any emerge
-4. If no stable slugs emerge, proceed with keyword-only evidence and note: "No reliable productType slug mapping exists for this topic — ecosystem maturity signal."
+4. If no stable slugs emerge, proceed with keyword-only evidence and note: "No reliable productType slug mapping exists for this topic - ecosystem maturity signal."
 
-**Phase 2: Keyword Recall** (broad net — catches products that don't fit standard categories)
+**Phase 2: Keyword Recall** (broad net - catches products that don't fit standard categories)
 
 Search across product name, description, root slug, and entity names:
 
@@ -294,7 +294,7 @@ curl -s -X POST "https://beta.node.thegrid.id/graphql" \
 QUERY
 ```
 
-**After all phases:** Merge results from Phase 1 and Phase 2. Rank by `gridRank.score` (if available) and `productStatus`. Note the top 5-10 key players — these become your landscape baseline for Step 6. Record the saturation numbers from Phase 3 (total products, distinct roots) — you will need them when identifying differentiation opportunities in Step 6c and writing your final report.
+**After all phases:** Merge results from Phase 1 and Phase 2. Rank by `gridRank.score` (if available) and `productStatus`. Note the top 5-10 key players - these become your landscape baseline for Step 6. Record the saturation numbers from Phase 3 (total products, distinct roots) - you will need them when identifying differentiation opportunities in Step 6c and writing your final report.
 
 ### Step 3: Identify Research Angles
 
@@ -339,7 +339,7 @@ Suggested query patterns:
 
 ### Step 5: Verification Checklist
 
-Before synthesis, **internally verify** ALL of these are complete. This is a self-check — do not display checklist items or execution logs to the user:
+Before synthesis, **internally verify** ALL of these are complete. This is a self-check - do not display checklist items or execution logs to the user:
 
 - [ ] `search/projects` returned results (if empty, broaden query)
 - [ ] `search/archives` returned results (if empty, try different conceptual framing)
@@ -347,10 +347,10 @@ Before synthesis, **internally verify** ALL of these are complete. This is a sel
 - [ ] At least one `projects/by-slug` call for detailed evidence
 
 **Coverage depth checks (REQUIRED):**
-- [ ] **2+ distinct project queries executed** — confirm you ran at least two `search/projects` calls with meaningfully different formulations (semantic rewrite + problem-space rewrite). Two queries with minor word swaps do not count.
-- [ ] **One tag/filter follow-up query executed** — confirm you used facet data from an initial search to run a filtered follow-up query (see Step 2a tag-filtered follow-up).
-- [ ] **Cross-hackathon coverage confirmed** — results should span multiple hackathons. If you describe evolution across hackathons, verify chronology with `startDate`; if a single hackathon dominates (> 70%), either reformulate and search again, or explicitly document why single-hackathon coverage is intentional (e.g., the topic only appeared in one hackathon edition).
-- [ ] **Accelerator portfolio checked** — Query 3 (acceleratorOnly) executed and outcome documented
+- [ ] **2+ distinct project queries executed** - confirm you ran at least two `search/projects` calls with meaningfully different formulations (semantic rewrite + problem-space rewrite). Two queries with minor word swaps do not count.
+- [ ] **One tag/filter follow-up query executed** - confirm you used facet data from an initial search to run a filtered follow-up query (see Step 2a tag-filtered follow-up).
+- [ ] **Cross-hackathon coverage confirmed** - results should span multiple hackathons. If you describe evolution across hackathons, verify chronology with `startDate`; if a single hackathon dominates (> 70%), either reformulate and search again, or explicitly document why single-hackathon coverage is intentional (e.g., the topic only appeared in one hackathon edition).
+- [ ] **Accelerator portfolio checked** - Query 3 (acceleratorOnly) executed and outcome documented
 
 **If any are missing, execute the missing calls NOW before proceeding.**
 
@@ -390,7 +390,7 @@ curl -s -X POST "https://beta.node.thegrid.id/graphql" \
 QUERY
 ```
 
-Pull the full product list, tags, socials, and URLs. This gives you concrete data about what they actually offer — don't rely on assumptions.
+Pull the full product list, tags, socials, and URLs. This gives you concrete data about what they actually offer - don't rely on assumptions.
 
 #### 6b. Research Existing Players' Offerings
 Use web search:
@@ -418,14 +418,14 @@ Classify the opportunity landscape into one of three categories.
 
 Use the saturation count from Step 2e Phase 3 to ground your classification. A category with 3 products and 3 distinct roots has a different competitive dynamic than one with 200 products across 150 roots.
 
-1. **Open space** — Based on the available data, no existing player appears to have meaningfully addressed this problem. Proceed to Step 7.
-2. **Differentiation opportunity** — Existing players have solutions, but there are specific angles a new entrant could pursue:
+1. **Open space** - Based on the available data, no existing player appears to have meaningfully addressed this problem. Proceed to Step 7.
+2. **Differentiation opportunity** - Existing players have solutions, but there are specific angles a new entrant could pursue:
    - **Segment opportunity**: They don't serve a specific user segment well (e.g., "Jupiter doesn't serve institutional traders who need compliance features")
    - **UX opportunity**: The feature exists but is buried, confusing, or requires technical knowledge (e.g., "Solana staking exists but requires CLI knowledge")
    - **Geographic opportunity**: Not available or poorly adapted for specific markets (e.g., "no fiat onramps for Southeast Asian currencies")
    - **Pricing opportunity**: Existing players charge too much for a segment that needs a cheaper alternative
    - **Integration opportunity**: Works in isolation but doesn't compose well with the rest of the ecosystem
-3. **Well-covered space** — Multiple established players serve this need effectively. Help the founder understand the landscape and suggest adjacent or complementary angles they could explore instead.
+3. **Well-covered space** - Multiple established players serve this need effectively. Help the founder understand the landscape and suggest adjacent or complementary angles they could explore instead.
 
 **Help founders find their angle.** Even in well-covered spaces, there may be underserved segments, novel approaches, or complementary products worth building. Frame this as market intelligence, not discouragement.
 
@@ -437,14 +437,14 @@ In the final report, include a section: "Market Landscape" that shows:
 - **Grid evidence** (required): key player product IDs, root slugs, product types, and saturation counts from Step 2e Phase 3. If Grid data contradicts your web search findings, flag the discrepancy explicitly.
 
 #### 6e. Related Builder Highlight
-If any project from Step 2a — including the accelerator check — has high semantic
+If any project from Step 2a - including the accelerator check - has high semantic
 overlap with the user's idea (same problem, same target user, similar approach):
 
 **Surface this prominently in your report's Market Landscape section.** Format:
 
 > **Related Builder:** [Name] (`slug`, [Hackathon/Batch]) is working on [overlap].
 > Status: [active/funded/shipped/pivoted]. Study their approach for inspiration.
-> To differentiate, consider: [specific angle — segment, geography, UX, pricing, or integration].
+> To differentiate, consider: [specific angle - segment, geography, UX, pricing, or integration].
 
 Evidence requirements for highlighting:
 - Matching problem space (not just category)
@@ -456,7 +456,7 @@ angles (segment, geography, UX, pricing, or integration).
 
 **Grounding rule:** When noting overlap with existing builders, be specific about
 what they've built and where the differences lie. Vague claims like "there's room
-for both" aren't helpful — instead, identify the specific underserved segment or
+for both" aren't helpful - instead, identify the specific underserved segment or
 novel angle the founder could pursue.
 
 ### Step 7: Deep Opportunity Research [AFTER MARKET RESEARCH]
@@ -525,7 +525,7 @@ Generate the final report with these **EXACT** sections in this order:
 
 ## Similar Projects (5-8 bullets)
 
-> **Note:** These are hackathon submissions — demos and prototypes, not production products. Many may no longer be active. They're included as inspiration and to show what's been tried before, not as a competitive landscape.
+> **Note:** These are hackathon submissions - demos and prototypes, not production products. Many may no longer be active. They're included as inspiration and to show what's been tried before, not as a competitive landscape.
 
 Format: **[Project Name]** (`slug`) - one-line description
 - Include the slug for reference
@@ -572,11 +572,11 @@ Select the **single highest-potential opportunity** from the gaps identified abo
 - **What do they currently offer?** Specific features that address this problem space
 - **Landscape classification:** One of:
   - **Open space:** Based on the available data, no existing player appears to have meaningfully addressed this. [Evidence]
-  - **Differentiation opportunity — Segment:** They don't serve [specific user segment] well because [reason]
-  - **Differentiation opportunity — UX:** Feature exists but [specific UX problem]
-  - **Differentiation opportunity — Geographic:** Not available/adapted for [specific market]
-  - **Differentiation opportunity — Pricing:** Too expensive for [specific segment]
-  - **Differentiation opportunity — Integration:** Doesn't compose with [specific ecosystem need]
+  - **Differentiation opportunity - Segment:** They don't serve [specific user segment] well because [reason]
+  - **Differentiation opportunity - UX:** Feature exists but [specific UX problem]
+  - **Differentiation opportunity - Geographic:** Not available/adapted for [specific market]
+  - **Differentiation opportunity - Pricing:** Too expensive for [specific segment]
+  - **Differentiation opportunity - Integration:** Doesn't compose with [specific ecosystem need]
   - **Well-covered space:** Multiple established players serve this need. Consider adjacent angles: [suggestions]
 - **Evidence:** Link to or cite the source that informed this analysis
 

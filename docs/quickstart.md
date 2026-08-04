@@ -2,7 +2,7 @@
 
 Get an agent behind the Bastion runtime in about ten minutes.
 
-> Bastion is alpha software. No component is deployed to mainnet with real value —
+> Bastion is alpha software. No component is deployed to mainnet with real value -
 > production use is gated behind an external security audit. Run this against
 > devnet or a testnet.
 
@@ -25,8 +25,8 @@ The flow has four moving parts:
 npm install @zkos-labs/sdk
 ```
 
-For Web2 egress control — inspecting outbound API calls rather than chain
-transactions — install the companion package instead:
+For Web2 egress control - inspecting outbound API calls rather than chain
+transactions - install the companion package instead:
 
 ```bash
 npm install @zkos-labs/web2-sdk

@@ -1,7 +1,7 @@
 {
   "name": "@zkos-labs/mcp-server",
   "version": "0.2.2",
-  "description": "Bastion Trust Runtime — Model Context Protocol tools for agent trust",
+  "description": "Bastion Trust Runtime - Model Context Protocol tools for agent trust",
   "type": "module",
   "main": "dist/index.js",
   "files": ["dist/", "README.md", "bastion-provider.yml"],

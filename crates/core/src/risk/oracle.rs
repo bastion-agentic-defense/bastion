@@ -45,7 +45,7 @@ pub enum TrustSignalError {
 /// Trait for trust signal providers.
 ///
 /// Bastion **consumes** trust signals from ARES (or any provider)
-/// to enforce policy — it never computes intelligence.
+/// to enforce policy - it never computes intelligence.
 ///
 /// Implementations include GrondOSINT (owned by ARES), Chainalysis,
 /// TRM Labs, and internal reputation models (ARES-owned).

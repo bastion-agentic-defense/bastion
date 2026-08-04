@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
-// @notice: UNDER ACTIVE DEVELOPMENT — Not production-ready. Bastion's primary deployment target is Solana.
+// @notice: UNDER ACTIVE DEVELOPMENT - Not production-ready. Bastion's primary deployment target is Solana.
 
 import { EIP712 } from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
@@ -124,7 +124,7 @@ contract BastionAudit is IBastionAudit, IOnChainProof, EIP712, Ownable {
     }
 
     // ──────────────────────────────────────────────────────────────
-    // ERC-8263 — OnChain Proof Anchor
+    // ERC-8263 - OnChain Proof Anchor
     // ──────────────────────────────────────────────────────────────
 
     /// @notice Anchor a proof without recording a full audit entry.

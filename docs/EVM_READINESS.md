@@ -1,4 +1,4 @@
-# Bastion — EVM Mainnet Readiness
+# Bastion - EVM Mainnet Readiness
 
 > Living checklist for taking the Bastion EVM contract suite (`evm/`) to mainnet on
 > **Base, Celo, and Ethereum**. Nothing here authorizes real-value deployment before
@@ -13,7 +13,7 @@ Stack: Solidity 0.8.28, Foundry, OpenZeppelin + Solady, `via_ir`. Contracts:
 
 ---
 
-## 1. Contract hardening — code freeze targets
+## 1. Contract hardening - code freeze targets
 
 | ID | Item | Status | Notes |
 |---|---|---|---|
@@ -22,8 +22,8 @@ Stack: Solidity 0.8.28, Foundry, OpenZeppelin + Solady, `via_ir`. Contracts:
 | B3 | `_decodeCallData` bounds | ✅ | Requires `callData.length >= 68`; masks target to low 20 bytes; no underflow. |
 | B4 | `BastionPolicy.setPolicy` unbounded loops | ✅ | Targets/selectors capped at 32×32 (`TooManyEntries`) so the allowlist matrix stays within block gas. |
 | B12 | Firewall ↔ Policy selector-offset mismatch | ✅ | Latent bug found during hardening: firewall read the selector at offset 64 while the policy read it at offset 0, so the allowlist used the wrong selector. Unified on `[target][value][inner-calldata]`; firewall forwards the inner slice to the policy. |
-| — | Review `BastionSidecar` / `BastionERC8004Registry` for the same access-control class | 🟡 | `BastionSidecar.fulfill` is `verifier`-gated; ERC8004 uses EIP-712 wallet binding. Include both in the audit scope; no unguarded state-writers found in review. |
-| — | Remove "UNDER ACTIVE DEVELOPMENT / not production-ready" banners | ⬜ | Only after audit sign-off (§6). |
+| - | Review `BastionSidecar` / `BastionERC8004Registry` for the same access-control class | 🟡 | `BastionSidecar.fulfill` is `verifier`-gated; ERC8004 uses EIP-712 wallet binding. Include both in the audit scope; no unguarded state-writers found in review. |
+| - | Remove "UNDER ACTIVE DEVELOPMENT / not production-ready" banners | ⬜ | Only after audit sign-off (§6). |
 
 ---
 
@@ -31,7 +31,7 @@ Stack: Solidity 0.8.28, Foundry, OpenZeppelin + Solady, `via_ir`. Contracts:
 
 | Item | Status | Notes |
 |---|---|---|
-| Full suite green | ✅ | `forge test` — 62 tests (was 54). |
+| Full suite green | ✅ | `forge test` - 62 tests (was 54). |
 | Tests locking B1–B4 + B12 | ✅ | `test/BastionFirewallEnforce.t.sol` (validate/enforce split, decode bound, policy cap) + `test_Audit_RecordRevertsForNonFirewall`. |
 | Branch coverage target | ⬜ | `forge coverage`; set a threshold and gate CI. |
 | Invariant / fuzz tests | ⬜ | Policy limits, rate windows, audit append-only, firewall install/uninstall. |
@@ -67,13 +67,13 @@ Stack: Solidity 0.8.28, Foundry, OpenZeppelin + Solady, `via_ir`. Contracts:
 
 | Item | Status | Notes |
 |---|---|---|
-| ERC-7579 validator semantics (validation vs. execution) | ✅ | Corrected by B2 — `validateUserOp` no longer writes external storage. |
+| ERC-7579 validator semantics (validation vs. execution) | ✅ | Corrected by B2 - `validateUserOp` no longer writes external storage. |
 | Confirm `enforce()` wiring in the account/executor flow | ⬜ | The account must call `enforce()` during execution to record the audit entry; document the integration and add an end-to-end test with a mock ERC-7579 account. |
 | ERC-4337 v0.7 `PackedUserOperation` compatibility | 🟡 | Struct matches; validate against a reference EntryPoint on testnet. |
 
 ---
 
-## 6. External audit — GO-LIVE GATE
+## 6. External audit - GO-LIVE GATE
 
 | Item | Status | Notes |
 |---|---|---|
@@ -93,12 +93,12 @@ empty until the §6 audit clears.
 
 | Contract | ETH Sepolia (testnet) | zkSync Sepolia (testnet) | Robinhood Testnet | Base | Celo | Ethereum (mainnet) |
 |---|---|---|---|---|
-| BastionAudit | — (pending deploy) | — | — | — | — | 🚧 audit-gated |
-| BastionPolicy | — (pending deploy) | — | — | — | — | 🚧 audit-gated |
-| BastionRegistry | — (pending deploy) | — | — | — | — | 🚧 audit-gated |
-| BastionERC8004Registry | — (pending deploy) | — | — | — | — | 🚧 audit-gated |
-| BastionFirewall | — (pending deploy) | — | — | — | — | 🚧 audit-gated |
-| Owner (Safe) | — (pending deploy) | — | — | — | — | 🚧 audit-gated |
+| BastionAudit | - (pending deploy) | - | - | - | - | 🚧 audit-gated |
+| BastionPolicy | - (pending deploy) | - | - | - | - | 🚧 audit-gated |
+| BastionRegistry | - (pending deploy) | - | - | - | - | 🚧 audit-gated |
+| BastionERC8004Registry | - (pending deploy) | - | - | - | - | 🚧 audit-gated |
+| BastionFirewall | - (pending deploy) | - | - | - | - | 🚧 audit-gated |
+| Owner (Safe) | - (pending deploy) | - | - | - | - | 🚧 audit-gated |
 
 After deploying to Sepolia, paste the five contract addresses here **and** into the
 dashboard env (`apps/web/.env.local`: `VITE_BASTION_AUDIT_ADDRESS`, `…_POLICY_…`,

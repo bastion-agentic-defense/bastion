@@ -1,4 +1,4 @@
-//! Phase 5 — Transaction-battery tests covering DEX swaps, system transfers,
+//! Phase 5 - Transaction-battery tests covering DEX swaps, system transfers,
 //! stake operations, and edge-case transactions evaluated through the full
 //! REST API stack with a mock simulator.
 

@@ -154,7 +154,7 @@ export default function Dashboard() {
   const loadNetworkData = useCallback(async (force = false) => {
     const now = Date.now();
     if (!force && networkLastFetch.current > 0 && now - networkLastFetch.current < 60000) {
-      return; // Cache hit — skip fetch if < 60s old
+      return; // Cache hit - skip fetch if < 60s old
     }
     setLoadingAgents(true);
     try {
@@ -170,7 +170,7 @@ export default function Dashboard() {
       setLoadingAgents(false);
       setLoading(false);
     }
-  }, [sol]); // Removed onChainAgents — was creating infinite loop
+  }, [sol]); // Removed onChainAgents - was creating infinite loop
 
   const loadSidecarData = useCallback(async () => {
     setLoading(true);
@@ -190,7 +190,7 @@ export default function Dashboard() {
       if (pend) setPendingApprovals(pend);
     }
     setLoading(false);
-  }, [sidecar]); // Removed fetchSidecarAgents — identity changes every render
+  }, [sidecar]); // Removed fetchSidecarAgents - identity changes every render
 
   const loadData = useCallback(async () => {
     if (dataSource === 'network') {
@@ -202,7 +202,7 @@ export default function Dashboard() {
         if (paused !== null) setIsPaused(paused);
       }
     }
-  }, [dataSource]); // Only re-evaluate when dataSource changes — loadNetworkData/loadSidecarData are stable via useCallback
+  }, [dataSource]); // Only re-evaluate when dataSource changes - loadNetworkData/loadSidecarData are stable via useCallback
 
   useEffect(() => {
     loadData();
@@ -305,7 +305,7 @@ export default function Dashboard() {
       </nav>
 
       <main className="pt-32 px-4 pb-8">
-        {/* EVM (Ethereum Sepolia) live status — read-only, shown in EVM mode */}
+        {/* EVM (Ethereum Sepolia) live status - read-only, shown in EVM mode */}
         {chain === 'evm' && <EvmStatusPanel />}
 
         {/* Row 1: Gauges */}

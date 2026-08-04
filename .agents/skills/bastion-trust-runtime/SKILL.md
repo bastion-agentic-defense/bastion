@@ -3,7 +3,7 @@ name: bastion-trust-runtime
 description: "Integrate Bastion programmable policy enforcement with trustless-ai agents. Compose ERC-8004 identity + ERC-8263 anchor proofs + ERC-8281 OCP commitments with Bastion's policy engine and human-in-the-loop gate. Use when building agents that need enforceable trust rules, multi-chain execution, or recompute-able audit trails."
 ---
 
-# Bastion Trust Runtime — Agent Skill
+# Bastion Trust Runtime - Agent Skill
 
 This skill teaches agents to compose Bastion's programmable trust layer with the trustless-ai ERC stack.
 
@@ -99,7 +99,7 @@ Every Bastion audit record carries:
 - **`observation_digest`** (ERC-8281 OCP): sha256 of "Decision:payload_hash"
 - **`wyriwe_hash`** (ERC-8299 WYRIWE): triple-hash binding raw input → sanitized input
 
-Both are recompute-able from public inputs. The `@zkos-labs/sdk` `verify` module provides pure functions that reproduce these hashes without any network access — implementing trustless-ai's "Don't trust. Recompute." guarantee for the policy layer.
+Both are recompute-able from public inputs. The `@zkos-labs/sdk` `verify` module provides pure functions that reproduce these hashes without any network access - implementing trustless-ai's "Don't trust. Recompute." guarantee for the policy layer.
 
 ## When to Use Bastion
 

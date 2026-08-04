@@ -1,6 +1,6 @@
 # Bastion EVM
 
-> **UNDER ACTIVE DEVELOPMENT — Not production-ready.**  
+> **UNDER ACTIVE DEVELOPMENT - Not production-ready.**  
 > These contracts are in early-stage development. Bastion's primary deployment target is **Solana**.  
 > The EVM contracts have not undergone a formal audit and should not be deployed to mainnet with real funds.
 

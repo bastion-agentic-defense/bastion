@@ -105,7 +105,7 @@ export default function DeployAgent() {
       <main className="pt-32 px-6 pb-8 max-w-4xl mx-auto">
         <h1 className="font-serif text-2xl mb-2">Deploy an Agent</h1>
         <p className="font-sans text-xs text-zinc-500 mb-8">
-          Choose a pre-configured template. Bastion sets up the policy, capabilities, and staking — your agent is ready in seconds.
+          Choose a pre-configured template. Bastion sets up the policy, capabilities, and staking - your agent is ready in seconds.
         </p>
 
         {/* Template grid */}
@@ -188,10 +188,10 @@ export default function DeployAgent() {
             Templates are stored as YAML in <code className="text-zinc-400">apps/web/public/agent-templates/</code>
           </p>
           <div className="space-y-1 font-mono text-[10px] text-zinc-600">
-            <div>• defi-agent.yml — DeFi operations (Jupiter + Raydium)</div>
-            <div>• trading-agent.yml — High-frequency (relaxed limits)</div>
-            <div>• transfer-agent.yml — Simple SOL transfer (low risk)</div>
-            <div>• custom-agent.yml — Full customization</div>
+            <div>• defi-agent.yml - DeFi operations (Jupiter + Raydium)</div>
+            <div>• trading-agent.yml - High-frequency (relaxed limits)</div>
+            <div>• transfer-agent.yml - Simple SOL transfer (low risk)</div>
+            <div>• custom-agent.yml - Full customization</div>
           </div>
         </div>
       </main>

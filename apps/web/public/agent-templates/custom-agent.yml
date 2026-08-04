@@ -1,5 +1,5 @@
 # Custom Agent Template
-# Full agent configuration — customize all parameters for your use case.
+# Full agent configuration - customize all parameters for your use case.
 name: "Custom Agent"
 description: "Fully customizable agent template. Edit all parameters."
 category: "custom"

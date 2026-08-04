@@ -5,10 +5,10 @@ Programmable Trust Runtime.
 
 ## Dashboard Sections
 
-- **Audit Logs** — View all transaction decisions with timestamps, signatures, and reasoning
-- **Pending Approvals** — Human-in-the-loop queue for suspicious transactions
-- **Policy** — Configure allowed programs, native token caps, rate limits, and blockint rules
-- **Circuit Breaker** — Emergency pause/resume for the entire protocol
+- **Audit Logs** - View all transaction decisions with timestamps, signatures, and reasoning
+- **Pending Approvals** - Human-in-the-loop queue for suspicious transactions
+- **Policy** - Configure allowed programs, native token caps, rate limits, and blockint rules
+- **Circuit Breaker** - Emergency pause/resume for the entire protocol
 
 ## API Endpoints Used
 

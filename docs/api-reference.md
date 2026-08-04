@@ -1,7 +1,7 @@
 # API reference
 
 The sidecar exposes a JSON over HTTP API. All routes are relative to your sidecar
-base URL — `https://bastion-agentique.fly.dev` for the hosted alpha, or
+base URL - `https://bastion-agentique.fly.dev` for the hosted alpha, or
 `http://localhost:8080` when self-hosted.
 
 ## Authentication

@@ -5,7 +5,7 @@ Anchor version: 0.30.1
 Solana SDK: 1.18
 
 > This spec is kept in sync with `src/lib.rs`. A fresh mainnet program ID is
-> generated at deploy time — see `docs/MAINNET_READINESS.md`.
+> generated at deploy time - see `docs/MAINNET_READINESS.md`.
 
 ## PDA seeds (as implemented)
 

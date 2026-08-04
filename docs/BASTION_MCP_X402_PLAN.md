@@ -1,12 +1,12 @@
-# Bastion MCP + x402 — Private Repository Plan
+# Bastion MCP + x402 - Private Repository Plan
 
 ## Purpose
 
 A private repository inside `zkos-labs` org hosting Bastion's monetized API layer:
-- **MCP (Model Context Protocol) tools** — expose Bastion's security services to AI agents
-- **x402 payment middleware** — HTTP 402 Payment Required with on-chain settlement
-- **API routes** — rate-limited, authenticated endpoints behind x402 paywall
-- **Usage tracking** — per-agent billing, credits, and analytics
+- **MCP (Model Context Protocol) tools** - expose Bastion's security services to AI agents
+- **x402 payment middleware** - HTTP 402 Payment Required with on-chain settlement
+- **API routes** - rate-limited, authenticated endpoints behind x402 paywall
+- **Usage tracking** - per-agent billing, credits, and analytics
 
 This is the **commercial surface** of Bastion. The public repo (`bastion`) remains the open-source
 firewall core. The private repo (`bastion-mcp`) is how Bastion generates revenue.
@@ -409,7 +409,7 @@ SELF_AGENT_ID_VERIFIER=0x...         # Self Protocol contract on Celo
 The public `@zkos-labs/sdk` package should add:
 
 ```typescript
-// packages/sdk/src/x402.ts (public — no secrets)
+// packages/sdk/src/x402.ts (public - no secrets)
 import { BastionClient } from "./client";
 
 export interface X402Payment {

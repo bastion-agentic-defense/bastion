@@ -5,7 +5,7 @@ page. It publishes ServiceMode **SVCB/HTTPS** records (RFC 9460) under the `_age
 `bastionagentique.com`, and the discovery zone is signed with **DNSSEC** so validating resolvers
 return authenticated answers.
 
-These records live at the DNS provider, **not in this repo** — this file is the source of truth for
+These records live at the DNS provider, **not in this repo** - this file is the source of truth for
 what to publish. Apply them in the DNS dashboard for `bastionagentique.com`, then verify with the
 commands below.
 
@@ -48,7 +48,7 @@ Enable DNSSEC for `bastionagentique.com` so the `_agents` records are authentica
 dig +short SVCB _index._agents.bastionagentique.com
 dig +short SVCB _a2a._agents.bastionagentique.com
 
-# DNSSEC-authenticated answer — look for the `ad` (Authenticated Data) flag:
+# DNSSEC-authenticated answer - look for the `ad` (Authenticated Data) flag:
 dig +dnssec _index._agents.bastionagentique.com SVCB | grep -E 'flags:|ad'
 
 # Matches how the scanner checks (DNS-over-HTTPS via Cloudflare):

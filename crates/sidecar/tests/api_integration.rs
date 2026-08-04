@@ -1320,7 +1320,7 @@ async fn simulate_evm_defaults_to_celo_when_chain_omitted() {
 }
 
 // Note: the positive routing path (a configured chain actually reaching its
-// simulator) is a network-integration concern — `EvmSimulator` owns a blocking
+// simulator) is a network-integration concern - `EvmSimulator` owns a blocking
 // reqwest client that can't be constructed/dropped cleanly inside a test runtime.
 // The 503 tests above already prove the handler looks up by the *requested* chain
 // (empty map → 503 naming that chain) and defaults correctly, which is the

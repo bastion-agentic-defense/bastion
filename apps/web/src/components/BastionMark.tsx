@@ -3,7 +3,7 @@
  *
  * Original geometry, built from the shape already doing work inside the
  * product: the bracket that marks a verdict in the policy ledger. Mirrored, the
- * two brackets close into a gate with a gap at its centre — an aperture that
+ * two brackets close into a gate with a gap at its centre - an aperture that
  * something must pass through to get out. That is literally what the runtime
  * is, so the mark carries meaning rather than decorating.
  *

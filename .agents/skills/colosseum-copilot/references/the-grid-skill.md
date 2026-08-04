@@ -182,7 +182,7 @@ The strongest precision lever for incumbent discovery is filtering by `productTy
 
 Three approaches with different coverage/precision trade-offs. **For maximum recall, combine all three with `_or`** (see Vertical Search recipe below).
 
-**Option A: Profile tags** (broadest — recommended default)
+**Option A: Profile tags** (broadest - recommended default)
 
 ```graphql
 where: {
@@ -206,7 +206,7 @@ where: {
 }
 ```
 
-**Option C: CAIP-2 attribute** (narrow, limited coverage — use as supplement)
+**Option C: CAIP-2 attribute** (narrow, limited coverage - use as supplement)
 
 ```graphql
 where: {
@@ -230,7 +230,7 @@ All `curl` examples assume you have set `THEGRID_GRAPHQL_ENDPOINT` and built the
 
 ### Vertical Search (Category + Solana Scoping)
 
-When to use: incumbent search for a specific vertical. This is the **highest-precision starting point** — map your topic to `productType` slugs (see taxonomy above) and combine with triple-OR Solana ecosystem scoping for maximum recall.
+When to use: incumbent search for a specific vertical. This is the **highest-precision starting point** - map your topic to `productType` slugs (see taxonomy above) and combine with triple-OR Solana ecosystem scoping for maximum recall.
 
 ```graphql
 query VerticalSearch(
@@ -765,7 +765,7 @@ JSON
 
 1. **Map topic to slugs**: Use the Product Type Slug Taxonomy to identify 1-3 `productType` slugs for your domain.
 2. **Vertical Search**: Run the Vertical Search recipe with your slugs + Solana scoping to get the highest-precision incumbent list.
-3. **Broad Keyword Search**: Run the Broad Keyword Search for recall — catches products that don't fit standard categories.
+3. **Broad Keyword Search**: Run the Broad Keyword Search for recall - catches products that don't fit standard categories.
 4. **Saturation check**: Run the category-based aggregate to count total products and distinct roots. This grounds your "crowded vs. whitespace" assessment.
 5. **Expand top incumbents**: Pick 3-5 top results and expand their root profiles (descriptions, tags, socials, product lists).
 6. **Map dependencies**: For each incumbent product, map `supportsProducts` (what they depend on) and `supportsProductsBySupportsProductId` (what depends on them) to find missing primitives.

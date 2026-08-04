@@ -2,7 +2,7 @@
 name = "bastion-sidecar"
 version = "0.3.0"
 edition = "2024"
-description = "Bastion off-chain policy evaluator sidecar — HTTP server wrapping the Bastion policy engine"
+description = "Bastion off-chain policy evaluator sidecar - HTTP server wrapping the Bastion policy engine"
 
 [dependencies]
 axum = "0.7"

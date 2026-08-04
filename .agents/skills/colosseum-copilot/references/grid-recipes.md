@@ -1,4 +1,4 @@
-# The Grid — GraphQL Recipes
+# The Grid - GraphQL Recipes
 
 ## The Grid (Direct GraphQL)
 
@@ -10,7 +10,7 @@
 - **Schema hierarchy**: `roots` → `products`/`entities`/`assets`/`profileInfos` → `deployments`/`contracts`
 - **Data volume**: ~6,300 products (all ecosystems), ~3,000 roots, ~2,500 entities
 - **Operators**: `_eq`, `_in`, `_contains`, `_like`, `_gt`/`_gte`/`_lt`/`_lte`, `_and`/`_or`/`_not`, `_is_null`
-- No full-text search — `_contains` and `_like` are case-insensitive substring matches
+- No full-text search - `_contains` and `_like` are case-insensitive substring matches
 - Always check the `errors` field in JSON responses (GraphQL errors return HTTP 200)
 
 ### Product Type Slug Cheat Sheet
@@ -25,7 +25,7 @@ See the topic → slug mapping table and full slug list in **Step 2e in workflow
 
 ### Query Recipes
 
-#### 1. Vertical Search (category + Solana scoping) — default starting point
+#### 1. Vertical Search (category + Solana scoping) - default starting point
 
 Filter by `productType` slugs with triple-OR Solana scoping (deployment, supports-product, profile tag) and dead-product exclusion:
 
@@ -37,7 +37,7 @@ curl -s -X POST "https://beta.node.thegrid.id/graphql" \
 QUERY
 ```
 
-#### 2. Broad Keyword Search (name/description/slug/entity recall) — fallback
+#### 2. Broad Keyword Search (name/description/slug/entity recall) - fallback
 
 Searches across product name, description, root slug, and entity names. Use when the topic doesn't map cleanly to product type slugs:
 
@@ -49,7 +49,7 @@ curl -s -X POST "https://beta.node.thegrid.id/graphql" \
 QUERY
 ```
 
-#### 3. Root Profile Expansion (deep enrichment) — for Step 6 incumbent analysis
+#### 3. Root Profile Expansion (deep enrichment) - for Step 6 incumbent analysis
 
 Once you have a root slug, pull descriptions, tags, socials, URLs, and products:
 
@@ -61,7 +61,7 @@ curl -s -X POST "https://beta.node.thegrid.id/graphql" \
 QUERY
 ```
 
-#### 4. Saturation Aggregate (product count + distinct root count) — for gap validation
+#### 4. Saturation Aggregate (product count + distinct root count) - for gap validation
 
 Count total products and distinct roots matching a category filter. Use to ground "how crowded is this space?" claims:
 

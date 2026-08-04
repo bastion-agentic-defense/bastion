@@ -29,7 +29,7 @@ pub struct AuditRecord {
     pub decision: FirewallDecision,
     /// Hash of the original transaction payload (for correlation).
     pub payload_hash: String,
-    /// ERC-8281 OCP observation digest — keccak256 of the committed observation
+    /// ERC-8281 OCP observation digest - keccak256 of the committed observation
     /// bytes, enabling trustless recompute verification by external parties.
     pub observation_digest: String,
     /// ERC-8299 WYRIWE input-provenance hash. The triple-hash commitment:
@@ -91,7 +91,7 @@ impl AuditRecord {
 
     /// Recompute the WYRIWE hash from public inputs. Any third party can
     /// call this with the raw transaction data to verify the audit record
-    /// was computed correctly — no trust in Bastion required.
+    /// was computed correctly - no trust in Bastion required.
     pub fn recompute_wyriwe_hash(raw_input: &str) -> String {
         let raw_input_hash = sha256_hex(raw_input.as_bytes());
         let sanitization_cid = "identity";

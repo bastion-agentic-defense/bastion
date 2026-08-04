@@ -6,7 +6,7 @@ import Lenis from 'lenis';
  *
  * Lenis drives the scroll; every frame it writes the current offset to `--sy`
  * (unitless pixels) on the document element. Anything that wants to move with
- * the scroll reads that variable in CSS — no per-element observers, no React
+ * the scroll reads that variable in CSS - no per-element observers, no React
  * re-renders, and critically no entrance animation gating whether content
  * exists. Elements that parallax are already on screen and already readable;
  * only their offset changes.

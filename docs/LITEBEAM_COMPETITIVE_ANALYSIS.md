@@ -1,4 +1,4 @@
-# Bastion Competitive Analysis — vs litebeam.xyz
+# Bastion Competitive Analysis - vs litebeam.xyz
 
 > **Date:** 2026-06-12 &nbsp;·&nbsp; **Status:** Analysis complete, improvement plan active
 >
@@ -19,7 +19,7 @@
 7. [Improvement Plan (Prioritized)](#7-improvement-plan-prioritized)
 8. [3-Day Sprint Plan](#8-3-day-sprint-plan)
 9. [What NOT to Do](#9-what-not-to-do)
-10. [Reference Architecture — Bastion + Litebeam](#10-reference-architecture--bastion--litebeam)
+10. [Reference Architecture - Bastion + Litebeam](#10-reference-architecture--bastion--litebeam)
 11. [Appendices](#11-appendices)
 
 ---
@@ -33,7 +33,7 @@ Two products serve the AI agent ecosystem from opposite ends of the stack:
 | | Bastion | Litebeam |
 |---|---|---|
 | **Problem** | Agent wallets get drained. No audit trail. No policy enforcement. | Agent needs 100+ API keys. Can't compare vendors. Can't auto-pay. |
-| **Layer** | **Security** — prevent bad transactions | **Routing** — find best vendor + settle payment |
+| **Layer** | **Security** - prevent bad transactions | **Routing** - find best vendor + settle payment |
 | **Value prop** | "Trust your Agent, but Verify every Transaction" | "One MCP connection. Every microservice. Zero config." |
 | **Integration** | Sidecar HTTP proxy + on-chain program | Single MCP server config block |
 | **Chains** | Solana + EVM (Celo/Base/Polygon/ETH) + Arcium MXE | Base (USDC settlement) + Tempo (MPP buffer) |
@@ -57,15 +57,15 @@ Two products serve the AI agent ecosystem from opposite ends of the stack:
 | Date | Commit | What |
 |---|---|---|
 | 2026-06-12 | `05ddaad` | Quasar migration attempt → reverted to Anchor (crate immaturity) |
-| 2026-06-12 | `a37dd8a` | Staking removed — deleted 4 instructions from Solana program + SDK |
-| 2026-06-12 | `a8210fb` | Web2 API firewall expansion — proxy engine, provider adapters (OpenAI, Stripe, Slack, GitHub) |
+| 2026-06-12 | `a37dd8a` | Staking removed - deleted 4 instructions from Solana program + SDK |
+| 2026-06-12 | `a8210fb` | Web2 API firewall expansion - proxy engine, provider adapters (OpenAI, Stripe, Slack, GitHub) |
 | 2026-06-12 | `401f3fa` | SDK 0.5.2 release |
 | 2026-06-11 | `5da98de` | MCP reverse proxy via sidecar at `/mcp/*` (15 tools, 3 prompts, SSE) |
-| 2026-06-11 | `81c67cf` | IMPROVEMENTS.md — 5 features (reputation, HITL, webhook, behavioral, intent scoring) |
+| 2026-06-11 | `81c67cf` | IMPROVEMENTS.md - 5 features (reputation, HITL, webhook, behavioral, intent scoring) |
 | 2026-06-11 | `b9d9471` | SDK fix: `updatePolicy` uses POST /policy/full |
-| 2026-06-11 | `71f6e46` | README + Integrate — MCP proxy, EVM contracts, Foundry status |
-| 2026-06-10 | — | EVM dashboard hooks wired (functional, not stubs) |
-| 2026-06-09–10 | — | 6 Solidity contracts + 54 Foundry tests + deploy script |
+| 2026-06-11 | `71f6e46` | README + Integrate - MCP proxy, EVM contracts, Foundry status |
+| 2026-06-10 | - | EVM dashboard hooks wired (functional, not stubs) |
+| 2026-06-09–10 | - | 6 Solidity contracts + 54 Foundry tests + deploy script |
 
 ### 2.2 Current Feature Inventory
 
@@ -76,14 +76,14 @@ Two products serve the AI agent ecosystem from opposite ends of the stack:
 | `core` | Complete | Chain-agnostic `PolicyEvaluator<O: RiskOracle>`, `PolicyRule`, `PolicySet`, `NormalizedTransaction`, `FirewallDecision` |
 | `sidecar` | Complete | Axum HTTP server (port 3000), Helius simulation, EVM simulation (Celo), Sled audit DB, GrondOSINT oracle, Anchor program RPC client, agent registry, DID resolution, circuit breaker, case management |
 | `web2-firewall` | Partial | Proxy engine types + PolicyRule + provider adapters (OpenAI, Stripe, Slack, GitHub). HTTP forward proxy, TLS, webhook security, inspector missing |
-| `correlation` | Skeleton | SIEM event correlation — 3 modules (buffer, engine, rules), content sparse |
+| `correlation` | Skeleton | SIEM event correlation - 3 modules (buffer, engine, rules), content sparse |
 | `solana/bastion-audit` | Complete | Anchor 0.30.1, 7 instructions, deployed on devnet `A29V5MUVs73y7XBHHxPpPcAW7h4gGHupbDdwYSwA2n9D` |
 
 #### EVM Contracts (`evm/`)
 
 | Contract | Purpose |
 |---|---|
-| `BastionFirewall.sol` | ERC-7579 validator — gates UserOperations |
+| `BastionFirewall.sol` | ERC-7579 validator - gates UserOperations |
 | `BastionPolicy.sol` | Per-agent rules (allowlists, limits, cooldowns) |
 | `BastionAudit.sol` | EIP-712 signed immutable audit trail |
 | `BastionRegistry.sol` | Agent + target directory |
@@ -96,10 +96,10 @@ Two products serve the AI agent ecosystem from opposite ends of the stack:
 
 | Component | Status |
 |---|---|
-| `BastionClient` | Complete — 7 Anchor instruction methods |
-| `BastionSidecar` | Complete — simulate, logs, policy, override, health, circuit-breaker, EVM simulate, SSE |
-| `BastionEventStream` | Complete — SSE event stream |
-| `BastionWeb2Client` | Complete — `buildRequest()`, `evaluate()`, proxy methods (9 TDD tests) |
+| `BastionClient` | Complete - 7 Anchor instruction methods |
+| `BastionSidecar` | Complete - simulate, logs, policy, override, health, circuit-breaker, EVM simulate, SSE |
+| `BastionEventStream` | Complete - SSE event stream |
+| `BastionWeb2Client` | Complete - `buildRequest()`, `evaluate()`, proxy methods (9 TDD tests) |
 
 #### MCP Server (`packages/mcp-server/`)
 
@@ -113,13 +113,13 @@ Two products serve the AI agent ecosystem from opposite ends of the stack:
 
 | Page | Status |
 |---|---|
-| Landing (/) | Complete — VideoBackground, feature showcase, competitive comparison table |
-| Dashboard (/dashboard) | Built but **NOT wired in router** — live tx feed, stats, audit log viewer, policy editor, circuit breaker |
-| Integrate (/integrate) | Complete — install blocks, API examples, MCP proxy docs |
-| `useBastionProgram.ts` | Complete — Solana Anchor hooks |
-| `useBastionEVM.ts` | Functional — EVM reads/writes via wagmi |
-| `useSidecar.ts` | Complete — REST API hooks |
-| `useAgents.ts` | Complete — agent registry hooks |
+| Landing (/) | Complete - VideoBackground, feature showcase, competitive comparison table |
+| Dashboard (/dashboard) | Built but **NOT wired in router** - live tx feed, stats, audit log viewer, policy editor, circuit breaker |
+| Integrate (/integrate) | Complete - install blocks, API examples, MCP proxy docs |
+| `useBastionProgram.ts` | Complete - Solana Anchor hooks |
+| `useBastionEVM.ts` | Functional - EVM reads/writes via wagmi |
+| `useSidecar.ts` | Complete - REST API hooks |
+| `useAgents.ts` | Complete - agent registry hooks |
 
 ### 2.3 Known Gaps (from IMPROVEMENTS.md)
 
@@ -139,7 +139,7 @@ Two products serve the AI agent ecosystem from opposite ends of the stack:
 
 ### 3.1 What Litebeam Is
 
-An **AI microservice routing layer** — a single MCP gateway that lets AI agents call any external API service (image generation, translation, search, audio, finance, data, compute, code) without managing vendor accounts, API keys, or payment integrations.
+An **AI microservice routing layer** - a single MCP gateway that lets AI agents call any external API service (image generation, translation, search, audio, finance, data, compute, code) without managing vendor accounts, API keys, or payment integrations.
 
 **Three-step flow:** Call → Route → Settle (under 800ms p50).
 
@@ -154,11 +154,11 @@ An **AI microservice routing layer** — a single MCP gateway that lets AI agent
 | **Routing** | Real-time auction | Parallel bids across x402 + MPP, ranked by `priceScore × 0.5 + reputationScore × 0.5` |
 | | Prefilter + AI select | Keyword search across 6,000+ services → up to 25 candidates → LLM picks winner |
 | | Cost transparency | Response includes: `vendor_cost_usdc`, `litebeam_fee_usdc`, `vendor_endpoint`, `latency_ms`, `candidates_evaluated`, `ai_routed` |
-| **Payment** | Mode A — Litebeam wallet | Pre-funded USDC on Base. Dedicated dashboard. Per-request deduction. |
-| | Mode B — BYO wallet | No account needed. HTTP 402 + EIP-3009. Agent signs, Litebeam verifies and fulfills. |
+| **Payment** | Mode A - Litebeam wallet | Pre-funded USDC on Base. Dedicated dashboard. Per-request deduction. |
+| | Mode B - BYO wallet | No account needed. HTTP 402 + EIP-3009. Agent signs, Litebeam verifies and fulfills. |
 | | Fee | **0.5% (50 bps)** of routed volume, deducted from vendor payment |
 | **Budget** | Daily spend limit | USDC/day hard cap, resets at UTC midnight |
-| | Approval threshold | Per-call HITL — requests above threshold pause and notify human |
+| | Approval threshold | Per-call HITL - requests above threshold pause and notify human |
 | | Low balance alert | Pings operator when balance drops below configured amount |
 | **Reputation** | Vendor reputation | Starts at 80. ±2 (fast <500ms), ±1 (normal), -1 (slow >2000ms), -5 (failure). 0–100 range. |
 | | On-chain update | Reputation updated per settled transaction |
@@ -182,10 +182,10 @@ An **AI microservice routing layer** — a single MCP gateway that lets AI agent
 | npm releases | 0 |
 | Contributors | 1 |
 | Service directory | **Empty** at fetch time ("no services match") |
-| Documentation | Good — 9 markdown files, clear structure, working code snippets |
-| Architecture clarity | Excellent — well-documented ranking formula, protocol abstraction, registry sync |
+| Documentation | Good - 9 markdown files, clear structure, working code snippets |
+| Architecture clarity | Excellent - well-documented ranking formula, protocol abstraction, registry sync |
 
-**Verdict:** Very early proof of concept. Conceptually strong, well-documented, but unproven. The 6,000+ service claim comes from crawling public directories — the actual end-to-end flow may not be functional yet.
+**Verdict:** Very early proof of concept. Conceptually strong, well-documented, but unproven. The 6,000+ service claim comes from crawling public directories - the actual end-to-end flow may not be functional yet.
 
 ---
 
@@ -195,7 +195,7 @@ An **AI microservice routing layer** — a single MCP gateway that lets AI agent
 
 | Dimension | Bastion | Litebeam | Leader |
 |---|---|---|---|
-| **Core value** | Security (prevent bad txs) | Routing (find best vendor + pay) | N/A — different |
+| **Core value** | Security (prevent bad txs) | Routing (find best vendor + pay) | N/A - different |
 | **Integration** | Sidecar proxy + on-chain program | Single MCP config block | Litebeam |
 | **MCP tool count** | 15 tools + 3 prompts | 2 tools | Bastion |
 | **On-chain depth** | Solana Anchor program + 6 EVM contracts | Base payment settlement only | Bastion |
@@ -251,13 +251,13 @@ An **AI microservice routing layer** — a single MCP gateway that lets AI agent
 
 | # | Gap | Litebeam's Implementation | Bastion Status | Priority | Effort |
 |---|---|---|---|---|---|
-| G1 | **Budget control UI** | Daily spend limit, per-call approval threshold, low-balance alert — all in dashboard | Policy engine has rules but no dashboard UI for budget visualization | **Critical** | Med |
+| G1 | **Budget control UI** | Daily spend limit, per-call approval threshold, low-balance alert - all in dashboard | Policy engine has rules but no dashboard UI for budget visualization | **Critical** | Med |
 | G2 | **MCP-first positioning** | Single MCP config = entire product | MCP server has 15 tools but buried in docs; sidecar is primary integration path | **Critical** | Low |
 | G3 | **x402 as product feature** | Core payment rail, prominently marketed | x402 exists in MCP server, not documented or surfaced in dashboard | **High** | Low |
 | G4 | **Cost transparency** | Line-item breakdown in every response (`vendor_cost_usdc`, `litebeam_fee_usdc`, `latency_ms`) | Simulation response shows block/pass decision but no cost breakdown | **Medium** | Low |
-| G5 | **Integration marketplace** | Service directory (6,000+ services) | No equivalent — could add policy template catalog or adapter registry | **Medium** | Med |
+| G5 | **Integration marketplace** | Service directory (6,000+ services) | No equivalent - could add policy template catalog or adapter registry | **Medium** | Med |
 | G6 | **HITL approval UI** | Per-call HITL with REST API for pending/approve/reject | `PendingHITL` exists in core, override endpoint exists, dashboard panel not built | **Medium** | Med |
-| G7 | **No-account onboarding** | BYO wallet mode — zero signup, just HTTP 402 response | Requires sidecar setup, env vars, wallet connection | **Low** | High |
+| G7 | **No-account onboarding** | BYO wallet mode - zero signup, just HTTP 402 response | Requires sidecar setup, env vars, wallet connection | **Low** | High |
 | G8 | **Service health monitoring** | Vendor status tracking (online/slow/offline), reputation per tx | No concept of tracking external service health (just agent reputation) | **Low** | High |
 
 ### 5.2 Gaps Litebeam Has (Bastion's Moat)
@@ -270,7 +270,7 @@ An **AI microservice routing layer** — a single MCP gateway that lets AI agent
 | M4 | **On-chain audit trail** | Anchor PDA on Solana + EIP-712 events on EVM | Just payment tx history |
 | M5 | **Circuit breaker** | On-chain `emergency_pause`/`emergency_resume` | No emergency controls |
 | M6 | **Agent identity system** | W3C DID resolution, ERC-8004 NFTs, parent/child delegation with budget limits | No agent identity concept |
-| M7 | **Web2 API firewall** | HTTP proxy with policy evaluation for API calls | MCP-only — no HTTP proxy layer |
+| M7 | **Web2 API firewall** | HTTP proxy with policy evaluation for API calls | MCP-only - no HTTP proxy layer |
 | M8 | **SIEM correlation** | Event correlation engine (buffer/engine/rules) | No event correlation |
 | M9 | **Full open source** | Everything in monorepo | Core router is SaaS |
 
@@ -370,7 +370,7 @@ Create a reference architecture page showing how Bastion + Litebeam work togethe
 
 #### R6: Consider Policy Template Marketplace (Future)
 
-Litebeam has a service directory. Bastion could have a **policy template marketplace** — community-contributed `config.toml` snippets for common agent use cases (DeFi trading bots, NFT minters, DAO treasuries, etc.). This creates network effects without competing on routing.
+Litebeam has a service directory. Bastion could have a **policy template marketplace** - community-contributed `config.toml` snippets for common agent use cases (DeFi trading bots, NFT minters, DAO treasuries, etc.). This creates network effects without competing on routing.
 
 ---
 
@@ -396,10 +396,10 @@ Litebeam has a service directory. Bastion could have a **policy template marketp
 #### P1: Budget Control UI
 
 **Files to touch:**
-- `apps/web/src/pages/Dashboard.tsx` — add budget overview panel
-- `apps/web/src/components/BudgetPanel.tsx` — new component
-- `crates/sidecar/src/lib.rs` — add `GET /budget` endpoint returning per-agent limits + current usage
-- `config.toml` — add `[budget]` section
+- `apps/web/src/pages/Dashboard.tsx` - add budget overview panel
+- `apps/web/src/components/BudgetPanel.tsx` - new component
+- `crates/sidecar/src/lib.rs` - add `GET /budget` endpoint returning per-agent limits + current usage
+- `config.toml` - add `[budget]` section
 
 **Budget Panel UI:**
 ```
@@ -421,9 +421,9 @@ Litebeam has a service directory. Bastion could have a **policy template marketp
 #### P2: MCP-First Docs Rewrite
 
 **Files to touch:**
-- `README.md` — move MCP config to "Quick Start" section (section 1 after overview)
-- `apps/web/src/pages/Integrate.tsx` — restructure to MCP-first (move HTTP API to "advanced" section)
-- `docs/MCP_INTEGRATION.md` — new dedicated MCP guide
+- `README.md` - move MCP config to "Quick Start" section (section 1 after overview)
+- `apps/web/src/pages/Integrate.tsx` - restructure to MCP-first (move HTTP API to "advanced" section)
+- `docs/MCP_INTEGRATION.md` - new dedicated MCP guide
 
 **Before (current):**
 ```
@@ -442,17 +442,17 @@ Advanced (self-hosted):
 #### P3: x402 Surfacing
 
 **Files to touch:**
-- `packages/mcp-server/README.md` — document x402 tool
-- `apps/web/src/pages/Integrate.tsx` — add "Pay-per-call firewall" block
-- `apps/web/src/pages/Landing.tsx` — add x402 to feature list
-- `README.md` — add x402 to feature table
+- `packages/mcp-server/README.md` - document x402 tool
+- `apps/web/src/pages/Integrate.tsx` - add "Pay-per-call firewall" block
+- `apps/web/src/pages/Landing.tsx` - add x402 to feature list
+- `README.md` - add x402 to feature table
 
 #### P4: Cost Transparency
 
 **Files to touch:**
-- `crates/sidecar/src/lib.rs` — add `estimated_sol_fee`, `simulation_cost`, `program_cu_estimate` to simulate response
-- `crates/sidecar/src/audit.rs` — add cost fields to `AuditEntry`
-- `packages/sdk/src/types.ts` — add cost fields to `SimulateResponse`
+- `crates/sidecar/src/lib.rs` - add `estimated_sol_fee`, `simulation_cost`, `program_cu_estimate` to simulate response
+- `crates/sidecar/src/audit.rs` - add cost fields to `AuditEntry`
+- `packages/sdk/src/types.ts` - add cost fields to `SimulateResponse`
 
 **Response shape:**
 ```json
@@ -471,15 +471,15 @@ Advanced (self-hosted):
 #### P5: HITL Approval UI
 
 **Per existing IMPROVEMENTS.md spec (Feature 2).** Files:
-- `apps/web/src/components/PendingApprovals.tsx` — new component
-- `apps/web/src/pages/Dashboard.tsx` — mount PendingApprovals
-- `crates/sidecar/src/lib.rs` — add `GET /pending` endpoint
+- `apps/web/src/components/PendingApprovals.tsx` - new component
+- `apps/web/src/pages/Dashboard.tsx` - mount PendingApprovals
+- `crates/sidecar/src/lib.rs` - add `GET /pending` endpoint
 
 #### P6: Litebeam Firewall Adapter
 
 **New files:**
-- `crates/sidecar/src/litebeam_adapter.rs` — wrap Litebeam MCP calls with Bastion Web2 firewall inspection
-- `docs/LITEBEAM_INTEGRATION.md` — setup guide
+- `crates/sidecar/src/litebeam_adapter.rs` - wrap Litebeam MCP calls with Bastion Web2 firewall inspection
+- `docs/LITEBEAM_INTEGRATION.md` - setup guide
 
 **How it works:**
 1. Agent connects to both Bastion and Litebeam MCP servers
@@ -488,7 +488,7 @@ Advanced (self-hosted):
 4. Returns pass/block with reason
 5. If pass, agent proceeds to Litebeam for routing + payment
 
-**Alternatively** — Bastion could provide an MCP tool that wraps Litebeam:
+**Alternatively** - Bastion could provide an MCP tool that wraps Litebeam:
 ```typescript
 // Single Bastion MCP tool that internally calls Litebeam:
 await mcp.callTool("bastion-safe-call", {
@@ -502,8 +502,8 @@ await mcp.callTool("bastion-safe-call", {
 #### P7: Integration Marketplace
 
 **Files to touch:**
-- `apps/web/src/pages/Integrate.tsx` — add "Partners & Adapters" section
-- `apps/web/src/components/IntegrationCards.tsx` — new component
+- `apps/web/src/pages/Integrate.tsx` - add "Partners & Adapters" section
+- `apps/web/src/components/IntegrationCards.tsx` - new component
 
 **Listing:**
 ```
@@ -538,13 +538,13 @@ Content:
 
 #### P10: Service Health Monitoring (Future)
 
-**Concept:** Track which external services agents interact with (program IDs on Solana, contract addresses on EVM, API endpoints via Web2 firewall), accumulate response times and success rates, and alert when a service degrades. This is the inverse of Litebeam's vendor reputation — it's about the service's reliability from the agent's side.
+**Concept:** Track which external services agents interact with (program IDs on Solana, contract addresses on EVM, API endpoints via Web2 firewall), accumulate response times and success rates, and alert when a service degrades. This is the inverse of Litebeam's vendor reputation - it's about the service's reliability from the agent's side.
 
 ---
 
 ## 8. 3-Day Sprint Plan
 
-### Day 1 — MCP-First + Budget UX
+### Day 1 - MCP-First + Budget UX
 
 | Task | Effort | Deliverable |
 |---|---|---|
@@ -556,7 +556,7 @@ Content:
 
 **Day 1 close:** MCP-first docs live. Budget panel in dashboard. Dashboard route wired.
 
-### Day 2 — x402 + Cost Transparency + HITL
+### Day 2 - x402 + Cost Transparency + HITL
 
 | Task | Effort | Deliverable |
 |---|---|---|
@@ -568,11 +568,11 @@ Content:
 
 **Day 2 close:** x402 marketed. Cost breakdown in API. HITL working end-to-end.
 
-### Day 3 — Litebeam Adapter + Marketplace + Docs
+### Day 3 - Litebeam Adapter + Marketplace + Docs
 
 | Task | Effort | Deliverable |
 |---|---|---|
-| Write `docs/LITEBEAM_COMPETITIVE_ANALYSIS.md` | — | ✅ This document |
+| Write `docs/LITEBEAM_COMPETITIVE_ANALYSIS.md` | - | ✅ This document |
 | Write Litebeam integration guide | 2h | `docs/LITEBEAM_INTEGRATION.md` |
 | Build `IntegrationCards.tsx` marketplace component | 3h | Partner listing on /integrate |
 | Write `docs/REFERENCE_ARCHITECTURE.md` | 2h | Three reference architectures (Bastion+Litebeam, Bastion+Solana, Bastion+EVM) |
@@ -597,7 +597,7 @@ Content:
 
 ---
 
-## 10. Reference Architecture — Bastion + Litebeam
+## 10. Reference Architecture - Bastion + Litebeam
 
 ```
                               ┌──────────────────┐
@@ -693,7 +693,7 @@ Content:
 | 13 | `get_stats` | Dashboard statistics |
 | 14 | `simulate_evm` | EVM (Celo) transaction simulation |
 | 15 | `inspect_api_call` | Web2 firewall content inspection |
-| — | `*_prompt` (3) | security-analysis, policy-generation, agent-diagnostic |
+| - | `*_prompt` (3) | security-analysis, policy-generation, agent-diagnostic |
 
 ### D. Key Differences Summary Table
 

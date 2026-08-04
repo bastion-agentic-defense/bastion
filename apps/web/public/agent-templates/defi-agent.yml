@@ -1,7 +1,7 @@
 # DeFi Agent Template
 # Pre-configured Bastion agent for Defi operations.
 name: "DeFi Agent"
-description: "Pre-configured agent for DeFi operations — swap and transfer tokens with policy-gated limits."
+description: "Pre-configured agent for DeFi operations - swap and transfer tokens with policy-gated limits."
 category: "defi"
 version: "v1"
 

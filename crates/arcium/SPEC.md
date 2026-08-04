@@ -1,4 +1,4 @@
-# bastion-arcium — Arcium MXE Integration
+# bastion-arcium - Arcium MXE Integration
 
 ## Purpose
 
@@ -67,8 +67,8 @@ Returns `FirewallDecision::Pass` for all inputs. Used when Arcium is not configu
 
 ## Modules (placeholders)
 
-- `circuits/` — Arcis circuit definitions (policy_evaluator)
-- `solana/` — On-chain callback integration
+- `circuits/` - Arcis circuit definitions (policy_evaluator)
+- `solana/` - On-chain callback integration
 
 ## Integration
 

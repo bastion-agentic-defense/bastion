@@ -1,6 +1,6 @@
 ---
 name: risk-exposure-screening-concepts
-description: Educational map of risk exposure screening—typical risk indicator taxonomies, exposure value and percentage, address-level vs transaction-level engines, and common template families (entity label, multi-hop interaction, blacklist). Use when the user asks how commercial screening tools reason about labeled addresses, tainted flows, or deposit vs withdrawal checks—not for legal sanctions determinations or substituting a vendor’s live rules.
+description: Educational map of risk exposure screening-typical risk indicator taxonomies, exposure value and percentage, address-level vs transaction-level engines, and common template families (entity label, multi-hop interaction, blacklist). Use when the user asks how commercial screening tools reason about labeled addresses, tainted flows, or deposit vs withdrawal checks-not for legal sanctions determinations or substituting a vendor’s live rules.
 ---
 
 # Risk exposure screening (concepts)
@@ -42,38 +42,38 @@ Risk indicators are **categories** assigned to addresses or entities. Names vary
 | **Exposure value** | Total USD value (per provider’s pricing source) of assets that **originated from** or **interacted with** a specified risk-labeled source, under the engine’s rules. |
 | **Exposure percentage** | Share of **tainted** value relative to total **inflow** or **outflow** value for the screened address, under the configured window and rules. |
 
-Interpretation is **policy-dependent**—same raw hops can score differently by direction, hop depth, and minimum amounts.
+Interpretation is **policy-dependent**-same raw hops can score differently by direction, hop depth, and minimum amounts.
 
 ## Address-level screening (common templates)
 
 Many platforms expose three **template** families for **addresses**:
 
-1. **Entity / direct label risk** — The screened address **itself** carries a risk label (for example sanctioned or scam).  
+1. **Entity / direct label risk** - The screened address **itself** carries a risk label (for example sanctioned or scam).  
    *Illustrative:* an address is flagged because it matches an OFAC-listed identifier in the provider’s dataset.
 
-2. **Interaction risk** — Traces **incoming or outgoing** value across **multiple hops**. If any counterparty in the path carries a risk label, the engine may flag exposure **subject to** direction, hop limits, amount thresholds, and decay rules.
+2. **Interaction risk** - Traces **incoming or outgoing** value across **multiple hops**. If any counterparty in the path carries a risk label, the engine may flag exposure **subject to** direction, hop limits, amount thresholds, and decay rules.
 
-3. **Blacklist interaction** — Detects interaction with addresses on a **customer-defined** or **tenant** blacklist (policy-specific).
+3. **Blacklist interaction** - Detects interaction with addresses on a **customer-defined** or **tenant** blacklist (policy-specific).
 
 ## Transaction-level screening (common templates)
 
 For a **single transaction**, engines often provide:
 
-1. **Participant risk** — Whether **addresses participating** in the transaction carry configured risk indicators.  
-   **Deposit vs withdrawal (typical convention):** for a directional screen, **deposit** flows may screen only the **from** side, and **withdrawal** flows only the **to** side—confirm in product docs.
+1. **Participant risk** - Whether **addresses participating** in the transaction carry configured risk indicators.  
+   **Deposit vs withdrawal (typical convention):** for a directional screen, **deposit** flows may screen only the **from** side, and **withdrawal** flows only the **to** side-confirm in product docs.
 
-2. **Interaction / flow risk** — Traces fund **provenance** or **destination** of the transaction’s value to detect prior exposure (for example receiving from a phishing-labeled cluster). Deposit/withdrawal modes may restrict whether **source** or **destination** tracing applies.
+2. **Interaction / flow risk** - Traces fund **provenance** or **destination** of the transaction’s value to detect prior exposure (for example receiving from a phishing-labeled cluster). Deposit/withdrawal modes may restrict whether **source** or **destination** tracing applies.
 
-3. **Blacklist interaction** — Whether the transaction touches **blacklisted** addresses per policy.
+3. **Blacklist interaction** - Whether the transaction touches **blacklisted** addresses per policy.
 
 ## Guardrails
 
 - **Do not** treat a commercial **label** as a court finding or automatic **sanctions** violation.  
 - **Do not** assist with **evading** screening, mixers for illicit purpose, or **circumventing** law enforcement processes.  
-- **Separate** on-chain **facts** from **vendor scoring**—document both when reporting.
+- **Separate** on-chain **facts** from **vendor scoring**-document both when reporting.
 
 ## See also
 
-- **behavioral-risk-screening-concepts** — volume, velocity, and transit-style **behavior** heuristics (complements label-based exposure).
+- **behavioral-risk-screening-concepts** - volume, velocity, and transit-style **behavior** heuristics (complements label-based exposure).
 
 **Goal:** give investigators a **shared vocabulary** for exposure-style screening without binding any specific **product** behavior or **legal** outcome.

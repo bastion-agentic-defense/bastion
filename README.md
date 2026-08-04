@@ -5,9 +5,9 @@
 [![npm](https://img.shields.io/npm/v/@zkos-labs/sdk?label=sdk)](https://www.npmjs.com/package/@zkos-labs/sdk)
 [![npm](https://img.shields.io/npm/v/@zkos-labs/web2-sdk?label=web2-sdk)](https://www.npmjs.com/package/@zkos-labs/web2-sdk)
 
-> ⚠️ **Alpha Software** — APIs and runtime behavior may change before the first stable release.
+> ⚠️ **Alpha Software** - APIs and runtime behavior may change before the first stable release.
 > This document marks what ships today vs. what is planned. **No component is on mainnet with
-> real value:** production deployment is gated behind an external security audit — see
+> real value:** production deployment is gated behind an external security audit - see
 > [`docs/MAINNET_READINESS.md`](docs/MAINNET_READINESS.md) and [`docs/EVM_READINESS.md`](docs/EVM_READINESS.md).
 
 **Status legend:** ✅ shipped & tested · 🟡 partial / not fully wired · 🚧 planned / stubbed
@@ -29,7 +29,7 @@ Bastion determines **how those requirements are enforced**.
 Today, the shipped core is a **transaction firewall**: agents submit intended actions, Bastion
 evaluates them against programmable policy, simulates them, applies human-in-the-loop review when
 required, and writes a verifiable audit record. The broader runtime (durable workflows,
-confidential compute, cross-chain settlement) is under active development — see the roadmap below.
+confidential compute, cross-chain settlement) is under active development - see the roadmap below.
 
 ---
 
@@ -65,16 +65,16 @@ Developers who self-host Bastion retain full functionality without any platform 
 | Web2 API policy gateway | 🟡 |
 | MCP server | 🟡 |
 | Dashboard & monitoring | 🟡 |
-| Durable workflow execution | 🚧 design phase — see [Epic A](docs/IMPLEMENTATION_PLAN.md#phase-1-durable-workflow-engine--epic-a-1700-loc-2-3-weeks) |
-| Confidential computation (Arcium) | 🚧 stubbed — noop client, behind audit gate |
-| Secrets management (Vault) | 🚧 planned — see [Epic E](docs/IMPLEMENTATION_PLAN.md#phase-3-secrets-management--epic-e-500-loc-1-week) |
-| General-purpose policy (OPA) | 🚧 planned — see [Epic F](docs/IMPLEMENTATION_PLAN.md#phase-2-general-purpose-policy--epic-f-600-loc-1-week) |
+| Durable workflow execution | 🚧 design phase - see [Epic A](docs/IMPLEMENTATION_PLAN.md#phase-1-durable-workflow-engine--epic-a-1700-loc-2-3-weeks) |
+| Confidential computation (Arcium) | 🚧 stubbed - noop client, behind audit gate |
+| Secrets management (Vault) | 🚧 planned - see [Epic E](docs/IMPLEMENTATION_PLAN.md#phase-3-secrets-management--epic-e-500-loc-1-week) |
+| General-purpose policy (OPA) | 🚧 planned - see [Epic F](docs/IMPLEMENTATION_PLAN.md#phase-2-general-purpose-policy--epic-f-600-loc-1-week) |
 
 ---
 
 ## How Bastion Composes Existing Standards
 
-Bastion orchestrates — it does not replace — the Ethereum ecosystem's trust primitives.
+Bastion orchestrates - it does not replace - the Ethereum ecosystem's trust primitives.
 
 | Standard | Provides | Bastion Adds |
 |----------|---------|-------------|
@@ -87,8 +87,8 @@ Bastion orchestrates — it does not replace — the Ethereum ecosystem's trust 
 | Lit Protocol | Key management | Confidential execution policies |
 | EigenLayer | Shared trust | Runtime coordination using cryptoeconomic trust |
 | Pact Network | Payment refunds | Auto-insured outbound API calls for agent payments |
-| trustless-ai / agent-ercs | ERC-8004, ERC-8263, ERC-8281, ERC-8299 | Standard agent identity, anchor proofs, OCP/WYRIWE provenance — recompute-able |
-| CAPV (ZK verdicts) | Confidential agent policy verdicts | ZK proofs that a committed (secret) policy allows an action — Noir + UltraHonk |
+| trustless-ai / agent-ercs | ERC-8004, ERC-8263, ERC-8281, ERC-8299 | Standard agent identity, anchor proofs, OCP/WYRIWE provenance - recompute-able |
+| CAPV (ZK verdicts) | Confidential agent policy verdicts | ZK proofs that a committed (secret) policy allows an action - Noir + UltraHonk |
 
 See [`docs/COMPETITIVE_LANDSCAPE.md`](docs/COMPETITIVE_LANDSCAPE.md) for the full competitive analysis.
 
@@ -129,14 +129,14 @@ Different execution environments serve different purposes.
 | Capability                    | Network  | Status |
 | ----------------------------- | -------- | ------ |
 | Durable workflow coordination | Solana   | ✅ on-chain audit program (devnet) |
-| ZK-verified execution (native AA) | Starknet | 🚧 planned — Ethereum ZK-rollup, STARK proofs, Cairo VM, every account is a smart account |
+| ZK-verified execution (native AA) | Starknet | 🚧 planned - Ethereum ZK-rollup, STARK proofs, Cairo VM, every account is a smart account |
 | Confidential computation      | Arcium   | 🚧 integration stubbed (no-op MPC client today) |
 | Trust anchoring & settlement  | Ethereum | 🟡 per-chain sim wired (`settlement:"ethereum"`); contracts written & tested; testnet-only, mainnet 🚧 behind audit gate |
 | Privacy-preserving execution  | Midnight | 🚧 planned |
 | Provenance & attestations     | Sigil    | 🚧 planned |
-| Payment guarantees            | Pact Network | 🚧 planned — on-chain refunds for x402 agent payments |
+| Payment guarantees            | Pact Network | 🚧 planned - on-chain refunds for x402 agent payments |
 
-Applications interact with Bastion—not individual blockchains.
+Applications interact with Bastion-not individual blockchains.
 
 ---
 
@@ -206,7 +206,7 @@ npm install @zkos-labs/sdk
 
 ## Example
 
-**Available today** — simulate and policy-check an agent transaction through the firewall, and
+**Available today** - simulate and policy-check an agent transaction through the firewall, and
 register an agent identity:
 
 ```typescript
@@ -222,7 +222,7 @@ const client = new BastionClient({ connection });
 const tx = await client.registerAgent({ /* ... */ });
 ```
 
-**Unified runtime facade (🟡 shipped in the SDK, thin composition)** — a single `execute()` call
+**Unified runtime facade (🟡 shipped in the SDK, thin composition)** - a single `execute()` call
 where developers declare trust guarantees instead of choosing infrastructure:
 
 ```typescript
@@ -240,7 +240,7 @@ const result = await bastion.execute({
 ```
 
 `execute()` composes the existing firewall primitives (policy evaluation, per-chain simulation,
-audit) behind one call — it adds no new backend. The cross-chain settlement **router/planner** is
+audit) behind one call - it adds no new backend. The cross-chain settlement **router/planner** is
 still minimal (chain selection + simulation); true execution planning remains 🚧.
 
 ---
@@ -274,8 +274,8 @@ Please open an issue to discuss new features, architecture proposals, or bug rep
 Bastion is an open-source community project sustained by the community.
 If Bastion helps your team deploy autonomous agents safely, consider:
 
-- **[GitHub Sponsors](https://github.com/sponsors/zkos-labs)** — one-time or monthly donation
-- **Star the repo** — helps others discover the project
+- **[GitHub Sponsors](https://github.com/sponsors/zkos-labs)** - one-time or monthly donation
+- **Star the repo** - helps others discover the project
 
 ---
 

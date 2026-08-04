@@ -26,7 +26,7 @@ export const CHAINS: Record<ChainId, ChainConfig> = {
     shortName: 'EVM',
     icon: '',
     color: '#627EEA',
-    // Sepolia testnet by default (see docs/EVM_READINESS.md — testnet-only pre-audit).
+    // Sepolia testnet by default (see docs/EVM_READINESS.md - testnet-only pre-audit).
     rpcUrl: import.meta.env.VITE_EVM_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com',
     explorerUrl: import.meta.env.VITE_EVM_EXPLORER_URL || 'https://sepolia.etherscan.io',
   },

@@ -46,8 +46,8 @@ function AppRoutes() {
 /**
  * Solana wallet context.
  *
- * Every page that reads `useWallet()` / `useConnection()` — Integrate, Dashboard,
- * AgentList, DeployAgent and the `useBastionProgram` hook — throws on render if
+ * Every page that reads `useWallet()` / `useConnection()` - Integrate, Dashboard,
+ * AgentList, DeployAgent and the `useBastionProgram` hook - throws on render if
  * these providers are absent, which blanks the entire route. They are mounted at
  * the root so no route can regress that way again.
  */

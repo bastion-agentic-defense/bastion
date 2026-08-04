@@ -1,4 +1,4 @@
-# Bastion — Vision
+# Bastion - Vision
 
 > This document describes the **north-star vision** for Bastion as a Programmable Trust Runtime.
 > It is intentionally aspirational. For what ships today vs. what is planned, see the root
@@ -33,19 +33,19 @@ await bastion.execute({
 Instead of choosing infrastructure, developers declare the desired trust guarantees. Behind the
 facade, Bastion coordinates specialized runtimes:
 
-- **Identity Runtime** — agent identity, delegation, and credentials via ERC-8004, ERC-8126, DID.
-- **Policy Runtime** — rules, approvals, limits, and governance powered by OPA and runtime rules.
-- **Wallet Runtime** — composable smart accounts via ERC-4337, EIP-7702, ERC-7579.
-- **Evidence Runtime** — verifiable attestations via EAS, Sign Protocol, zkTLS/Reclaim.
-- **Durable Workflow Engine** — execution that survives failures and prevents duplicate actions.
-- **Privacy Runtime** — confidential computation via Arcium MXE.
-- **Trust Ledger** — verifiable, auditable records of every action.
-- **Execution Planner** — multi-chain routing (Solana, EVM, Arcium, Midnight).
-- **Settlement Router** — anchoring and settlement on Ethereum, with payment guarantees via Pact Network.
+- **Identity Runtime** - agent identity, delegation, and credentials via ERC-8004, ERC-8126, DID.
+- **Policy Runtime** - rules, approvals, limits, and governance powered by OPA and runtime rules.
+- **Wallet Runtime** - composable smart accounts via ERC-4337, EIP-7702, ERC-7579.
+- **Evidence Runtime** - verifiable attestations via EAS, Sign Protocol, zkTLS/Reclaim.
+- **Durable Workflow Engine** - execution that survives failures and prevents duplicate actions.
+- **Privacy Runtime** - confidential computation via Arcium MXE.
+- **Trust Ledger** - verifiable, auditable records of every action.
+- **Execution Planner** - multi-chain routing (Solana, EVM, Arcium, Midnight).
+- **Settlement Router** - anchoring and settlement on Ethereum, with payment guarantees via Pact Network.
 
 ## What Bastion owns vs. what it composes
 
-Bastion orchestrates existing Ethereum standards — it does not compete with them.
+Bastion orchestrates existing Ethereum standards - it does not compete with them.
 
 | Standard | Purpose | How Bastion Uses It |
 |----------|---------|-------------------|
@@ -149,12 +149,12 @@ Different execution environments serve different purposes: durable coordination 
 ZK-verified execution with native account abstraction (Starknet),
 confidential computation (Arcium), trust anchoring & settlement (Ethereum), privacy-preserving
 execution (Midnight), and provenance & attestations (Sigil). Applications interact with
-Bastion — not individual blockchains.
+Bastion - not individual blockchains.
 
 ## The trust lifecycle
 
-Every workflow follows the same pipeline — Identity → Policy Evaluation → Privacy Enforcement →
-Execution Planning → Verification → Settlement — so that every action is deterministic, auditable,
+Every workflow follows the same pipeline - Identity → Policy Evaluation → Privacy Enforcement →
+Execution Planning → Verification → Settlement - so that every action is deterministic, auditable,
 and policy-compliant.
 
 ## Roadmap horizon
@@ -167,9 +167,9 @@ and policy-compliant.
 - Zero-knowledge policy enforcement
 - Decentralized identity integration
 - A trust marketplace for AI agents
-- Pact Network integration — auto-insured outbound API calls
+- Pact Network integration - auto-insured outbound API calls
 
 ---
 
-**Built by zkOS Labs** — advancing programmable trust infrastructure for Ethereum and
+**Built by zkOS Labs** - advancing programmable trust infrastructure for Ethereum and
 interoperable open networks.

@@ -1,8 +1,8 @@
-# Bastion Web2 AI Firewall — Expansion Plan
+# Bastion Web2 AI Firewall - Expansion Plan
 
 > **Extend Bastion from blockchain transaction firewall to universal AI agent API gateway.**
 >
-> Same brand. Same trust-but-verify philosophy. Same agent registry, policy engine, audit trail, GrondOSINT, and HITL flow — applied to HTTP API calls instead of blockchain transactions.
+> Same brand. Same trust-but-verify philosophy. Same agent registry, policy engine, audit trail, GrondOSINT, and HITL flow - applied to HTTP API calls instead of blockchain transactions.
 >
 > **Repo:** `bastion` (this repo)
 >
@@ -14,7 +14,7 @@
 
 **`bastion` = Agent Firewall + Compliance SIEM** (this repo). Solana-native + EVM multichain AI transaction firewall + Web2 API gateway firewall + Arcium MXE compliance engine + agent-to-agent security + public SDKs, docs, OSS community.
 
-**All features** — blocking, inspecting, governing, observability, privacy-preserving logging, compliance analytics, and enterprise SIEM — live in this single repository.
+**All features** - blocking, inspecting, governing, observability, privacy-preserving logging, compliance analytics, and enterprise SIEM - live in this single repository.
 
 ---
 
@@ -22,7 +22,7 @@
 
 Bastion today protects Solana AI agents from malicious/unauthorized blockchain transactions. This expansion builds a **Web2 API Gateway Firewall** protecting AI agents calling external REST, gRPC, and GraphQL APIs (OpenAI, Stripe, Slack, GitHub, AWS, etc.).
 
-**Core insight:** An AI agent is equally dangerous calling an unauthorized API endpoint as signing a bad blockchain transaction. The same infrastructure — policy engine, simulation, audit trail, HITL override, agent identity, circuit breaker — applies to both domains.
+**Core insight:** An AI agent is equally dangerous calling an unauthorized API endpoint as signing a bad blockchain transaction. The same infrastructure - policy engine, simulation, audit trail, HITL override, agent identity, circuit breaker - applies to both domains.
 
 **Reused infrastructure:**
 - Policy engine & decision model (`crates/core`)
@@ -265,7 +265,7 @@ LOG_ONLY        → Pass through, log for audit
 |------|-----------|--------|------------|
 | TLS MITM resistance from API providers | High | High | SDK mode avoids TLS issues. Transparent mode as alternative. Document clearly. |
 | Latency overhead on API calls | Medium | Medium | SDK middleware in-process. Proxy mode <5ms. eBPF <1ms. |
-| Scope creep — too many providers | High | Medium | Generic OpenAPI adapter covers 80%. Specific adapters only for top 5. |
+| Scope creep - too many providers | High | Medium | Generic OpenAPI adapter covers 80%. Specific adapters only for top 5. |
 | Competition from existing API gateways (Kong, Envoy) | Medium | Medium | Differentiate on agent-native: reputation-based policy, GrondOSINT, on-chain audit, agent DID. |
 | Enterprise self-hosted eats dev resources | Medium | Medium | Docker compose for small. Reference k8s helm chart. No custom infra. |
 
@@ -294,7 +294,7 @@ These features are part of `bastion` and serve the enterprise compliance use cas
 | Case management with on-chain case closure | SIEM workflow |
 | SLA-backed audit evidence chain | Enterprise support |
 
-All features — blocking, inspecting, auditing, and reporting — live in this single repository.
+All features - blocking, inspecting, auditing, and reporting - live in this single repository.
 
 ---
 
@@ -311,8 +311,8 @@ All features — blocking, inspecting, auditing, and reporting — live in this 
 | `packages/sdk` BastionClient | New client: `BastionWeb2Client` (same patterns) |
 | Agent registry / DID | Web2 agents register via same flow |
 | GrondOSINT | Expanded to score API endpoints, domains, provider reputations |
-| HITL override flow | Same `POST /override` — works for Web2 blocks too |
-| Circuit breaker | Same `POST /circuit-breaker/engage` — pauses ALL traffic |
+| HITL override flow | Same `POST /override` - works for Web2 blocks too |
+| Circuit breaker | Same `POST /circuit-breaker/engage` - pauses ALL traffic |
 | 47 agent skills | +6 new Web2 security skills (see §8) |
 | MCP server | New tools: `proxy_configure`, `proxy_audit_logs`, `proxy_override` |
 | x402 payments | Optional billing rail for Pro tier |
@@ -320,6 +320,6 @@ All features — blocking, inspecting, auditing, and reporting — live in this 
 
 ---
 
-> **Rebrand positioning:** "Bastion — The Firewall for Everything Your Agent Does."
+> **Rebrand positioning:** "Bastion - The Firewall for Everything Your Agent Does."
 >
 > Tagline evolution: *"Trust your Agent, but Verify every Transaction"* → *"Trust your Agent, but Verify every Call."*

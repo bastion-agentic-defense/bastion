@@ -1,4 +1,4 @@
-# Bastion — Production Roadmap
+# Bastion - Production Roadmap
 
 > Target: Production-ready by **2026-06-18** (one week from 2026-06-11)
 >
@@ -18,7 +18,7 @@
 
 ## Week of 2026-06-11 → 2026-06-18
 
-### Day 1–2: Remove Staking (Solana Program Cleanup) — DONE
+### Day 1–2: Remove Staking (Solana Program Cleanup) - DONE
 
 **Goal:** Trim the on-chain program to the minimum viable audit surface.
 
@@ -29,7 +29,7 @@
 - Events: `StakeChanged`, `UnstakeRequested`, `StakeSlashed`
 - Errors: `InsufficientStake`, `StakeTooRecent`, `StakeCooldownNotMet`, `NoUnstakeRequested`, `MaxDelegationDepth`
 
-**What stays:** `initialize`, `log_audit`, `register_agent`, `update_agent_reputation`, `set_policy`, `emergency_pause`, `emergency_resume` — the pure audit/identity/policy surface.
+**What stays:** `initialize`, `log_audit`, `register_agent`, `update_agent_reputation`, `set_policy`, `emergency_pause`, `emergency_resume` - the pure audit/identity/policy surface.
 
 **Also remove** the `stake_lamports` instruction reference from `README.md` on-chain table, `packages/sdk/src/index.ts`, and `packages/sdk/src/types.ts`.
 
@@ -37,7 +37,7 @@
 
 ---
 
-### Day 2–3: Quasar Migration (Solana Program) — BLOCKED on crate maturity
+### Day 2–3: Quasar Migration (Solana Program) - BLOCKED on crate maturity
 
 **Status:** Attempted migration to `quasar-lang` v0.0.0 on 2026-06-12. The crate compiles (`#[derive(Accounts)]`, `#[program]`, `Ctx<T>`, `#![no_std]` all resolve) but the published version is missing features documented on quasar-lang.com:
 
@@ -59,19 +59,19 @@
 1. Add `quasar-lang` to `crates/solana/programs/bastion-audit/Cargo.toml`, remove `anchor-lang`.
 2. Replace `use anchor_lang::prelude::*` → `use quasar_lang::prelude::*`.
 3. Replace `#[program]` module + `pub fn` handlers with `#[instruction(discriminator = N)]` pattern.
-4. Replace `#[derive(Accounts)]` structs with Quasar's `#[derive(Accounts)]` (API is similar but constraints differ — see [Quasar accounts docs](https://quasar-lang.com/docs/core-concepts/accounts-and-validation)).
-5. Replace `#[account]` data structs — use `&'a str` tail fields where possible (e.g. `AuditEntry.reasoning`, `Agent.name`) to avoid length-prefix overhead.
+4. Replace `#[derive(Accounts)]` structs with Quasar's `#[derive(Accounts)]` (API is similar but constraints differ - see [Quasar accounts docs](https://quasar-lang.com/docs/core-concepts/accounts-and-validation)).
+5. Replace `#[account]` data structs - use `&'a str` tail fields where possible (e.g. `AuditEntry.reasoning`, `Agent.name`) to avoid length-prefix overhead.
 6. Replace `emit!` → `emit_cpi!` (Quasar event model).
 7. Add `#![no_std]` at crate root.
 8. Replace `std::mem::size_of` in `space` calculations with explicit byte counts (already done in most places).
-9. Regenerate IDL with `quasar build` (outputs compatible JSON — verify against SDK types).
+9. Regenerate IDL with `quasar build` (outputs compatible JSON - verify against SDK types).
 10. Update `crates/solana/Anchor.toml` or replace with `quasar.toml` per Quasar project config.
 
 **Key differences from Anchor to watch:**
 - Quasar uses `Ctx<T>` not `Context<T>`
 - Discriminators are explicit (`#[instruction(discriminator = N)]`), not hash-derived
 - `Result<(), ProgramError>` not `Result<()>` (Anchor's re-export)
-- No `require!` macro — use standard `if !cond { return Err(...) }`
+- No `require!` macro - use standard `if !cond { return Err(...) }`
 - Build for production without `--debug` flag (strips validation log overhead)
 
 **Acceptance:** `quasar build` succeeds, binary is <200 KB, IDL JSON diff is minimal (field names/types unchanged), SDK still compiles against new IDL.
@@ -87,7 +87,7 @@ The staking mechanism gated higher `max_sol_per_tx` by staked SOL amount. Replac
 **In `crates/core/src/policy/types.rs`**, add:
 ```rust
 /// Scale transaction limits by agent reputation score.
-/// Works on any chain — no SOL staking required.
+/// Works on any chain - no SOL staking required.
 ReputationWeighted {
     /// Base limit (applied when reputation_score = 0)
     base_limit_lamports: u64,
@@ -156,7 +156,7 @@ solana program deploy --dry-run target/deploy/bastion_audit.so --url mainnet-bet
 
 ## Post-Production Backlog (after 2026-06-18)
 
-These are from `IMPROVEMENTS.md` — prioritized but not blocking production:
+These are from `IMPROVEMENTS.md` - prioritized but not blocking production:
 
 | # | Feature | Notes |
 |---|---|---|
@@ -169,46 +169,46 @@ These are from `IMPROVEMENTS.md` — prioritized but not blocking production:
 
 ---
 
-## Future Epics — The Runtime Vision (🚧)
+## Future Epics - The Runtime Vision (🚧)
 
 These are the large net-new subsystems behind the 🚧 markers in the root `README.md` and
-[`docs/VISION.md`](VISION.md). They are **not** in any current milestone — they are captured here so
+[`docs/VISION.md`](VISION.md). They are **not** in any current milestone - they are captured here so
 the vision has an honest home and the README markers reconcile against a real backlog. Each sits
 **behind the mainnet/EVM external-audit hard gate** (`docs/MAINNET_READINESS.md` §7,
 `docs/EVM_READINESS.md` §6); none ships to mainnet real-value traffic before that gate clears.
 
-### Epic A — Durable Workflow Engine (🚧 design phase)
+### Epic A - Durable Workflow Engine (🚧 design phase)
 
 **Status today:** No workflow / orchestration / state-machine code exists anywhere in the repo. This
 is the **largest net-new subsystem** on the roadmap. A detailed architecture spec exists at
 [`docs/WORKFLOW_ENGINE_DESIGN.md`](WORKFLOW_ENGINE_DESIGN.md).
 
 **Why:** `execute()` today is a single synchronous decision (policy → simulate → decide). A durable
-engine is what turns Bastion from a firewall into a *runtime* — multi-step agent actions that
+engine is what turns Bastion from a firewall into a *runtime* - multi-step agent actions that
 survive process restarts, retry deterministically, and resume where they left off.
 
 **Requirements:**
-- **Persistent state machine** — each workflow run is durably recorded (step, status, inputs,
+- **Persistent state machine** - each workflow run is durably recorded (step, status, inputs,
   outputs) so a crash mid-run is recoverable. Reuse the existing `sled` store the sidecar audit log
   already depends on (`crates/sidecar/src/audit.rs`) rather than introducing a new datastore.
-- **Idempotency / dedupe** — every step carries an idempotency key; re-delivery of the same step is a
+- **Idempotency / dedupe** - every step carries an idempotency key; re-delivery of the same step is a
   no-op, so at-least-once execution is safe.
-- **Retry & resume** — failed steps retry with backoff; a resumed run replays completed steps from
+- **Retry & resume** - failed steps retry with backoff; a resumed run replays completed steps from
   the log instead of re-executing side effects.
-- **Failure survival** — a killed sidecar reconstructs in-flight runs from the persisted log on boot.
-- **HITL integration** — a `PendingHITL` decision suspends the workflow durably until an
+- **Failure survival** - a killed sidecar reconstructs in-flight runs from the persisted log on boot.
+- **HITL integration** - a `PendingHITL` decision suspends the workflow durably until an
   `/override` resolves it, rather than blocking a request handler.
 
 **Shape:** likely a new `crates/workflow` crate (chain-agnostic, like `crates/core`) plus sidecar
 routes to start / query / resume runs, and an SDK surface (`bastion.workflow(...)`) composing
 `execute()` per step. Full design: [`docs/WORKFLOW_ENGINE_DESIGN.md`](WORKFLOW_ENGINE_DESIGN.md).
 
-### Epic B — Real Arcium Confidential Compute (🚧 stubbed)
+### Epic B - Real Arcium Confidential Compute (🚧 stubbed)
 
 **Status today:** `crates/arcium/` ships only `NoopArciumClient`, which always returns `Pass`. The
 Arcis circuits (`crates/arcium/src/circuits/`) and the Solana callback (`crates/arcium/src/solana/`)
 are empty placeholders. Per MAINNET_READINESS §6, the runtime **must not advertise "confidential"
-while only the noop is active** — this is now enforced: `/health` reports
+while only the noop is active** - this is now enforced: `/health` reports
 `confidential_compute: false` and `bastion.execute({ privacy: "confidential" })` refuses rather than
 evaluating in the clear.
 
@@ -216,41 +216,41 @@ evaluating in the clear.
 without revealing them) is the headline privacy guarantee. A no-op cannot back that claim.
 
 **Requirements:**
-- **Arcis circuits** — implement the real MPC circuits in `crates/arcium/src/circuits/` for the
+- **Arcis circuits** - implement the real MPC circuits in `crates/arcium/src/circuits/` for the
   confidential policy-evaluation path (private thresholds, private allowlists).
-- **Solana callback** — wire `crates/arcium/src/solana/` to submit/await the MXE computation and
+- **Solana callback** - wire `crates/arcium/src/solana/` to submit/await the MXE computation and
   land the attested result on-chain.
-- **Live MXE client** — replace `NoopArciumClient` with a client that talks to a real Arcium MXE
+- **Live MXE client** - replace `NoopArciumClient` with a client that talks to a real Arcium MXE
   cluster, implementing `is_confidential() -> true` only when genuinely backed by MPC.
-- **Feature-gated rollout** — keep the noop as the default build; the live client is opt-in and, once
+- **Feature-gated rollout** - keep the noop as the default build; the live client is opt-in and, once
   active, flips `confidential_compute` to `true` so `execute()` will proceed.
 
 **Gate:** confidential execution touching real value is behind the external-audit hard gate.
 
-### Epic C — True Settlement Router / Cross-Chain Execution Planner (🟡 → 🚧)
+### Epic C - True Settlement Router / Cross-Chain Execution Planner (🟡 → 🚧)
 
-**Status today:** `execute()` ships a **minimal** router — it selects a chain and runs that chain's
+**Status today:** `execute()` ships a **minimal** router - it selects a chain and runs that chain's
 simulator (`Chain` enum + per-chain simulators in `crates/sidecar`). There is no execution
 *planner*: no cross-chain sequencing, no route optimization, no atomic multi-leg settlement.
 
 **Why:** the vision's "declare the outcome, not the infrastructure" promise needs a planner that can
-decompose an intent into an ordered, chain-spanning execution plan — the minimal router only answers
+decompose an intent into an ordered, chain-spanning execution plan - the minimal router only answers
 "is this one tx on this one chain allowed?".
 
 **Requirements:**
-- **Plan decomposition** — turn a single high-level intent into an ordered set of per-chain legs.
-- **Route selection** — choose chains/venues by cost, latency, and reputation-weighted policy.
-- **Atomicity / rollback semantics** — define what happens when leg N fails after legs 1..N-1
+- **Plan decomposition** - turn a single high-level intent into an ordered set of per-chain legs.
+- **Route selection** - choose chains/venues by cost, latency, and reputation-weighted policy.
+- **Atomicity / rollback semantics** - define what happens when leg N fails after legs 1..N-1
   settled (compensating actions, or all-or-nothing where the chains support it). This depends on
   **Epic A** for durability.
-- **Promotion path** — grow the Phase-4 minimal router in `packages/sdk/src/execute.ts` into a real
+- **Promotion path** - grow the Phase-4 minimal router in `packages/sdk/src/execute.ts` into a real
   planner without changing the `execute()` call signature (declarative in stays the same).
 
-### Epic D — Pact Network Payment Guarantees (🚧 planned)
+### Epic D - Pact Network Payment Guarantees (🚧 planned)
 
 **Status today:** No Pact integration exists. This is a net-new integration epic.
 
-**Why:** Pact Network provides on-chain chargebacks for x402 agent payments — when an agent pays
+**Why:** Pact Network provides on-chain chargebacks for x402 agent payments - when an agent pays
 an API and it fails, Pact refunds principal + premium from a coverage pool. Bastion's Web2 firewall
 already intercepts outbound API calls; wrapping them with Pact insurance closes the economic trust
 loop (policy decides whether to call, Pact guarantees the outcome).
@@ -263,36 +263,36 @@ loop (policy decides whether to call, Pact guarantees the outcome).
 - Currently in private beta; upgrade authority and settler are protocol-team-held (v1 centralization is acknowledged)
 
 **Requirements:**
-- **CLI integration** — auto-wrap `pay curl` → `pact pay curl` in Bastion's Web2 proxy for covered endpoints
-- **SDK surface** — `bastion.execute({ ..., coverage: { provider: "pact", tier: "standard" } })`
-- **Policy integration** — policy rules can require Pact coverage for specific endpoints
-- **Audit trail** — ingest Pact `settle_batch` events + `CallRecord` PDAs into Bastion's audit log
-- **Market integration** — route covered calls through `market.pactnetwork.io` for curated endpoints
+- **CLI integration** - auto-wrap `pay curl` → `pact pay curl` in Bastion's Web2 proxy for covered endpoints
+- **SDK surface** - `bastion.execute({ ..., coverage: { provider: "pact", tier: "standard" } })`
+- **Policy integration** - policy rules can require Pact coverage for specific endpoints
+- **Audit trail** - ingest Pact `settle_batch` events + `CallRecord` PDAs into Bastion's audit log
+- **Market integration** - route covered calls through `market.pactnetwork.io` for curated endpoints
 
 **Gate:** pact-network mainnet is in private beta. Integration follows Pact's public beta milestone.
 
-### Epic E — Secrets Management (🚧 planned)
+### Epic E - Secrets Management (🚧 planned)
 
 **Status today:** No secrets management layer exists. Agents must manage their own API keys,
 signing keys, and database credentials. Bastion's Web2 firewall can intercept calls but not
 manage the credentials needed for those calls.
 
 **Why:** Production agent workflows need API keys, database credentials, signing keys,
-and encryption keys. Today these are hardcoded or managed externally — Bastion has no
+and encryption keys. Today these are hardcoded or managed externally - Bastion has no
 visibility into credential lifecycle and cannot enforce least-privilege access.
 
 **Requirements:**
-- **Vault client** — authenticate, read KV v2, issue dynamic DB creds, revoke (`crates/vault/`)
-- **SecretBroker trait** — abstraction over Vault or env-fallback for dev/testing
-- **Bastion agent → Vault identity mapping** — map agent DID to Vault entities and aliases
-- **Activity-level injection** — `FetchSecret` Activity scopes credentials to step TTL
-- **No secrets in event log** — redact credential values before persisting to Sled
-- **Docker compose** — Vault dev server for local development
+- **Vault client** - authenticate, read KV v2, issue dynamic DB creds, revoke (`crates/vault/`)
+- **SecretBroker trait** - abstraction over Vault or env-fallback for dev/testing
+- **Bastion agent → Vault identity mapping** - map agent DID to Vault entities and aliases
+- **Activity-level injection** - `FetchSecret` Activity scopes credentials to step TTL
+- **No secrets in event log** - redact credential values before persisting to Sled
+- **Docker compose** - Vault dev server for local development
 
 **Depends on:** Epic A (secrets are injected inside Activities, which need durable workflows).
 See [`docs/IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) Phase 3 for detailed task breakdown.
 
-### Epic F — General-Purpose Policy (OPA Integration) (🚧 planned)
+### Epic F - General-Purpose Policy (OPA Integration) (🚧 planned)
 
 **Status today:** `crates/core/src/policy/evaluator.rs` ships 11 hardcoded Rust rule variants
 (`AmountLimit`, `Destination`, `Frequency`, `HITL`, `Reputation`, `TxTypeAllowlist`,
@@ -304,18 +304,18 @@ new rule requires recompilation. No custom policy language. No versioning.
 standard for general-purpose policy evaluation.
 
 **Requirements:**
-- **`PluggablePolicy` trait** — abstraction over policy backends
-- **`NativePolicyBackend`** — wraps existing 11 rules for the fast path
-- **`OpaPolicyClient`** — HTTP client to OPA sidecar for Rego policy evaluation
-- **`PolicyConfig`** — select backend per policy set
-- **Docker compose** — OPA sidecar with example Rego bundle
-- **SDK surface** — `bastion.policy.evaluate()` + `bastion.policy.dryRun()`
-- **Dry-run endpoint** — `POST /policy/evaluate` for policy testing
+- **`PluggablePolicy` trait** - abstraction over policy backends
+- **`NativePolicyBackend`** - wraps existing 11 rules for the fast path
+- **`OpaPolicyClient`** - HTTP client to OPA sidecar for Rego policy evaluation
+- **`PolicyConfig`** - select backend per policy set
+- **Docker compose** - OPA sidecar with example Rego bundle
+- **SDK surface** - `bastion.policy.evaluate()` + `bastion.policy.dryRun()`
+- **Dry-run endpoint** - `POST /policy/evaluate` for policy testing
 
 **Dependency:** Phase 0 (durable policy state via Sled for OPA decision caching).
 See [`docs/IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) Phase 2 for detailed task breakdown.
 
-### Epic G — EigenLayer AVS Integration (🚧 planned)
+### Epic G - EigenLayer AVS Integration (🚧 planned)
 
 **Status today:** EigenLayer is referenced in documentation and the competitive landscape
 but has zero integration code. Bastion operators run as centralized services with no
@@ -326,11 +326,11 @@ an accountability model. EigenLayer's AVS framework provides operator staking, s
 and rewards that make operator misbehavior economically expensive.
 
 **Requirements:**
-- **Operator registry** — on-chain registration, removal, query of operator identities
-- **AVS trust model selector** — choose from whitelisted, permissioned, or economic security
-- **Evidence collection** — link operator task output to workflow execution + policy decision
-- **Slashing hook** — trigger slashing when evidence threshold is met
-- **`AvsOperator` Activity** — delegate workflow tasks to operator set members
+- **Operator registry** - on-chain registration, removal, query of operator identities
+- **AVS trust model selector** - choose from whitelisted, permissioned, or economic security
+- **Evidence collection** - link operator task output to workflow execution + policy decision
+- **Slashing hook** - trigger slashing when evidence threshold is met
+- **`AvsOperator` Activity** - delegate workflow tasks to operator set members
 
 **Depends on:** Epic A (operator tasks are Activities within durable workflows).
 See [`docs/IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) Phase 7 for detailed task breakdown.
@@ -339,7 +339,7 @@ See [`docs/IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) Phase 7 for detailed
 
 ## Invariants (don't break these)
 
-- `crates/core` must stay chain-agnostic — no Solana or EVM imports
-- On-chain program must only contain audit/identity/policy primitives — no financial instruments
+- `crates/core` must stay chain-agnostic - no Solana or EVM imports
+- On-chain program must only contain audit/identity/policy primitives - no financial instruments
 - SDK major version bump required if IDL instruction set changes
 - `main` branch must always pass all 7 CI jobs before merge

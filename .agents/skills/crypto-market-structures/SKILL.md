@@ -1,6 +1,6 @@
 ---
 name: crypto-market-structures
-description: Summarizes descriptive concepts for max pain options theory, covered-call style crypto ETFs, crypto arbitrage families and risks, and bull/bear flag chart patterns—always as non-prescriptive education. Use when the user asks about max pain, premium income ETFs, arbitrage, funding rates, flash loans, or bull/bear flags in crypto trading context.
+description: Summarizes descriptive concepts for max pain options theory, covered-call style crypto ETFs, crypto arbitrage families and risks, and bull/bear flag chart patterns-always as non-prescriptive education. Use when the user asks about max pain, premium income ETFs, arbitrage, funding rates, flash loans, or bull/bear flags in crypto trading context.
 ---
 
 # Crypto market structures (educational)
@@ -19,7 +19,7 @@ Some funds hold **spot crypto exposure via ETPs** and **write calls** for **prem
 
 - Income mainly from **options premium**  
 - Often **caps upside** in strong rallies  
-- **Not** the same as spot-only exposure—read **prospectus**  
+- **Not** the same as spot-only exposure-read **prospectus**  
 
 ## Crypto arbitrage (concepts + risks)
 
@@ -40,4 +40,4 @@ Profit from **temporary** price gaps across venues/instruments, **net of fees**.
 
 **Pennant:** converging lines vs parallel **flag** lines.
 
-Subjective; combine with **volume**, **levels**, **macro**, **on-chain**—outcomes **not** guaranteed.
+Subjective; combine with **volume**, **levels**, **macro**, **on-chain**-outcomes **not** guaranteed.

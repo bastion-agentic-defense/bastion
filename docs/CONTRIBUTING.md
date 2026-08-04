@@ -2,11 +2,11 @@
 
 ## Prerequisites
 
-- **Rust** 1.85+ (stable) — `rustup default stable`
-- **Node.js** 20+ — `node --version`
-- **pnpm** — `npm install -g pnpm`
-- **Anchor CLI** 0.30.1 — `avm install 0.30.1 && avm use 0.30.1`
-- **Foundry** (for EVM) — `curl -L https://foundry.paradigm.xyz | bash`
+- **Rust** 1.85+ (stable) - `rustup default stable`
+- **Node.js** 20+ - `node --version`
+- **pnpm** - `npm install -g pnpm`
+- **Anchor CLI** 0.30.1 - `avm install 0.30.1 && avm use 0.30.1`
+- **Foundry** (for EVM) - `curl -L https://foundry.paradigm.xyz | bash`
 - **Docker** (optional, for containerized deployment)
 
 ## Getting Started
@@ -157,12 +157,12 @@ pnpm test
 
 We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-- `feat:` — new feature
-- `fix:` — bug fix
-- `chore:` — maintenance, dependencies
-- `docs:` — documentation
-- `test:` — test additions or changes
-- `refactor:` — code restructuring without behavior change
+- `feat:` - new feature
+- `fix:` - bug fix
+- `chore:` - maintenance, dependencies
+- `docs:` - documentation
+- `test:` - test additions or changes
+- `refactor:` - code restructuring without behavior change
 
 ## Pull Request Checklist
 
@@ -191,4 +191,4 @@ Email the maintainers directly. See [SECURITY.md](../SECURITY.md) for details.
 
 ## License
 
-Apache-2.0 — see the [LICENSE](../LICENSE) file.
+Apache-2.0 - see the [LICENSE](../LICENSE) file.

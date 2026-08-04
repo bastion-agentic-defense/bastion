@@ -1,6 +1,6 @@
 ---
 name: evm-solidity-defi-triage-agent
-description: Guides EVM Solidity DeFi triage from public verified source or bytecode—access control, proxies, oracle usage, reentrancy and CEI patterns, DEX/router integrations, and common vulnerability classes. Use when the user asks for Ethereum or L2 smart contract security review, Solidity audit triage, OpenZeppelin proxy risks, or EVM-specific DeFi patterns—not for live exploits or private keys.
+description: Guides EVM Solidity DeFi triage from public verified source or bytecode-access control, proxies, oracle usage, reentrancy and CEI patterns, DEX/router integrations, and common vulnerability classes. Use when the user asks for Ethereum or L2 smart contract security review, Solidity audit triage, OpenZeppelin proxy risks, or EVM-specific DeFi patterns-not for live exploits or private keys.
 ---
 
 # EVM Solidity DeFi triage agent
@@ -15,14 +15,14 @@ Do not assist with mainnet attacks or stealing funds.
 
 ## 1. Static review checklist (Solidity / DeFi)
 
-- **Access control** — Roles, `onlyOwner`, timelocks; missing modifiers on sensitive functions.
-- **Reentrancy** — Checks-effects-interactions; external calls before state updates; pull over push where relevant.
-- **Oracles** — TWAP vs spot misuse, stale prices, weak custom feeds.
-- **Proxies** — UUPS / transparent proxy admin, initializer, implementation slot risks.
-- **Tokens** — Fee-on-transfer, rebasing, blacklists affecting integrations.
-- **Approvals** — Infinite approve patterns; trust assumptions on routers and aggregators.
+- **Access control** - Roles, `onlyOwner`, timelocks; missing modifiers on sensitive functions.
+- **Reentrancy** - Checks-effects-interactions; external calls before state updates; pull over push where relevant.
+- **Oracles** - TWAP vs spot misuse, stale prices, weak custom feeds.
+- **Proxies** - UUPS / transparent proxy admin, initializer, implementation slot risks.
+- **Tokens** - Fee-on-transfer, rebasing, blacklists affecting integrations.
+- **Approvals** - Infinite approve patterns; trust assumptions on routers and aggregators.
 
-**Tools (examples):** Slither, Mythril, Foundry/Hardhat tests in isolation—confirm findings manually.
+**Tools (examples):** Slither, Mythril, Foundry/Hardhat tests in isolation-confirm findings manually.
 
 ## 2. Historical and on-chain context
 
@@ -39,4 +39,4 @@ Do not assist with mainnet attacks or stealing funds.
 - Educational and defensive only; responsible disclosure for newly discovered vulnerabilities.
 - No weaponized exploit steps against production systems.
 
-**Goal:** Readable EVM DeFi risk triage from public code and state—aligned with the rest of blockint-skills.
+**Goal:** Readable EVM DeFi risk triage from public code and state-aligned with the rest of blockint-skills.

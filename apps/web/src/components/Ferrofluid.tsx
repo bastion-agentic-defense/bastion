@@ -1,5 +1,5 @@
 // @ts-nocheck
-/* ReactBits Ferrofluid — WebGL shader background (ogl). Vendor component, used
+/* ReactBits Ferrofluid - WebGL shader background (ogl). Vendor component, used
  * under the project's ReactBits licence. Typechecking is disabled here because
  * the source ships untyped; do not treat this file as house code. */
 import { useEffect, useRef } from 'react';

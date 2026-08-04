@@ -36,7 +36,7 @@ export default function InstallSection() {
         style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
       >
         <div className="flex items-center justify-between px-4 py-2" style={{ borderBottom: '1px solid var(--border)' }}>
-          <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>Solana — Terminal</span>
+          <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>Solana - Terminal</span>
           <button
             onClick={handleCopy}
             className="font-sans text-xs font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded px-2 py-0.5"
@@ -63,7 +63,7 @@ export default function InstallSection() {
         style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
       >
         <div className="flex items-center justify-between px-4 py-2" style={{ borderBottom: '1px solid var(--border)' }}>
-          <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>Web2 — Terminal</span>
+          <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>Web2 - Terminal</span>
           <button
             onClick={() => {
               navigator.clipboard.writeText(WEB2_INSTALL);
@@ -88,7 +88,7 @@ export default function InstallSection() {
         </pre>
       </div>
 
-      {/* EVM — Coming Soon */}
+      {/* EVM - Coming Soon */}
       <div
         className="rounded-xl p-4 opacity-50"
         style={{ background: 'var(--bg-subtle)', border: '1px dashed var(--border)' }}

@@ -26,7 +26,7 @@ Blockchains are public, but **raw data** (hashes, calldata, addresses) is hard t
 | **Visualizers** | Graph view of wallets/transfers for pattern spotting |
 | **TXID lookup** | Receipt-level detail: time, fees, counterparties, token movements |
 
-## Payment rails — traditional vs crypto (conceptual)
+## Payment rails - traditional vs crypto (conceptual)
 
 **Payment rails** move value: rules, messaging, settlement, operators.
 

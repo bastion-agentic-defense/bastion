@@ -1,4 +1,4 @@
-# Bastion — Detailed Technical Overview
+# Bastion - Detailed Technical Overview
 
 > This is the detailed, endpoint-level technical reference (formerly the root README). For the
 > high-level product vision and status, see the root [`README.md`](../README.md).
@@ -10,7 +10,7 @@
 
 > Bastion is in alpha testing. Use with caution in production environments.
 
-Bastion is a **Programmable Trust Runtime** for autonomous systems. It provides the identity, policy, execution, and observability layer that AI agents and applications rely on to act safely across programmable networks. Every transaction an agent intends to submit passes through Bastion's policy engine, simulation, and human-in-the-loop review before being signed — with every decision recorded as a verifiable audit record.
+Bastion is a **Programmable Trust Runtime** for autonomous systems. It provides the identity, policy, execution, and observability layer that AI agents and applications rely on to act safely across programmable networks. Every transaction an agent intends to submit passes through Bastion's policy engine, simulation, and human-in-the-loop review before being signed - with every decision recorded as a verifiable audit record.
 
 A Web2 API adapter extends Bastion's policy engine to HTTP API calls made by AI agents to providers like OpenAI, Stripe, Slack, and GitHub. See `@zkos-labs/web2-sdk` and `docs/WEB2_EXPANSION_PLAN.md`.
 

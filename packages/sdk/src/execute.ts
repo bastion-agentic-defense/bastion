@@ -11,7 +11,7 @@ import type {
  *
  * Rather than choosing infrastructure, callers declare the trust guarantees they
  * want (`policy`, `privacy`, `settlement`) and Bastion composes the existing
- * firewall primitives — simulation, policy evaluation, and audit — behind a
+ * firewall primitives - simulation, policy evaluation, and audit - behind a
  * single `execute()` call.
  *
  * This is a thin composition over {@link BastionSidecar} (and optionally
@@ -44,9 +44,9 @@ export interface ExecuteRequest {
   /** Which network the action settles on. Selects the evaluation path. */
   settlement: Settlement;
   /** Desired privacy. Defaults to "public". "confidential" requires the runtime
-   *  to be running genuine Arcium MPC — otherwise `execute` throws. */
+   *  to be running genuine Arcium MPC - otherwise `execute` throws. */
   privacy?: Privacy;
-  /** Named policy to evaluate against (reserved; currently informational —
+  /** Named policy to evaluate against (reserved; currently informational -
    *  the sidecar applies its configured policy set). */
   policy?: string;
   /** The concrete payload to evaluate: a base64 Solana transaction (for

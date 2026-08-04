@@ -1,6 +1,6 @@
 ---
 name: bellingcat-investigation-toolkit
-description: Routes investigators to Bellingcat's Online Open Source Investigation Toolkit (tool catalog, GitBook, GitHub repo) for discovering and citing OSINT tools and workflows beyond chain-only work. Use when the user asks for Bellingcat toolkit, general OSINT tool discovery, open-source investigation resources, or methodology pointers to complement blockchain tracing—not for bypassing laws, harassment, or non-consensual deanonymization.
+description: Routes investigators to Bellingcat's Online Open Source Investigation Toolkit (tool catalog, GitBook, GitHub repo) for discovering and citing OSINT tools and workflows beyond chain-only work. Use when the user asks for Bellingcat toolkit, general OSINT tool discovery, open-source investigation resources, or methodology pointers to complement blockchain tracing-not for bypassing laws, harassment, or non-consensual deanonymization.
 ---
 
 # Bellingcat investigation toolkit
@@ -9,7 +9,7 @@ description: Routes investigators to Bellingcat's Online Open Source Investigati
 
 [Bellingcat’s Online Open Source Investigation Toolkit](https://github.com/bellingcat/toolkit) is the GitHub home of **Online Investigation Toolkit 2.0**: a curated, living collection of OSINT tools and references. Markdown for each tool is managed on GitBook and synced to the repository; automated workflows regenerate lists and pages. The public book is at [bellingcat.gitbook.io/toolkit](https://bellingcat.gitbook.io/toolkit).
 
-**This skill does not mirror the full tool list**—entries, URLs, and categories change. Prefer live GitBook or GitHub `src` / generated pages when recommending a specific tool.
+**This skill does not mirror the full tool list**-entries, URLs, and categories change. Prefer live GitBook or GitHub `src` / generated pages when recommending a specific tool.
 
 ## When to use this skill
 

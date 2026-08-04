@@ -99,7 +99,7 @@ pub fn build_did_document(
 /// Resolve a `did:bastion:solana:*` identifier by looking up the AgentStore.
 ///
 /// Only **registered** agents resolve to a document. Unknown DIDs return `None`
-/// (surfaced as a 404) rather than a fabricated stub — an unregistered agent must
+/// (surfaced as a 404) rather than a fabricated stub - an unregistered agent must
 /// not appear as a fully-reputable identity.
 pub async fn resolve_did(
     did: &str,

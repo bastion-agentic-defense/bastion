@@ -248,7 +248,7 @@ mod tests {
         let failing = FailingArciumClient;
         let evaluator: ArcumPolicyEvaluator<FailingArciumClient, MockTrustSignalProvider> =
             ArcumPolicyEvaluator::new(failing, test_config()).with_fallback(true);
-        let tx = test_tx(); // 0.5 SOL — passes local eval
+        let tx = test_tx(); // 0.5 SOL - passes local eval
         let policy = test_policy();
         let decision = evaluator.evaluate(&tx, &policy).await;
         // Arcium failed, fallback to local → Pass

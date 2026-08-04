@@ -1,4 +1,4 @@
-# Bastion — Programmable Trust Runtime for AI Agents
+# Bastion - Programmable Trust Runtime for AI Agents
 
 Bastion is a **Programmable Trust Runtime** for autonomous AI agents
 on Solana, EVM (Celo, Base, Ethereum, Polygon), and Arcium. It orchestrates
@@ -6,13 +6,13 @@ identity, policy, privacy, durable execution, and multi-chain settlement.
 
 ## What Bastion does
 
-- **Transaction simulation** — Predicts balance changes via Helius before signing
-- **Policy engine** — Program whitelists, native token caps, rate limits, blockint rules
-- **On-chain audit** — Immutable audit trail on Solana and EVM (Anchor + Solidity)
-- **Agent registry** — On-chain agent identity with W3C DID + reputation
-- **Human-in-the-loop** — Manual override for suspicious transactions
-- **Circuit breaker** — Emergency pause for the entire protocol
-- **GrondOSINT oracle** — Address risk scoring via agentic OSINT pipeline
+- **Transaction simulation** - Predicts balance changes via Helius before signing
+- **Policy engine** - Program whitelists, native token caps, rate limits, blockint rules
+- **On-chain audit** - Immutable audit trail on Solana and EVM (Anchor + Solidity)
+- **Agent registry** - On-chain agent identity with W3C DID + reputation
+- **Human-in-the-loop** - Manual override for suspicious transactions
+- **Circuit breaker** - Emergency pause for the entire protocol
+- **GrondOSINT oracle** - Address risk scoring via agentic OSINT pipeline
 
 ## API Endpoints
 

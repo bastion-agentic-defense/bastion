@@ -30,11 +30,11 @@
 ## ERC-8004 registration
 **Yes.** Bastion implements the full ERC-8004 Identity Registry specification (`evm/src/BastionERC8004Registry.sol`). Every agent registered through Bastion receives an ERC-8004 compliant ERC-721 identity with:
 
-- **ERC-721 tokenId + URIStorage** — each agent is an NFT browseable in any ERC-721 explorer
-- **agentURI** — resolves to the ERC-8004 registration file (ipfs://, https://, or data: URI)
-- **On-chain metadata** — key-value store with reserved `agentWallet` key for EIP-712/ERC-1271 verified payment addresses
-- **Global agent ID** — `eip155:{chainId}:{registryAddress}` format for cross-chain agent identity
-- **EIP-712 typed signatures** — provable wallet ownership without exposing private keys
+- **ERC-721 tokenId + URIStorage** - each agent is an NFT browseable in any ERC-721 explorer
+- **agentURI** - resolves to the ERC-8004 registration file (ipfs://, https://, or data: URI)
+- **On-chain metadata** - key-value store with reserved `agentWallet` key for EIP-712/ERC-1271 verified payment addresses
+- **Global agent ID** - `eip155:{chainId}:{registryAddress}` format for cross-chain agent identity
+- **EIP-712 typed signatures** - provable wallet ownership without exposing private keys
 
 This makes every agent secured by Bastion discoverable across the entire agent ecosystem, compatible with any ERC-8004-compliant discovery tool, reputation system, or validation protocol.
 

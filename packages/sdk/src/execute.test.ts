@@ -9,7 +9,7 @@ function makeBastion(stub: Partial<BastionSidecar>): Bastion {
 const SOLANA_TX = "AQID"; // arbitrary base64
 const EVM_TX = { from: "0x1", to: "0x2", value: "0x0", data: "0x" };
 
-describe("Bastion.execute — Solana settlement", () => {
+describe("Bastion.execute - Solana settlement", () => {
   it("returns pass when simulation succeeds", async () => {
     const bastion = makeBastion({
       simulate: async () => ({ units_consumed: 1000, logs: [] }),
@@ -86,7 +86,7 @@ describe("Bastion.execute — Solana settlement", () => {
   });
 });
 
-describe("Bastion.execute — EVM settlement", () => {
+describe("Bastion.execute - EVM settlement", () => {
   it("returns pass when allowed", async () => {
     const bastion = makeBastion({
       simulateEvm: async () => ({ allowed: true, decision: "allowed" }),
@@ -128,7 +128,7 @@ describe("Bastion.execute — EVM settlement", () => {
   });
 });
 
-describe("Bastion.execute — confidential privacy guard", () => {
+describe("Bastion.execute - confidential privacy guard", () => {
   it("refuses confidential when the runtime is not confidential", async () => {
     const bastion = makeBastion({
       health: async () => ({

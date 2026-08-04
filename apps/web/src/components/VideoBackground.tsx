@@ -71,13 +71,13 @@ export function VideoBackground() {
         style={{ opacity: 0, transition: 'none' }}
       />
 
-      {/* Contrast overlay — light mode washes white, dark mode washes black */}
+      {/* Contrast overlay - light mode washes white, dark mode washes black */}
       <div className="absolute inset-0 bg-white/50 dark:bg-black/60 transition-colors duration-300" />
 
-      {/* Top gradient — fades from page background into the video */}
+      {/* Top gradient - fades from page background into the video */}
       <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-[var(--bg)] to-transparent" />
 
-      {/* Bottom gradient — fades from video back to page background */}
+      {/* Bottom gradient - fades from video back to page background */}
       <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[var(--bg)] to-transparent" />
     </div>
   );

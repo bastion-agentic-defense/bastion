@@ -1,7 +1,7 @@
-# Bastion — Durable Workflow Engine Design (Epic A)
+# Bastion - Durable Workflow Engine Design (Epic A)
 
 > Architecture spec for Bastion's **Temporal-equivalent** durable workflow runtime.
-> This is the largest net-new subsystem on the roadmap — it turns Bastion from a transactional firewall into a true **Programmable Trust Runtime** with multi-step execution, crash recovery, and deterministic replay.
+> This is the largest net-new subsystem on the roadmap - it turns Bastion from a transactional firewall into a true **Programmable Trust Runtime** with multi-step execution, crash recovery, and deterministic replay.
 >
 > **Status:** 🚧 Design phase. Zero code shipped. This document is the reference architecture.
 
@@ -9,13 +9,13 @@
 
 ## 1. Why This Exists
 
-Today, `execute()` is synchronous single-step — policy evaluation + simulation + decide. A durable workflow engine enables:
+Today, `execute()` is synchronous single-step - policy evaluation + simulation + decide. A durable workflow engine enables:
 
-- **Multi-step agent actions** — swap → bridge → stake (3 steps, 3 chains, 1 workflow)
-- **Crash recovery** — sidecar crash mid-workflow → resume where it left off
-- **Deterministic replay** — reconstruct state from event history for audit
-- **Human approval gates** — workflows pause on HITL, resume when human approves
-- **Retry with backoff** — failed RPC calls retry automatically with configurable policy
+- **Multi-step agent actions** - swap → bridge → stake (3 steps, 3 chains, 1 workflow)
+- **Crash recovery** - sidecar crash mid-workflow → resume where it left off
+- **Deterministic replay** - reconstruct state from event history for audit
+- **Human approval gates** - workflows pause on HITL, resume when human approves
+- **Retry with backoff** - failed RPC calls retry automatically with configurable policy
 
 This is what turns Bastion from a firewall into a **runtime**.
 
@@ -99,7 +99,7 @@ pub trait WorkflowDefinition: Send + Sync {
     fn steps(&self) -> Vec<WorkflowStep>;
 }
 
-/// A single step in a workflow — what to execute, how to retry.
+/// A single step in a workflow - what to execute, how to retry.
 pub struct WorkflowStep {
     pub id: String,            // "swap", "bridge", "stake"
     pub activity: String,      // registered activity name
@@ -173,7 +173,7 @@ pub enum WorkflowEvent {
 ### 4.4 Activity Trait
 
 ```rust
-/// Activities perform all I/O. They are NOT deterministic — they run once, and
+/// Activities perform all I/O. They are NOT deterministic - they run once, and
 /// their output is recorded in workflow history. During replay, Activities are
 /// skipped and their recorded output is reused.
 #[async_trait]
@@ -257,7 +257,7 @@ impl WorkflowEngine {
     /// List active/paused workflows for an agent.
     pub fn list(&self, agent_id: &str) -> Vec<WorkflowState>;
 
-    /// Replay a workflow from its event log — reconstructs state without
+    /// Replay a workflow from its event log - reconstructs state without
     /// re-executing Activities. Used for audit and crash recovery.
     pub fn replay(&self, workflow_id: &str) -> Result<Vec<WorkflowEvent>, WorkflowError>;
 }
@@ -281,7 +281,7 @@ impl WorkflowEngine {
 
 On sidecar boot, the engine scans Sled for all `Running | Paused` workflows and spawns a Tokio task for each. The task:
 1. Replays events from the log to reconstruct current step index + step states
-2. Continues from the current step (completed steps are skipped — their outputs are in the log)
+2. Continues from the current step (completed steps are skipped - their outputs are in the log)
 3. This is the same replay model as Temporal
 
 ---
@@ -468,12 +468,12 @@ Workflow survives a sidecar crash between any of these steps and resumes where i
 
 | Phase | Scope | Estimate |
 |-------|-------|----------|
-| **Phase 1 — Engine core** | `crates/workflow` crate, `WorkflowEngine`, `WorkflowState`, Sled persistence, basic execution loop | ~500 LOC Rust |
-| **Phase 2 — Replay & recovery** | Event log, replay from history, crash recovery on boot | ~300 LOC Rust |
-| **Phase 3 — Retry & HITL** | `RetryPolicy`, pause/resume via existing `/override`, signal routes | ~300 LOC Rust |
-| **Phase 4 — SDK surface** | `BastionWorkflow` class, typed step config, event streaming | ~200 LOC TS |
-| **Phase 5 — Sidecar routes** | `POST /workflows`, `GET /workflows/:id`, signal, list | ~200 LOC Rust |
-| **Phase 6 — Built-in Activities** | `simulate`, `simulate_evm`, `settle`, `http_call`, `sleep` | ~200 LOC Rust |
+| **Phase 1 - Engine core** | `crates/workflow` crate, `WorkflowEngine`, `WorkflowState`, Sled persistence, basic execution loop | ~500 LOC Rust |
+| **Phase 2 - Replay & recovery** | Event log, replay from history, crash recovery on boot | ~300 LOC Rust |
+| **Phase 3 - Retry & HITL** | `RetryPolicy`, pause/resume via existing `/override`, signal routes | ~300 LOC Rust |
+| **Phase 4 - SDK surface** | `BastionWorkflow` class, typed step config, event streaming | ~200 LOC TS |
+| **Phase 5 - Sidecar routes** | `POST /workflows`, `GET /workflows/:id`, signal, list | ~200 LOC Rust |
+| **Phase 6 - Built-in Activities** | `simulate`, `simulate_evm`, `settle`, `http_call`, `sleep` | ~200 LOC Rust |
 
 **Total:** ~1,700 LOC across Rust + TypeScript.
 

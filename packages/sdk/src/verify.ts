@@ -2,7 +2,7 @@
  * Recompute verification for Bastion audit records.
  *
  * Implements the trustless-ai "Don't trust. Recompute." philosophy.
- * Every function here is pure and stateless — it reproduces the same
+ * Every function here is pure and stateless - it reproduces the same
  * hash the Bastion Trust Runtime computed, from public inputs only.
  *
  * ERC-8281 (OCP): observation_digest = sha256("Decision:payload_hash")

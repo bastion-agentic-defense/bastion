@@ -36,7 +36,7 @@ This skill is version **1.2.1**. After your first API call, check the `X-Copilot
 
 3. Call `GET /status` to verify the connection. Expected response: `{ "authenticated": true, "expiresAt": "...", "scope": "..." }`
 
-4. If `"authenticated": true`, proceed. If 401 or env vars missing, do NOT attempt other API calls — guide the user through steps 1-2.
+4. If `"authenticated": true`, proceed. If 401 or env vars missing, do NOT attempt other API calls - guide the user through steps 1-2.
 
 - **Builder Projects**: 5,400+ Solana project submissions with tech stack, problem tags, and competitive context
 - **Crypto Archives**: Curated corpus across cypherpunk literature, protocol docs, investor research, and founder essays
@@ -73,15 +73,15 @@ Use this skill when:
 
 ## How It Works
 
-**Mode 1 — Conversational (default):** Answer questions with targeted API calls and evidence coverage matched to query type. Cite sources inline, keep responses concise, and offer to do a full deep-dive when the topic warrants it — never auto-trigger it.
+**Mode 1 - Conversational (default):** Answer questions with targeted API calls and evidence coverage matched to query type. Cite sources inline, keep responses concise, and offer to do a full deep-dive when the topic warrants it - never auto-trigger it.
 
-**Mode 2 — Deep Dive (explicit opt-in):** Full 8-step workflow from `references/workflow-deep.md`. Only activates when user explicitly says "vet this idea", "deep dive", "full analysis", "validate this", "is X worth building?", "should I build X?", or accepts your offer to go deeper.
+**Mode 2 - Deep Dive (explicit opt-in):** Full 8-step workflow from `references/workflow-deep.md`. Only activates when user explicitly says "vet this idea", "deep dive", "full analysis", "validate this", "is X worth building?", "should I build X?", or accepts your offer to go deeper.
 
 ### Conversational Guidelines
 
 - Use the API endpoints below with enough targeted calls to satisfy the evidence floor for the query type
 - Cite sources inline (project slugs, archive titles, URLs)
-- Keep responses concise — bullet points, not essays
+- Keep responses concise - bullet points, not essays
 - When the topic warrants deeper analysis, offer: "Want me to do a full deep-dive on this?"
 - No meta-commentary about your process ("Now let me search...", "I'll check...")
 
@@ -105,7 +105,7 @@ Use this skill when:
 - **Accelerator/winner portfolio checks:** For "what has been tried", "who is building this", "is this crowded/saturated", or similar prompts, run targeted project searches with `filters: { "acceleratorOnly": true }` and `filters: { "winnersOnly": true }`, then reflect both outcomes in the answer.
 - **Freshness and temporal anchoring:** Use `hackathon.startDate` from `/filters`, `/search/projects`, and `/projects/by-slug/:slug` to order hackathons chronologically; never infer chronology from names or memory. When citing hackathons, include month/year inline (and accelerator cohort like C1/C2/C4 when relevant). For evaluative judgments, label the claim with `As of YYYY-MM-DD`.
 - **Entity coverage check:** If the user names specific companies, protocols, papers, or products, run direct searches for each named entity and explicitly address each one in the answer (found, not found, or tangential).
-- **Landscape check:** Never claim "nobody has done this" or "no existing players" unless an accelerator portfolio check (`acceleratorOnly`) was executed and reported. If accelerator overlap exists, surface those builders as useful reference points and potential sources of inspiration. Always qualify landscape assessments with "based on the available data" or "as far as we can tell from the corpus." Copilot's knowledge is bounded by its data sources — never present absence of evidence as evidence of absence.
+- **Landscape check:** Never claim "nobody has done this" or "no existing players" unless an accelerator portfolio check (`acceleratorOnly`) was executed and reported. If accelerator overlap exists, surface those builders as useful reference points and potential sources of inspiration. Always qualify landscape assessments with "based on the available data" or "as far as we can tell from the corpus." Copilot's knowledge is bounded by its data sources - never present absence of evidence as evidence of absence.
 
 > For the full 8-step deep research workflow, see `references/workflow-deep.md`
 
@@ -143,7 +143,7 @@ All endpoints require `Authorization: Bearer <COPILOT_PAT>`. Treat the PAT like 
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
-| `/status` | GET | Auth pre-flight check — call first |
+| `/status` | GET | Auth pre-flight check - call first |
 | `/search/projects` | POST | Search builder projects |
 | `/search/archives` | POST | Search crypto archives |
 | `/projects/by-slug/:slug` | GET | Full project details |
@@ -174,7 +174,7 @@ Reports follow this structure:
 5. Opportunities and Gaps
 6. Deep Dive: Top Opportunity (market landscape, problem, revenue model, GTM, founder-market fit, why crypto/Solana, risks)
 
-Key rules: bullet points not tables, include project slugs, evidence-based not speculative, cite sources inline. No separate "Sources" section — cite inline only.
+Key rules: bullet points not tables, include project slugs, evidence-based not speculative, cite sources inline. No separate "Sources" section - cite inline only.
 
 ## Feedback
 
@@ -215,9 +215,9 @@ All errors return `{ "error": "<message>", "code": "<ERROR_CODE>", "retryable": 
 
 ## References
 
-- **workflow-deep.md** — detailed 8-step research process
-- **api-reference.md** — all endpoints, rate limits, query tips
-- **grid-recipes.md** — GraphQL queries and product type slugs
+- **workflow-deep.md** - detailed 8-step research process
+- **api-reference.md** - all endpoints, rate limits, query tips
+- **grid-recipes.md** - GraphQL queries and product type slugs
 
 ## Attribution
 

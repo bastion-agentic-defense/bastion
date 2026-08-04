@@ -9,7 +9,7 @@ description: Guides use of ProjectDiscovery Katana for web crawling and spiderin
 
 ## Scope and ethics
 
-Use **only** on systems you **own** or are **explicitly authorized** to test (contract, bug bounty program rules, internal env). **Crawl gently:** set **concurrency**, **rate limits**, and **depth** to reduce load. Misuse can violate law and terms of service—**you are responsible** for your actions (tool ships with that warning).
+Use **only** on systems you **own** or are **explicitly authorized** to test (contract, bug bounty program rules, internal env). **Crawl gently:** set **concurrency**, **rate limits**, and **depth** to reduce load. Misuse can violate law and terms of service-**you are responsible** for your actions (tool ships with that warning).
 
 ## Installation
 
@@ -26,7 +26,7 @@ docker pull projectdiscovery/katana:latest
 docker run projectdiscovery/katana:latest -u https://example.com
 ```
 
-Headless in Docker often needs `-system-chrome` and Chrome/Chromium available—see upstream **Docker** section.
+Headless in Docker often needs `-system-chrome` and Chrome/Chromium available-see upstream **Docker** section.
 
 ## Input
 
@@ -38,7 +38,7 @@ Headless in Docker often needs `-system-chrome` and Chrome/Chromium available—
 
 | Mode | When |
 |------|------|
-| **Standard (default)** | Fast; uses Go HTTP client; **no** full JS/DOM render—may miss post-render routes |
+| **Standard (default)** | Fast; uses Go HTTP client; **no** full JS/DOM render-may miss post-render routes |
 | **Headless** (`-headless`) | Browser context; better for **JS-heavy** apps; optional `-system-chrome` |
 
 Enable **JS file parsing** for more endpoints: `-js-crawl` (`-jc`). `-jsluice` is heavier.

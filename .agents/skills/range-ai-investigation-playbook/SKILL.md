@@ -1,16 +1,16 @@
 ---
 name: range-ai-investigation-playbook
-description: Step-by-step wallet investigation workflow using Range AI MCP tools (risk score, sanctions, connections, transfers, funded-by, entities, cross-chain pivots) plus a one-shot prompt template. Use when the user runs investigations inside an MCP-connected client with Range enabled, or needs a structured checklist alongside crypto-investigation-compliance—not as legal advice or a substitute for Range’s live docs and API scopes.
+description: Step-by-step wallet investigation workflow using Range AI MCP tools (risk score, sanctions, connections, transfers, funded-by, entities, cross-chain pivots) plus a one-shot prompt template. Use when the user runs investigations inside an MCP-connected client with Range enabled, or needs a structured checklist alongside crypto-investigation-compliance-not as legal advice or a substitute for Range’s live docs and API scopes.
 ---
 
-# Range AI — investigation playbook (MCP)
+# Range AI - investigation playbook (MCP)
 
-**Educational workflow.** Connect Range to your AI client first ([Range AI quickstart](https://docs.range.org/ai/quickstart) via the docs index below). **Tool names** and **behaviors** change over time—discover pages from the index, then read the current tools reference.
+**Educational workflow.** Connect Range to your AI client first ([Range AI quickstart](https://docs.range.org/ai/quickstart) via the docs index below). **Tool names** and **behaviors** change over time-discover pages from the index, then read the current tools reference.
 
 ## Documentation index
 
-- **Full index:** [docs.range.org/llms.txt](https://docs.range.org/llms.txt) — list all Range documentation pages before deep linking.
-- **MCP endpoint:** `https://api.range.org/ai/mcp` — requires a **Range API key** configured in your client (same key as other Range access).
+- **Full index:** [docs.range.org/llms.txt](https://docs.range.org/llms.txt) - list all Range documentation pages before deep linking.
+- **MCP endpoint:** `https://api.range.org/ai/mcp` - requires a **Range API key** configured in your client (same key as other Range access).
 
 ## When to use this skill
 
@@ -108,7 +108,7 @@ What entity is [address]? Does Range have labels for it?
 Search for entities matching "Binance" on Ethereum.
 ```
 
-**Look for:** exchange infrastructure, mixers, protocol contracts, previously flagged records—always **corroborate** when conclusions matter.
+**Look for:** exchange infrastructure, mixers, protocol contracts, previously flagged records-always **corroborate** when conclusions matter.
 
 ### 7. Cross-chain pivot
 
@@ -121,7 +121,7 @@ Were any funds from [address] bridged to another chain?
 If so, what is the risk score of the receiving address on that chain?
 ```
 
-Range supports multiple ecosystems—still confirm **coverage** and **tool** availability per network in current docs.
+Range supports multiple ecosystems-still confirm **coverage** and **tool** availability per network in current docs.
 
 ## One-shot investigation prompt
 
@@ -144,16 +144,16 @@ Include the key evidence that supports your verdict.
 
 ## Example (illustrative)
 
-**Address:** `5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1` (Solana) — documented in Range materials as **Raydium** protocol–related infrastructure.
+**Address:** `5Q544fKrFoe6tsEbD7S8EmxGTJYAKtTVhAW5Q5pge4j1` (Solana) - documented in Range materials as **Raydium** protocol–related infrastructure.
 
 - Very low risk score in example narratives; heavy DeFi counterparty set; no sanctions/blacklist in that example.
-- Use as a **shape** for how labeled protocol contracts present—not a universal pattern for user wallets.
+- Use as a **shape** for how labeled protocol contracts present-not a universal pattern for user wallets.
 
 ## Tips
 
-- **Start broad, then narrow** — risk + connections first, then `get_transfers_between` / transaction detail tools for specific relationships.
-- **Time filters** — constrain windows around the suspected incident to cut noise.
-- **Re-pivot the graph** — frequent unlabeled counterparties become new roots for `get_address_risk`.
+- **Start broad, then narrow** - risk + connections first, then `get_transfers_between` / transaction detail tools for specific relationships.
+- **Time filters** - constrain windows around the suspected incident to cut noise.
+- **Re-pivot the graph** - frequent unlabeled counterparties become new roots for `get_address_risk`.
 
 ## Guardrails
 
@@ -164,9 +164,9 @@ Include the key evidence that supports your verdict.
 
 ## Related skills
 
-- **solana-onchain-intelligence-resources** — Range docs index and MCP pointer; Helius/Tavily cross-links.
-- **crypto-investigation-compliance** — ethical workflow and crime taxonomy.
-- **cross-chain-clustering-techniques-agent** — bridge-centric clustering heuristics.
-- **on-chain-investigator-agent** — broader forensic persona beyond Range MCP.
+- **solana-onchain-intelligence-resources** - Range docs index and MCP pointer; Helius/Tavily cross-links.
+- **crypto-investigation-compliance** - ethical workflow and crime taxonomy.
+- **cross-chain-clustering-techniques-agent** - bridge-centric clustering heuristics.
+- **on-chain-investigator-agent** - broader forensic persona beyond Range MCP.
 
 **Goal:** a **blockint**-native checklist that mirrors Range’s investigation playbook while staying aligned with **compliance** and **evidence** discipline.

@@ -63,7 +63,7 @@ Parent: Agent-E9PsSz9X  (depth 0, is_delegator: true)
 | 3 | Spawn sub-agent | `POST /agents/:did/delegate` | Created `OpenCode` at depth 1 |
 | 4 | Agent tree | `GET /agents/:did/tree` | 1 parent, 1 child correctly nested |
 | 5 | Policy check | `GET /policy` | Policy: max_sol_per_tx=1, rate=120/min, 5 blockint rules enabled |
-| 6 | Simulate tx | `POST /simulate` | Blocked: invalid payload (expected — mock tx used) |
+| 6 | Simulate tx | `POST /simulate` | Blocked: invalid payload (expected - mock tx used) |
 | 7 | Audit stats | `GET /audit/stats` | 2 total, 0 allowed, 2 blocked |
 | 8 | Audit logs | `GET /logs?limit=5` | 2 entries with intent, decision, reasoning |
 | 9 | Circuit breaker | `GET /circuit-breaker/status` | `{"engaged":false}` |
@@ -197,10 +197,10 @@ console.log(`Delegation depth: ${tree.children.length}`);
 
 ## Notes for Future Agents
 
-1. **No API keys needed** — Sidecar is open on localhost. pay.sh handles production auth.
-2. **Delegation works** — Parent spawns children, tree is queryable, depth tracked.
-3. **Policy is configurable** — max SOL/tx, rate limits, blockint rules all modifiable via API.
-4. **Audit trail is persistent** — All decisions logged to Sled DB with intent, reasoning, tx details.
-5. **DID provides identity** — Every agent gets a W3C DID with Ed25519 verification key + service endpoints.
-6. **Reputation drives limits** — Agent reputation score unlocks higher transaction limits and trust gated features.
-7. **Case management** — Create, list, update investigation cases linked to blocked transactions.
+1. **No API keys needed** - Sidecar is open on localhost. pay.sh handles production auth.
+2. **Delegation works** - Parent spawns children, tree is queryable, depth tracked.
+3. **Policy is configurable** - max SOL/tx, rate limits, blockint rules all modifiable via API.
+4. **Audit trail is persistent** - All decisions logged to Sled DB with intent, reasoning, tx details.
+5. **DID provides identity** - Every agent gets a W3C DID with Ed25519 verification key + service endpoints.
+6. **Reputation drives limits** - Agent reputation score unlocks higher transaction limits and trust gated features.
+7. **Case management** - Create, list, update investigation cases linked to blocked transactions.

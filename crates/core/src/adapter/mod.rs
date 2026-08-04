@@ -1,4 +1,4 @@
-//! TrustAdapter — chain-independence abstraction for the Bastion runtime.
+//! TrustAdapter - chain-independence abstraction for the Bastion runtime.
 //!
 //! Each execution environment (Ethereum, zkSync, Solana, Arcium, Midnight)
 //! implements this trait, making Bastion's policy engine chain-independent.

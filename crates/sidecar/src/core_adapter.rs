@@ -157,7 +157,7 @@ mod tests {
             agent_id: "agent-1".into(),
             from: "from-addr".into(),
             to: "to-addr".into(),
-            amount: 20_000_000_000, // 20 SOL — exceeds 10 SOL limit
+            amount: 20_000_000_000, // 20 SOL - exceeds 10 SOL limit
             currency: Some("SOL".into()),
             tx_type: Some("transfer".into()),
             chain: Some("solana".into()),
@@ -170,7 +170,7 @@ mod tests {
     async fn test_evaluate_core_hitl() {
         let policy = PolicySet::new()
             .with_rule(PolicyRule::AmountLimit {
-                max_per_transaction: 100_000_000_000, // 100 SOL — high enough
+                max_per_transaction: 100_000_000_000, // 100 SOL - high enough
                 max_per_24h: None,
                 currency: "SOL".into(),
             })
@@ -182,7 +182,7 @@ mod tests {
             agent_id: "agent-1".into(),
             from: "from-addr".into(),
             to: "to-addr".into(),
-            amount: 60_000_000_000, // 60 SOL — exceeds 50 SOL HITL threshold
+            amount: 60_000_000_000, // 60 SOL - exceeds 50 SOL HITL threshold
             currency: Some("SOL".into()),
             tx_type: Some("transfer".into()),
             chain: Some("solana".into()),

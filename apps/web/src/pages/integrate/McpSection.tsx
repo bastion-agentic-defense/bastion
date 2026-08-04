@@ -11,7 +11,7 @@ export default function McpSection() {
 
       <p className="font-sans text-sm mb-6 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
         Bastion exposes a Model Context Protocol (MCP) server with SSE transport.
-        In production, MCP is proxied through the sidecar at <code className="font-mono text-xs">/mcp/*</code> — no separate process needed.
+        In production, MCP is proxied through the sidecar at <code className="font-mono text-xs">/mcp/*</code> - no separate process needed.
         AI agents connect via MCP to access security tools: simulate transactions, read policy,
         override blocks, enforce trust decisions, and more.
       </p>
@@ -58,14 +58,14 @@ export default function McpSection() {
             <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>Terminal</span>
           </div>
           <pre className="p-4 font-mono text-xs overflow-x-auto" style={{ color: 'var(--text-primary)' }}>
-{`# Production — bundled in Docker, proxied via sidecar
+{`# Production - bundled in Docker, proxied via sidecar
 # No separate MCP process needed (routes: /mcp/sse, /mcp/messages)
 
-# Local dev — stdio transport (Claude Desktop / Cursor / Codex)
+# Local dev - stdio transport (Claude Desktop / Cursor / Codex)
 BASTION_SIDECAR_URL=http://localhost:3000 \\
 pnpm --filter @bastion/mcp-server dev
 
-# Local dev — SSE transport (browser agents)
+# Local dev - SSE transport (browser agents)
 BASTION_SIDECAR_URL=http://localhost:3000 \\
 pnpm --filter @bastion/mcp-server dev:http`}
           </pre>

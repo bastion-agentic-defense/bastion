@@ -80,7 +80,7 @@ export const config = getDefaultConfig({
   appName: 'Bastion',
   projectId:
     import.meta.env.VITE_WALLETCONNECT_PROJECT_ID ||
-    // Placeholder — replace with your project ID from https://cloud.walletconnect.com
+    // Placeholder - replace with your project ID from https://cloud.walletconnect.com
     '00000000000000000000000000000000',
   chains: [sepolia, base, celo, zksync, robinhood],
   transports: {

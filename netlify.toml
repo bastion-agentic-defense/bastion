@@ -21,7 +21,7 @@
     Pragma = "no-cache"
     Expires = "0"
 
-# Vite hashed assets can be cached forever — their filenames change on every build.
+# Vite hashed assets can be cached forever - their filenames change on every build.
 [[headers]]
   for = "/assets/*"
   [headers.values]

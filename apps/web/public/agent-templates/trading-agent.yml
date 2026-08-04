@@ -21,4 +21,4 @@ policy:
 
 staking:
   recommended_sol: 25
-  note: "Higher stake unlocks higher limits — 25 SOL stake = ~5x limits via StakeWeighted"
+  note: "Higher stake unlocks higher limits - 25 SOL stake = ~5x limits via StakeWeighted"

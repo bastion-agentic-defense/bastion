@@ -15,7 +15,7 @@ const PROBLEMS = [
   },
   {
     title: 'Failure you cannot see',
-    body: 'When an autonomous system does the wrong thing, the loss is discovered downstream — after settlement, in a reconciliation, or by a customer.',
+    body: 'When an autonomous system does the wrong thing, the loss is discovered downstream - after settlement, in a reconciliation, or by a customer.',
   },
   {
     title: 'No record worth trusting',
@@ -216,7 +216,7 @@ export default function Landing() {
           style={{ marginTop: '68px', minHeight: 'min(76vh, 640px)', display: 'flex', alignItems: 'center' }}
         >
           {/* Living background: a ferrofluid shimmer in white over the orange
-              field. Absolutely positioned behind the content, decorative only —
+              field. Absolutely positioned behind the content, decorative only -
               the headline and CTA never depend on it. */}
           <div
             aria-hidden="true"
@@ -431,7 +431,7 @@ export default function Landing() {
               path that sits between your agent and everything it can reach.
             </p>
 
-            {/* Capability 1 — the ledger */}
+            {/* Capability 1 - the ledger */}
             <div className="panel mt-16 p-8 sm:p-11">
               <div style={{ maxWidth: '62ch' }}>
                 <p className="band-kicker" style={{ color: 'var(--accent-text)' }}>
@@ -462,7 +462,7 @@ export default function Landing() {
 
             </div>
 
-            {/* Capability 2 — identity and delegation */}
+            {/* Capability 2 - identity and delegation */}
             <div
               className="panel mt-8 p-8 sm:p-11 grid gap-x-14 gap-y-10 items-center"
               style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))' }}
@@ -551,7 +551,7 @@ export default function Landing() {
               style={{ fontSize: '15.5px', lineHeight: 1.65, color: 'var(--text-secondary)', maxWidth: '56ch', margin: '0 0 3.5rem' }}
             >
               Instead of agents writing low-level transaction calls and API
-              requests, they submit a TrustIntent — a declarative specification
+              requests, they submit a TrustIntent - a declarative specification
               of what should happen. Bastion resolves the chain, the wallet
               strategy, the policy checks, the simulation, and the human gate.
             </p>
@@ -620,7 +620,7 @@ requirements:
             >
               TrustIntent keeps agent frameworks focused on producing{' '}
               <em>what</em> should happen, while Bastion owns <em>how</em> it
-              is carried out under programmable trust policies — identity,
+              is carried out under programmable trust policies - identity,
               simulation, routing, settlement, audit.
             </p>
           </div>
@@ -922,7 +922,7 @@ requirements:
               © 2026 ZKOS Labs. Apache 2.0.
             </span>
             <span className="font-sans" style={{ fontSize: '12.5px', color: 'oklch(0.6 0.006 84.57)' }}>
-              Alpha — not audited for mainnet use.
+              Alpha - not audited for mainnet use.
             </span>
           </div>
         </div>

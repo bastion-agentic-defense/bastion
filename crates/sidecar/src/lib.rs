@@ -458,7 +458,7 @@ async fn generate_did(State(_state): State<AppState>) -> Json<serde_json::Value>
         "did": generated.did,
         "authority_pubkey": generated.authority_pubkey,
         "secret_key_base64": generated.secret_key_base64,
-        "note": "Store the secret_key securely — it cannot be retrieved again.",
+        "note": "Store the secret_key securely - it cannot be retrieved again.",
     }))
 }
 
@@ -1249,7 +1249,7 @@ async fn engage_circuit_breaker(State(state): State<AppState>) -> Json<CircuitBr
         simulation_result: None,
         intent: None,
         result: AuditResult::Blocked,
-        reasoning: "Circuit breaker engaged — all transactions paused".into(),
+        reasoning: "Circuit breaker engaged - all transactions paused".into(),
         simulation_logs: vec![],
         transaction_details: None,
     });
@@ -1278,7 +1278,7 @@ async fn disengage_circuit_breaker(State(state): State<AppState>) -> Json<Circui
         simulation_result: None,
         intent: None,
         result: AuditResult::Allowed,
-        reasoning: "Circuit breaker disengaged — transactions resumed".into(),
+        reasoning: "Circuit breaker disengaged - transactions resumed".into(),
         simulation_logs: vec![],
         transaction_details: None,
     });

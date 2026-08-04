@@ -1,4 +1,4 @@
-//! Bastion Core — chain-agnostic types and policy engine.
+//! Bastion Core - chain-agnostic types and policy engine.
 //!
 //! This crate provides the shared foundation for all chain-specific
 //! Bastion implementations:

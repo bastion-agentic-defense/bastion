@@ -55,7 +55,7 @@ impl<C: ArciumClient, R: TrustSignalProvider> ArcumPolicyEvaluator<C, R> {
     ///
     /// True only when an Arcium client is configured *and* it performs real MPC.
     /// The runtime must consult this before advertising "confidential" evaluation
-    /// — a no-op client reports `false`.
+    /// - a no-op client reports `false`.
     pub fn confidential_active(&self) -> bool {
         self.arcium.as_ref().is_some_and(|c| c.is_confidential())
     }

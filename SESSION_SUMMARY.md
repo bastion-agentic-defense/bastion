@@ -1,4 +1,4 @@
-# Bastion Execution Plan — Session Summary
+# Bastion Execution Plan - Session Summary
 
 **Date**: May 22, 2026  
 **Goal**: Four additions to make Bastion the definitive security infrastructure layer for AI agents
@@ -22,16 +22,16 @@
 ### Phase 1: Celo Deployment & EVM Readiness
 
 1. **EVM contracts verified**: 54 tests pass across 4 test suites
-   - `BastionAudit.sol` (129 lines) — EIP-712 immutable audit trail
-   - `BastionPolicy.sol` (163 lines) — Per-agent policy engine
-   - `BastionFirewall.sol` (157 lines) — ERC-7579 validator module
-   - `BastionRegistry.sol` (156 lines) — Agent + target directory
-   - `BastionERC8004Registry.sol` (345 lines) — ERC-8004 identity registry (22 tests)
-   - `BastionSidecar.sol` (98 lines) — On-chain oracle for sidecar
+   - `BastionAudit.sol` (129 lines) - EIP-712 immutable audit trail
+   - `BastionPolicy.sol` (163 lines) - Per-agent policy engine
+   - `BastionFirewall.sol` (157 lines) - ERC-7579 validator module
+   - `BastionRegistry.sol` (156 lines) - Agent + target directory
+   - `BastionERC8004Registry.sol` (345 lines) - ERC-8004 identity registry (22 tests)
+   - `BastionSidecar.sol` (98 lines) - On-chain oracle for sidecar
 
 2. **Celo RPC configured**: 
-   - `evm/.env` — PRIVATE_KEY, CELO_RPC_URL, CELO_SEPOLIA_RPC_URL
-   - `evm/foundry.toml` — celo, celo_testnet, celo_sepolia endpoints
+   - `evm/.env` - PRIVATE_KEY, CELO_RPC_URL, CELO_SEPOLIA_RPC_URL
+   - `evm/foundry.toml` - celo, celo_testnet, celo_sepolia endpoints
 
 3. **EVM simulation adapter**: `crates/sidecar/src/simulation_evm.rs`
    - `CeloSimulator` implements `EvmSimulate` trait
@@ -65,10 +65,10 @@
 7. **MCP server scaffolded**: `bastion-mcp/packages/mcp-server/`
    - `@modelcontextprotocol/sdk` v1.9 with Zod schemas
    - 4 MCP tools:
-     - `bastion_evaluate_transaction` — Evaluate tx before signing (Pass/Block/PendingHITL)
-     - `bastion_get_audit_log` — Retrieve on-chain audit trail
-     - `bastion_get_policy` — Get active security policy
-     - `bastion_override_block` — HITL: approve/reject blocked tx
+     - `bastion_evaluate_transaction` - Evaluate tx before signing (Pass/Block/PendingHITL)
+     - `bastion_get_audit_log` - Retrieve on-chain audit trail
+     - `bastion_get_policy` - Get active security policy
+     - `bastion_override_block` - HITL: approve/reject blocked tx
    - 2 prompts: `bastion_verify_transaction`, `bastion_audit_history`
    - Stdio transport (compatible with Claude Desktop, Cursor, etc.)
    - HTTP client to sidecar (`src/client.ts`)
@@ -77,34 +77,34 @@
 ## File Changes Summary
 
 ### New Files
-- `evm/.env` — Deployer key + RPC endpoints
-- `crates/sidecar/src/simulation_evm.rs` (225 lines) — Celo EVM simulator
-- `apps/web/src/hooks/useBastionEvents.ts` (95 lines) — SSE client hook
-- `apps/web/src/abi/BastionAudit.ts` — Audit contract ABI
-- `apps/web/src/abi/BastionPolicy.ts` — Policy contract ABI
-- `apps/web/src/abi/BastionFirewall.ts` — Firewall contract ABI
-- `apps/web/src/abi/BastionRegistry.ts` — Registry contract ABI
-- `apps/web/src/abi/BastionERC8004Registry.ts` — ERC-8004 registry ABI
+- `evm/.env` - Deployer key + RPC endpoints
+- `crates/sidecar/src/simulation_evm.rs` (225 lines) - Celo EVM simulator
+- `apps/web/src/hooks/useBastionEvents.ts` (95 lines) - SSE client hook
+- `apps/web/src/abi/BastionAudit.ts` - Audit contract ABI
+- `apps/web/src/abi/BastionPolicy.ts` - Policy contract ABI
+- `apps/web/src/abi/BastionFirewall.ts` - Firewall contract ABI
+- `apps/web/src/abi/BastionRegistry.ts` - Registry contract ABI
+- `apps/web/src/abi/BastionERC8004Registry.ts` - ERC-8004 registry ABI
 - `bastion-mcp/packages/mcp-server/package.json`
 - `bastion-mcp/packages/mcp-server/tsconfig.json`
-- `bastion-mcp/packages/mcp-server/src/index.ts` — MCP server entry point
-- `bastion-mcp/packages/mcp-server/src/client.ts` — Sidecar HTTP client
+- `bastion-mcp/packages/mcp-server/src/index.ts` - MCP server entry point
+- `bastion-mcp/packages/mcp-server/src/client.ts` - Sidecar HTTP client
 - `bastion-mcp/packages/mcp-server/README.md`
 
 ### Modified Files
-- `evm/foundry.toml` — Added `celo_sepolia` RPC endpoint
-- `crates/sidecar/src/lib.rs` — Added SSE endpoint, EVM simulator integration, broadcast channel, event emission
-- `crates/sidecar/src/main.rs` — Wired CeloSimulator creation from env, added to build_app
-- `crates/sidecar/Cargo.toml` — Added `tokio-stream` (sync feature) and `futures`
-- `crates/sidecar/tests/api_integration.rs` — Updated build_app call signature
-- `crates/sidecar/tests/transaction_battery.rs` — Updated build_app call signature
-- `apps/web/src/hooks/useBastionEVM.ts` — Full rewrite with real viem hooks
+- `evm/foundry.toml` - Added `celo_sepolia` RPC endpoint
+- `crates/sidecar/src/lib.rs` - Added SSE endpoint, EVM simulator integration, broadcast channel, event emission
+- `crates/sidecar/src/main.rs` - Wired CeloSimulator creation from env, added to build_app
+- `crates/sidecar/Cargo.toml` - Added `tokio-stream` (sync feature) and `futures`
+- `crates/sidecar/tests/api_integration.rs` - Updated build_app call signature
+- `crates/sidecar/tests/transaction_battery.rs` - Updated build_app call signature
+- `apps/web/src/hooks/useBastionEVM.ts` - Full rewrite with real viem hooks
 
 ## Pending Work
 
 ### Blocked
-- **Celo Sepolia deployment** — Deployer needs testnet CELO from faucet
-- **Celo mainnet deployment** — After testnet success
+- **Celo Sepolia deployment** - Deployer needs testnet CELO from faucet
+- **Celo mainnet deployment** - After testnet success
 
 ### Remaining
 - Dashboard HITL override queue UI (approve/reject buttons, real-time SSE integration)

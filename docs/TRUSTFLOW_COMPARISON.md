@@ -1,4 +1,4 @@
-# Bastion vs TrustFlow — Architecture Comparison
+# Bastion vs TrustFlow - Architecture Comparison
 
 > TrustFlow is a Perplexity-generated PRD for a platform combining **Temporal + HashiCorp Vault + OPA + EigenLayer** into a secure workflow orchestration platform. This document compares it against what Bastion already ships and where the gaps are.
 
@@ -8,9 +8,9 @@
 
 | Component | TrustFlow (Temporal+Vault+OPA+EigenLayer) | Bastion Status | Gap |
 |-----------|------------------------------------------|----------------|-----|
-| **Durable Workflow** | Temporal: deterministic replay, retries, timeouts, signals, child workflows, crash recovery via event history | 🚧 **Epic A — not yet built.** `execute()` is synchronous single-step (simulate → decide). No state machine, no retry, no crash recovery. See [`WORKFLOW_ENGINE_DESIGN.md`](WORKFLOW_ENGINE_DESIGN.md). | **Critical.** Largest net-new subsystem. |
+| **Durable Workflow** | Temporal: deterministic replay, retries, timeouts, signals, child workflows, crash recovery via event history | 🚧 **Epic A - not yet built.** `execute()` is synchronous single-step (simulate → decide). No state machine, no retry, no crash recovery. See [`WORKFLOW_ENGINE_DESIGN.md`](WORKFLOW_ENGINE_DESIGN.md). | **Critical.** Largest net-new subsystem. |
 | **Secrets Management** | Vault: short-lived dynamic credentials, identity-based auth, encryption-as-a-service, key rotation | ❌ **Absent.** No secrets layer. `crates/sidecar/src/auth.rs` is API-key auth for the sidecar itself, not a secrets broker for workloads. | **High.** Needed for production agent workflows that need API keys, DB creds, signing keys. |
-| **Policy Engine** | OPA/Rego: general-purpose, versioned, structured decisions with obligations, dry-run, policy-as-code | ✅ **Shipped — simpler.** 11 hardcoded rule types in Rust (`PolicyEvaluator` at `crates/core/src/policy/evaluator.rs`). Pass/Block/PendingHITL outcomes. No Rego, no custom rules without recompile. | **Medium.** Functional for transaction firewalling. Needs general-purpose policy for broader runtime. |
+| **Policy Engine** | OPA/Rego: general-purpose, versioned, structured decisions with obligations, dry-run, policy-as-code | ✅ **Shipped - simpler.** 11 hardcoded rule types in Rust (`PolicyEvaluator` at `crates/core/src/policy/evaluator.rs`). Pass/Block/PendingHITL outcomes. No Rego, no custom rules without recompile. | **Medium.** Functional for transaction firewalling. Needs general-purpose policy for broader runtime. |
 | **Operator Trust / AVS** | EigenLayer: AVS operator slashing, rewards, operator sets, cryptoeconomic security | ❌ **Referenced in docs only.** Zero integration code. Mentioned in `COMPETITIVE_LANDSCAPE.md`. | **Low.** Requires durable workflows (Epic A) first. |
 
 ---
@@ -32,7 +32,7 @@
 
 ## 3. Where Bastion Needs to Catch Up
 
-### 3.1 Durable Execution — The Critical Gap
+### 3.1 Durable Execution - The Critical Gap
 
 **TrustFlow:** Temporal provides deterministic, replayable workflows. Every state transition is recorded in event history. Worker crashes → replay from history. Activities do all I/O; workflow code stays pure.
 
@@ -82,7 +82,7 @@ See [`WORKFLOW_ENGINE_DESIGN.md`](WORKFLOW_ENGINE_DESIGN.md) for the detailed ar
 | Runtime | Sidecar or service | Embedded in `crates/core` |
 | Physical rules | Not designed for it | ✅ Geofence, SpeedLimit, etc. |
 
-**Recommendation:** Evolve `PolicyEvaluator` to support a pluggable backend model — native Rust rules for performance-critical paths + optional OPA sidecar integration for general-purpose policy-as-code.
+**Recommendation:** Evolve `PolicyEvaluator` to support a pluggable backend model - native Rust rules for performance-critical paths + optional OPA sidecar integration for general-purpose policy-as-code.
 
 ### 3.4 EigenLayer AVS
 
@@ -90,7 +90,7 @@ See [`WORKFLOW_ENGINE_DESIGN.md`](WORKFLOW_ENGINE_DESIGN.md) for the detailed ar
 
 **Bastion:** Mentioned in docs. No code exists.
 
-**Dependency:** Requires durable workflows (Epic A) first — operator tasks are Activities that must be scheduled, tracked, and settled durably.
+**Dependency:** Requires durable workflows (Epic A) first - operator tasks are Activities that must be scheduled, tracked, and settled durably.
 
 ---
 

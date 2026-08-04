@@ -67,7 +67,7 @@ pub fn evm_rpc_env_var(chain: &str) -> String {
 /// A chain-agnostic EVM transaction simulator.
 ///
 /// The behavior is pure JSON-RPC (`eth_call` + balance diff), so a single
-/// implementation serves any EVM chain — the caller supplies the RPC URL and a
+/// implementation serves any EVM chain - the caller supplies the RPC URL and a
 /// human-readable `chain_label` (used in logs and audit records). One instance
 /// is created per configured chain and selected by the request's `chain` field.
 pub struct EvmSimulator {

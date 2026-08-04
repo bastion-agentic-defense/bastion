@@ -15,9 +15,9 @@ All limits are per-user (keyed by PAT identity). Exceeding a limit returns `429`
 | Feedback | 10 req/hr | `/feedback` |
 | PAT issuance | 10 req/min | `POST /api/copilot/auth/token` (per IP) |
 
-**Tip:** The 2-concurrent limit is enforced server-side. Most agent runtimes serialize overflow automatically — submit all your calls and they'll execute in order. If you get repeated `429`s, reduce to sequential calls.
+**Tip:** The 2-concurrent limit is enforced server-side. Most agent runtimes serialize overflow automatically - submit all your calls and they'll execute in order. If you get repeated `429`s, reduce to sequential calls.
 
-**Fail-closed:** If the concurrency limiter is temporarily unavailable, the API fails closed with a retryable 5xx rather than allowing unlimited concurrency. This is transient — retry after a brief delay.
+**Fail-closed:** If the concurrency limiter is temporarily unavailable, the API fails closed with a retryable 5xx rather than allowing unlimited concurrency. This is transient - retry after a brief delay.
 
 ### Endpoints
 
@@ -38,17 +38,17 @@ curl "$COLOSSEUM_COPILOT_API_BASE/filters" \
 
 Response includes:
 - `tracks[]`: `{ key, name, hackathonSlug, projectCount }`
-- `hackathons[]`: `{ slug, name, startDate, projectCount, winnerCount }` — ordered chronologically (oldest first)
+- `hackathons[]`: `{ slug, name, startDate, projectCount, winnerCount }` - ordered chronologically (oldest first)
 - `acceleratorBatches[]`: `{ key, name, companyCount }`
 - `prizeTypes[]`: string array of prize category names
 - `prizePlacements[]`: integer array of placement ranks
-- `problemTags[]`: `{ tag, count }` — top 25 by frequency
+- `problemTags[]`: `{ tag, count }` - top 25 by frequency
 - `solutionTags[]`: `{ tag, count }`
 - `primitives[]`: `{ tag, count }`
 - `techStack[]`: `{ tag, count }`
 - `targetUsers[]`: `{ tag, count }`
-- `clusters[]`: `{ key, label, projectCount }` — key format `v<N>-c<N>`
-- `archiveSources[]`: `{ key, label, documentCount }` — use `key` values in archive `sources` filter
+- `clusters[]`: `{ key, label, projectCount }` - key format `v<N>-c<N>`
+- `archiveSources[]`: `{ key, label, documentCount }` - use `key` values in archive `sources` filter
 
 Use this endpoint to discover valid filter values for search requests.
 
@@ -94,9 +94,9 @@ curl -X POST "$COLOSSEUM_COPILOT_API_BASE/search/projects" \
 
 Discover valid values for tag/cluster/source filters via `GET /filters`.
 
-**Facets** — aggregate tag distributions across the matched set:
+**Facets** - aggregate tag distributions across the matched set:
 
-- `includeFacets` (boolean, default `false`): enable facet computation. Adds overhead — only use when you need aggregate distributions.
+- `includeFacets` (boolean, default `false`): enable facet computation. Adds overhead - only use when you need aggregate distributions.
 - `facets` (string[], optional): which dimensions to compute. Options: `hackathons`, `tracks`, `prizes`, `problemTags`, `solutionTags`, `primitives`, `techStack`, `clusters`. Omit to compute all 8.
 - `facetTopK` (int, 1-20, default `8`): max buckets per dimension.
 
@@ -104,10 +104,10 @@ Response includes `facets.{dimension}[]`: `{ key, label, count, sampleProjectSlu
 
 Note: facets reflect corpus-wide counts scoped to active filters, not just the returned results page.
 
-**Diagnostics** — pass `includeDiagnostics: true` to get search debug info:
+**Diagnostics** - pass `includeDiagnostics: true` to get search debug info:
 
 Response includes `diagnostics`:
-- `modeUsed`: `"vector"`, `"text"`, `"hybrid"`, or `"filters"` — which search mode was used
+- `modeUsed`: `"vector"`, `"text"`, `"hybrid"`, or `"filters"` - which search mode was used
 - `fallbackUsed`: whether text fallback was triggered
 - `fallbackReason`: why fallback occurred (if applicable)
 - `vectorCandidates`: number of vector search candidates
@@ -123,7 +123,7 @@ Notes:
 - `limit <= 25`. `offset` applies after ranking/diversity.
 - `results[]`: each result includes `hackathon: { name, slug, startDate }` alongside project metadata, tracks, links, evidence, prize, and accelerator fields
 
-**Score interpretation (projects):** Scores reflect hybrid RRF fusion across vector, text, and semantic tag channels — not raw embedding distance. Use relative ranking within a result set (higher = better match) rather than absolute thresholds. When `diagnostics.modeUsed` is `text`, scores represent text relevance (static 0.8). When `hybrid`, scores combine similarity and text rank. Enable `includeDiagnostics: true` to see which mode produced results.
+**Score interpretation (projects):** Scores reflect hybrid RRF fusion across vector, text, and semantic tag channels - not raw embedding distance. Use relative ranking within a result set (higher = better match) rather than absolute thresholds. When `diagnostics.modeUsed` is `text`, scores represent text relevance (static 0.8). When `hybrid`, scores combine similarity and text rank. Enable `includeDiagnostics: true` to see which mode produced results.
 
 #### POST /search/archives
 
@@ -158,15 +158,15 @@ Notes:
 - `minSimilarity` (optional, 0–1, default `0.2`): minimum cosine similarity for vector retrieval. Lower values increase recall for niche queries.
 
 **Search tiers:** Archive search auto-cascades through three retrieval tiers:
-1. `vector` — embedding similarity (primary, uses cosine distance)
-2. `chunk_text` — full-text search on indexed chunks
-3. `doc_text` — full-text search on full documents
+1. `vector` - embedding similarity (primary, uses cosine distance)
+2. `chunk_text` - full-text search on indexed chunks
+3. `doc_text` - full-text search on full documents
 
 The `searchTier` response field indicates which tier produced results. Score interpretation varies by tier: `vector` scores are cosine similarity (higher = more similar), while text tier scores are FTS rank values.
 
 **Intent modes:**
-- `intent: "docs"` (default) — single-query vector search, optimized for precision
-- `intent: "ideation"` — multi-query decomposition for broader recall. Automatically sets `maxChunksPerDoc >= 3`.
+- `intent: "docs"` (default) - single-query vector search, optimized for precision
+- `intent: "ideation"` - multi-query decomposition for broader recall. Automatically sets `maxChunksPerDoc >= 3`.
 
 **Additional parameters:**
 - `maxDocsPerSource` (int, 0-10, default `3`): cap results from any single source. Set `0` for unlimited.
@@ -174,7 +174,7 @@ The `searchTier` response field indicates which tier produced results. Score int
 
 **Limit semantics:** `limit` controls the number of *documents* returned. Each document can have up to `maxChunksPerDoc` chunks, so total result items can exceed `limit`.
 
-**Score interpretation (archives):** Similarity > 0.4 is a strong topical match. 0.2–0.4 is worth reading but verify relevance. < 0.2 is usually tangential — only include if content is clearly relevant despite low score. Scores vary by query breadth: broad queries ("crypto payments") produce higher peaks than niche queries ("zero-knowledge invoice factoring"). When `searchTier` is `chunk_text` or `doc_text`, the result came from text fallback, not vector similarity — prioritize snippet/title relevance over score magnitude in those cases.
+**Score interpretation (archives):** Similarity > 0.4 is a strong topical match. 0.2–0.4 is worth reading but verify relevance. < 0.2 is usually tangential - only include if content is clearly relevant despite low score. Scores vary by query breadth: broad queries ("crypto payments") produce higher peaks than niche queries ("zero-knowledge invoice factoring"). When `searchTier` is `chunk_text` or `doc_text`, the result came from text fallback, not vector similarity - prioritize snippet/title relevance over score magnitude in those cases.
 
 **Note:** `publishedAt` can be `null` for some archive documents (undated sources). Handle this field as nullable in any date-based filtering or display logic.
 
@@ -252,8 +252,8 @@ Response includes:
 - `summary`: LLM-generated cluster description
 - `projectCount`: total projects in cluster
 - `winnerCount`: prize-winning projects
-- `representativeProjects[]`: `{ slug, name, oneLiner, isWinner }` — sample projects
-- `topTags.problemTags[]`: `{ tag, count }` — top problem tags
+- `representativeProjects[]`: `{ slug, name, oneLiner, isWinner }` - sample projects
+- `topTags.problemTags[]`: `{ tag, count }` - top problem tags
 - `topTags.primitives[]`: `{ tag, count }`
 - `topTags.techStack[]`: `{ tag, count }`
 
@@ -311,7 +311,7 @@ curl -X POST "$COLOSSEUM_COPILOT_API_BASE/feedback" \
 | `category` | string | Yes | One of: `error`, `quality`, `suggestion`, `other` |
 | `message` | string | Yes | Description of the issue (max 5000 chars) |
 | `severity` | string | No | One of: `low`, `medium` (default), `high`, `critical` |
-| `context` | object | No | Structured context — query used, endpoint, error details (max 10KB) |
+| `context` | object | No | Structured context - query used, endpoint, error details (max 10KB) |
 
 **Response:** `201 Created`
 
@@ -328,13 +328,13 @@ High and critical severity feedback is escalated to the team immediately.
 - Prefer **3-4 high-quality archive citations** over padding to 5 with tangential references.
 - `maxChunksPerDoc`: use `1` for exploratory passes (broad discovery); use `2` for deep-dive passes (Step 7c) when you need richer context from a known-relevant document.
 - Archive search auto-cascades (vector → chunk text → doc text) before returning empty. If still empty, try conceptual synonyms (e.g., `"prediction markets"` -> `"futarchy"`).
-- Check `searchTier` in the response to understand which tier produced results — `chunk_text` or `doc_text` means vector similarity was too low for the query.
+- Check `searchTier` in the response to understand which tier produced results - `chunk_text` or `doc_text` means vector similarity was too low for the query.
 
 **Project search:**
 - Natural language queries work well (`"privacy wallet for stablecoin users"`).
 - Use `filters` to narrow by hackathon, track, or tech stack rather than stuffing filter terms into the query.
-- `includeFacets: true` adds overhead — only enable when you need aggregate tag distributions.
-- `diversify: false` — use this when doing a focused investigation of a specific niche, incumbent, or competitor landscape (e.g., "show me all DEX aggregators"). This disables cross-hackathon diversity ranking and returns results purely by similarity score. Only use for narrow deep-dives, not for broad discovery where cross-hackathon coverage matters.
+- `includeFacets: true` adds overhead - only enable when you need aggregate tag distributions.
+- `diversify: false` - use this when doing a focused investigation of a specific niche, incumbent, or competitor landscape (e.g., "show me all DEX aggregators"). This disables cross-hackathon diversity ranking and returns results purely by similarity score. Only use for narrow deep-dives, not for broad discovery where cross-hackathon coverage matters.
 
 **Hackathon analysis:**
 - `clusters`, `problemTags`, `techStack`: these dimensions exist in the schema but may not be populated for all hackathon sets. If a dimension returns empty, try `tracks` or `problemTags` instead.

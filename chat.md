@@ -1,9 +1,9 @@
 Thinking: The user wants me to fix the application text:
-1. No mdashes (—), semicolons (;), or colons (:)
+1. No mdashes (-), semicolons (;), or colons (:)
 2. Don't emphasize Solana devnet since this is an ETHGlobal hackathon - focus on EVM/Ethereum
 Let me rewrite the application accordingly, removing all dashes, semicolons, and colons, and adjusting the focus to be EVM-centric while still being honest about what exists.
 Let me think about replacements:
-- "—" can be replaced with "."
+- "-" can be replaced with "."
 - ";" can be replaced with "."
 - ":" can be replaced with rephrasing or "."
 I need to be careful about the Solana mention. The project does have Solana support, but for an ETHGlobal application, I should frame it as multi-chain with EVM/Ethereum being the primary focus, and mention Solana as secondary/additional.
@@ -60,13 +60,13 @@ Thinking: Zeus Network is a Bitcoin DeFi platform that:
 5. Permissionless & Trustless - No KYC, no centralized custodians
 6. Built for builders - BitcoinKit developer tools
 7. ZEUS token - Governance token, staking, delegation
-Now the user wants Bastion to be "like Zeus Network" — so they want to understand what model from Zeus they want to apply to Bastion.
+Now the user wants Bastion to be "like Zeus Network" - so they want to understand what model from Zeus they want to apply to Bastion.
 I think the connection the user might be making is:
-1. Zeus provides infrastructure for Bitcoin to connect to multiple chains — Bastion provides infrastructure for AI agents to connect to multiple chains
-2. Zeus has a token (ZEUS) with staking, delegation, governance — maybe the user wants Bastion to have a token?
-3. Zeus has zBTC as a core asset — maybe Bastion needs a core offering
-4. Zeus is built for builders with BitcoinKit — Bastion could have a similar toolkit
-But I should ask the user what specifically about Zeus's model they want to emulate. The user said "I want to make Bastion to be how Zeus Network is doing it" — this is vague. Let me ask some clarifying questions.
+1. Zeus provides infrastructure for Bitcoin to connect to multiple chains - Bastion provides infrastructure for AI agents to connect to multiple chains
+2. Zeus has a token (ZEUS) with staking, delegation, governance - maybe the user wants Bastion to have a token?
+3. Zeus has zBTC as a core asset - maybe Bastion needs a core offering
+4. Zeus is built for builders with BitcoinKit - Bastion could have a similar toolkit
+But I should ask the user what specifically about Zeus's model they want to emulate. The user said "I want to make Bastion to be how Zeus Network is doing it" - this is vague. Let me ask some clarifying questions.
 Actually, let me think about this more carefully. Zeus Network's model is:
 - Core asset (zBTC) that represents Bitcoin on other chains
 - Infrastructure layer connecting chains
@@ -79,32 +79,32 @@ For Bastion, maybe the parallel is:
 - Instead of tokenizing Bitcoin, Bastion "tokenizes" security decisions
 - Bastion could be the infrastructure layer for AI agent security, similar to how Zeus is infrastructure for Bitcoin liquidity
 But I should ask the user directly what they mean.
-I see Zeus Network's model now. Quick question — which aspect of Zeus are you trying to replicate with Bastion?
+I see Zeus Network's model now. Quick question - which aspect of Zeus are you trying to replicate with Bastion?
 # Questions
 What specifically about Zeus Network's model do you want Bastion to emulate?
 Infrastructure positioning
-Thinking: The user wants Bastion to be positioned like Zeus Network as infrastructure — specifically, the way Zeus provides infrastructure for Bitcoin across chains, Bastion should provide security infrastructure for AI agents across chains.
+Thinking: The user wants Bastion to be positioned like Zeus Network as infrastructure - specifically, the way Zeus provides infrastructure for Bitcoin across chains, Bastion should provide security infrastructure for AI agents across chains.
 Let me think about how to reframe the hackathon application with this lens:
 Zeus Network's infrastructure positioning:
 - zBTC is the core asset that moves across chains (Solana, Ethereum, BNB, Sui)
 - Permissionless and trustless
-- Programmable Protocol Points (PPP) — verifiable infrastructure
+- Programmable Protocol Points (PPP) - verifiable infrastructure
 - 1:1 pegged, proof of reserves
 - Built for builders with BitcoinKit
 For Bastion, the parallel:
 - Bastion is the security layer for AI agents across chains
-- Permissionless and trustless — any agent can use it
+- Permissionless and trustless - any agent can use it
 - Every decision is recorded on-chain (like proof of reserves)
 - Built for builders with SDK/MCP integration
-The key insight: Zeus doesn't just do one thing on one chain — they provide the infrastructure layer that connects Bitcoin to multiple chains. Similarly, Bastion shouldn't just be "a firewall for Solana" or "a firewall for EVM." It should be the security infrastructure layer for AI agents across all chains.
+The key insight: Zeus doesn't just do one thing on one chain - they provide the infrastructure layer that connects Bitcoin to multiple chains. Similarly, Bastion shouldn't just be "a firewall for Solana" or "a firewall for EVM." It should be the security infrastructure layer for AI agents across all chains.
 This means I should rewrite the application to emphasize:
 1. Bastion as chain-agnostic infrastructure for AI agent security
 2. The firewall is the "core primitive" that the whole AI agent ecosystem builds on
 3. Multi-chain by design, not an afterthought
-4. Permissionless — any AI agent, any chain, no gatekeepers
-5. Developer-first — SDK and MCP make integration trivial
+4. Permissionless - any AI agent, any chain, no gatekeepers
+5. Developer-first - SDK and MCP make integration trivial
 Let me rewrite the application with this framing.
-Makes perfect sense. Zeus is "the infrastructure layer for Bitcoin across all chains" — Bastion should be "the infrastructure layer for AI agent security across all chains." Let me rewrite the application with that framing.
+Makes perfect sense. Zeus is "the infrastructure layer for Bitcoin across all chains" - Bastion should be "the infrastructure layer for AI agent security across all chains." Let me rewrite the application with that framing.
 ---
 What is the current state of the project?
 > Bastion is a chain-agnostic security infrastructure layer for autonomous AI agents. Just as Zeus Network provides the infrastructure for Bitcoin to move and earn across multiple chains, Bastion provides the infrastructure for AI agents to operate safely across multiple chains.
@@ -146,4 +146,4 @@ Which areas are you interested in?
 Solo or team?
 - Hacking Solo
 ---
-Better? The framing now positions Bastion as "the Zeus Network for AI agent security" — chain-agnostic infrastructure, permissionless, verifiable on-chain, built for builders to integrate into anything.
+Better? The framing now positions Bastion as "the Zeus Network for AI agent security" - chain-agnostic infrastructure, permissionless, verifiable on-chain, built for builders to integrate into anything.

@@ -1,15 +1,15 @@
 ---
 name: fatf-glossary-reference
-description: Points to the official FATF Glossary on fatf-gafi.org for standardized AML/CFT and related terms used across FATF Recommendations and guidance. Use when the user needs authoritative definitions (e.g. CDD, ML/TF, STR, PEP, risk-based approach) in compliance or investigation writing—not as legal advice or a substitute for jurisdiction-specific law and supervisory rules.
+description: Points to the official FATF Glossary on fatf-gafi.org for standardized AML/CFT and related terms used across FATF Recommendations and guidance. Use when the user needs authoritative definitions (e.g. CDD, ML/TF, STR, PEP, risk-based approach) in compliance or investigation writing-not as legal advice or a substitute for jurisdiction-specific law and supervisory rules.
 ---
 
-# FATF — official glossary (reference)
+# FATF - official glossary (reference)
 
 **Educational routing only.** This skill does **not** mirror glossary entries. Use the **live** page for wording, updates, and context.
 
 ## Canonical URL
 
-- **[FATF Glossary](https://www.fatf-gafi.org/en/pages/fatf-glossary.html)** — Financial Action Task Force (**FATF**) terminology as published on the official site.
+- **[FATF Glossary](https://www.fatf-gafi.org/en/pages/fatf-glossary.html)** - Financial Action Task Force (**FATF**) terminology as published on the official site.
 
 FATF is the intergovernmental body that sets international **AML/CFT** standards (notably the **40 Recommendations**). Its **glossary** aligns vocabulary across mutual evaluations, national implementation, and sector guidance (including **virtual asset** / **VASP**-related materials where those terms appear in FATF outputs).
 
@@ -30,8 +30,8 @@ FATF is the intergovernmental body that sets international **AML/CFT** standards
 
 ## Guardrails
 
-- **Not legal or regulatory advice** — the glossary helps **terminology**; **obligations** depend on **your jurisdiction** and **regulator**.  
-- **Supersession** — national law and **supervisory** guidance prevail over informal paraphrases; verify **primary** sources for filings and programs.  
-- **Updates** — FATF may **revise** definitions; link to or quote from the **current** page for material work products.
+- **Not legal or regulatory advice** - the glossary helps **terminology**; **obligations** depend on **your jurisdiction** and **regulator**.  
+- **Supersession** - national law and **supervisory** guidance prevail over informal paraphrases; verify **primary** sources for filings and programs.  
+- **Updates** - FATF may **revise** definitions; link to or quote from the **current** page for material work products.
 
 **Goal:** a single blockint pointer to the **[FATF Glossary](https://www.fatf-gafi.org/en/pages/fatf-glossary.html)** for consistent AML/CFT language alongside chain and investigation skills.

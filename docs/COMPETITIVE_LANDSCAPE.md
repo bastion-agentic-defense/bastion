@@ -1,4 +1,4 @@
-# Bastion — Competitive Landscape
+# Bastion - Competitive Landscape
 
 > Bastion's defensible position: **orchestration, not replacement.**
 > The Ethereum ecosystem is building trust primitives. Bastion composes them into a unified runtime.
@@ -33,7 +33,7 @@
 | **Sign Protocol** | Cross-chain attestations | Partial | ❌ | ❌ | ✅ | Partial |
 | **Reclaim / zkPass / zkTLS** | Data verification | ❌ | ❌ | ❌ | ✅ | ✅ |
 
-**Bastion's relationship:** Bastion orchestrates trust decisions that consume these primitives — it issues EAS/Sign attestations as part of execution, uses EigenLayer for cryptoeconomic trust, and feeds verified data from zkTLS into policy evaluation.
+**Bastion's relationship:** Bastion orchestrates trust decisions that consume these primitives - it issues EAS/Sign attestations as part of execution, uses EigenLayer for cryptoeconomic trust, and feeds verified data from zkTLS into policy evaluation.
 
 ### Identity & Verification
 
@@ -41,7 +41,7 @@
 |---------|-----------------|----------|--------|-------------------|------------|---------|-------------|
 | **Privado ID / Polygon ID** | Identity | ✅ | Partial | ❌ | Partial | ✅ | ✅ |
 
-**Bastion's relationship:** Identity becomes one input into Bastion's policy runtime — agent identity is verified, then combined with policy, attestations, and execution decisions.
+**Bastion's relationship:** Identity becomes one input into Bastion's policy runtime - agent identity is verified, then combined with policy, attestations, and execution decisions.
 
 ### Infrastructure Primitives
 
@@ -51,7 +51,7 @@
 | **Temporal** | Durable workflow runtime | ❌ | ❌ | ✅ | ❌ | ❌ |
 | **Pact Network** | Payment refund protocol | ❌ | ❌ | ❌ | ❌ | ❌ |
 
-**Bastion's relationship:** Bastion embeds policy (like OPA) into autonomous workflows (like Temporal) with identity and provenance. Pact Network adds payment guarantees — Bastion's Web2 firewall can auto-wrap outbound x402 calls with Pact for insured agent API payments.
+**Bastion's relationship:** Bastion embeds policy (like OPA) into autonomous workflows (like Temporal) with identity and provenance. Pact Network adds payment guarantees - Bastion's Web2 firewall can auto-wrap outbound x402 calls with Pact for insured agent API payments.
 
 ---
 
@@ -91,17 +91,17 @@ Avoid reimplementing capabilities with strong ecosystem support:
 
 These are the pieces existing standards don't unify:
 
-- **Durable Trust Runtime** — workflow orchestration with trust guarantees
-- **Policy Runtime** — evaluating identity, verification, and governance before execution
-- **Execution Planner** — choosing Solana, Arcium, Ethereum, etc. based on workload
-- **Trust Lifecycle Management** — identity → policy → execution → provenance → settlement
-- **Cross-standard orchestration** — making ERC-4337, ERC-8004, ERC-8126, EAS, Sign Protocol, and Pact Network work together seamlessly
+- **Durable Trust Runtime** - workflow orchestration with trust guarantees
+- **Policy Runtime** - evaluating identity, verification, and governance before execution
+- **Execution Planner** - choosing Solana, Arcium, Ethereum, etc. based on workload
+- **Trust Lifecycle Management** - identity → policy → execution → provenance → settlement
+- **Cross-standard orchestration** - making ERC-4337, ERC-8004, ERC-8126, EAS, Sign Protocol, and Pact Network work together seamlessly
 
 ---
 
 ## Integration: Pact Network
 
-[Pact Network](https://pactnetwork.io/) provides on-chain chargebacks for x402 agent payments. When an AI agent pays an API and it fails, Pact refunds principal + premium from a coverage pool — automatically, on-chain.
+[Pact Network](https://pactnetwork.io/) provides on-chain chargebacks for x402 agent payments. When an AI agent pays an API and it fails, Pact refunds principal + premium from a coverage pool - automatically, on-chain.
 
 ### Technical Summary
 
@@ -215,4 +215,4 @@ Wallet                  Execution               Settlement
 
 ---
 
-**Built by zkOS Labs** — advancing programmable trust infrastructure for Ethereum and interoperable open networks.
+**Built by zkOS Labs** - advancing programmable trust infrastructure for Ethereum and interoperable open networks.

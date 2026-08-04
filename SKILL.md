@@ -55,7 +55,7 @@ Bastion integrates with these agent skill packages:
 - **Base Docs** (`base-docs`): Base L2 (EVM hub-and-spoke). Covers cross-chain settlement, bridging, and EVM-compatible smart contract deployment for multi-chain agent workflows.
 
 **Trust Primitives**
-- **Pact Network**: On-chain refund protocol for x402 agent payments. Provides money-back guarantees when agent API calls fail — chargebacks for the agent economy. Composes with Bastion's Web2 firewall for insured outbound API calls.
+- **Pact Network**: On-chain refund protocol for x402 agent payments. Provides money-back guarantees when agent API calls fail - chargebacks for the agent economy. Composes with Bastion's Web2 firewall for insured outbound API calls.
 
 ## Staking (AgentStake PDA)
 

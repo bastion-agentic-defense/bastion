@@ -1,7 +1,7 @@
 import { Buffer } from 'buffer';
 globalThis.Buffer = Buffer;
 
-// Detect wallet extension conflicts early — before any wallet library imports.
+// Detect wallet extension conflicts early - before any wallet library imports.
 // Multiple extensions (MetaMask, Phantom, Rabby, evmAsk, etc.) race to define
 // window.ethereum. If it's already locked as a getter-only property, we must
 // skip the injected connector entirely to prevent wagmi/viem from crashing with
@@ -22,7 +22,7 @@ if (typeof window !== 'undefined') {
         console.warn(
           '[Bastion] window.ethereum is locked (getter-only). ' +
           'Multiple wallet extensions are conflicting. ' +
-          'Injected EVM wallet connector disabled — use WalletConnect instead. ' +
+          'Injected EVM wallet connector disabled - use WalletConnect instead. ' +
           'Solana wallet is unaffected.',
         );
       }

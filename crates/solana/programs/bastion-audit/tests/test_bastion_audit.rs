@@ -182,7 +182,7 @@ async fn test_initialize() {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// 2. test_initialize_twice — must fail
+// 2. test_initialize_twice - must fail
 // ══════════════════════════════════════════════════════════════════
 #[tokio::test]
 async fn test_initialize_twice() {
@@ -201,7 +201,7 @@ async fn test_initialize_twice() {
     );
 
     send(&mut banks, &payer, vec![ix.clone()]).await.unwrap();
-    // Second initialize should fail — account already exists
+    // Second initialize should fail - account already exists
     // Verify via account state: authority should still be the original payer
     let _ = send(&mut banks, &payer, vec![ix]).await;
     let acct = banks.get_account(as_pda).await.unwrap().unwrap();
@@ -334,7 +334,7 @@ async fn test_log_audit_unauthorized() {
     args.extend(borsh_string("unauthorized"));
     args.extend(borsh_option_pubkey(None));
 
-    // Actually submit log_audit signed by the WRONG key — the authority constraint
+    // Actually submit log_audit signed by the WRONG key - the authority constraint
     // (signer == audit_state.authority) must reject it.
     let ix = make_ix(
         "log_audit",
@@ -380,7 +380,7 @@ async fn test_log_audit_paused() {
     args.extend(borsh_string("paused fail"));
     args.extend(borsh_option_pubkey(None));
 
-    // Submit log_audit signed by the authority while paused — the `!paused`
+    // Submit log_audit signed by the authority while paused - the `!paused`
     // constraint must reject it.
     let ix = make_ix(
         "log_audit",
@@ -549,7 +549,7 @@ async fn test_update_reputation() {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// 8. test_update_reputation_overflow — below 0 must fail
+// 8. test_update_reputation_overflow - below 0 must fail
 // ══════════════════════════════════════════════════════════════════
 #[tokio::test]
 async fn test_update_reputation_overflow() {
@@ -576,7 +576,7 @@ async fn test_update_reputation_overflow() {
     .await
     .unwrap();
 
-    // Verify via account state — reputation should still be 0
+    // Verify via account state - reputation should still be 0
     let _ = send(
         &mut banks,
         &payer,
@@ -704,7 +704,7 @@ async fn test_emergency_pause_resume() {
         "paused_at > 0"
     );
 
-    // double-pause — program returns AlreadyPaused error
+    // double-pause - program returns AlreadyPaused error
     // Note: solana-program-test may not propagate program errors via process_transaction
     // in all versions. We verify the error is logged by checking the account state instead.
     let d_before = banks.get_account(as_pda).await.unwrap().unwrap().data;
@@ -751,7 +751,7 @@ async fn test_emergency_pause_resume() {
         "resumed_at > 0"
     );
 
-    // double-resume — program returns NotPaused error
+    // double-resume - program returns NotPaused error
     // Verify via account state rather than error propagation
     let d_before_resume = banks.get_account(as_pda).await.unwrap().unwrap().data;
     let paused_before_resume = d_before_resume[po];
@@ -915,7 +915,7 @@ async fn test_full_lifecycle() {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// 12. test_initialize_sets_distinct_admin — authority is the provided admin (B5)
+// 12. test_initialize_sets_distinct_admin - authority is the provided admin (B5)
 // ══════════════════════════════════════════════════════════════════
 #[tokio::test]
 async fn test_initialize_sets_distinct_admin() {
@@ -937,7 +937,7 @@ async fn test_initialize_sets_distinct_admin() {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// 13. test_reputation_upper_bound — updates above MAX_REPUTATION rejected (B10)
+// 13. test_reputation_upper_bound - updates above MAX_REPUTATION rejected (B10)
 // ══════════════════════════════════════════════════════════════════
 #[tokio::test]
 async fn test_reputation_upper_bound() {

@@ -1,4 +1,4 @@
-# Bastion — Solana Mainnet Readiness
+# Bastion - Solana Mainnet Readiness
 
 > Living checklist for taking the `bastion-audit` Anchor program and its off-chain
 > sidecar to **Solana mainnet-beta with real value**. Nothing in this document
@@ -20,11 +20,11 @@ transactions to the program on mainnet (the audit-writer keypair).
 
 ---
 
-## 1. Program hardening — code freeze targets
+## 1. Program hardening - code freeze targets
 
 | Item | Status | Notes |
 |---|---|---|
-| Bind global authority to a config-provided admin (`initialize(admin)`), not first-caller | ✅ | `lib.rs` — sets `audit_state.authority = admin`; rejects `Pubkey::default()`. On mainnet `admin` = Squads vault, set atomically by the deploy script (§4). |
+| Bind global authority to a config-provided admin (`initialize(admin)`), not first-caller | ✅ | `lib.rs` - sets `audit_state.authority = admin`; rejects `Pubkey::default()`. On mainnet `admin` = Squads vault, set atomically by the deploy script (§4). |
 | Reputation bounded to `[0, 100]`, out-of-range rejected | ✅ | `update_agent_reputation` uses `MAX_REPUTATION = 100`; `InvalidReputation` on out-of-range. |
 | Checked arithmetic on audit counters | ✅ | `log_audit` uses `checked_add` → `MathOverflow`. |
 | `overflow-checks = true` in release/SBF profile | ✅ | root `Cargo.toml [profile.release]`. |
@@ -58,7 +58,7 @@ step, §4) plus the one-time `init` constraint is the interim control.
 | Negative-path tests actually submit txns and assert rejection | ✅ | `test_log_audit_unauthorized` / `test_log_audit_paused` now sign with the wrong key / while paused and assert the tx errors + no entry written. |
 | `initialize` sets a distinct admin (not payer) | ✅ | `test_initialize_sets_distinct_admin`. |
 | Reputation upper-bound rejection | ✅ | `test_reputation_upper_bound`. |
-| Full `program-test` suite green (13 tests) | ✅ | `cargo test -p bastion-audit` (rebuild fixture `.so` first — see §2.1). |
+| Full `program-test` suite green (13 tests) | ✅ | `cargo test -p bastion-audit` (rebuild fixture `.so` first - see §2.1). |
 | Fuzz `log_audit` / `set_policy` (trident or `cargo fuzz`) | ⬜ | Add before audit submission. |
 | Wire program tests into CI `solana` job | 🟡 | `.github/workflows/ci.yml` already runs anchor build + test; add the fixture rebuild step. |
 
@@ -100,9 +100,9 @@ cargo test -p bastion-audit
 
 | Item | Status | Notes |
 |---|---|---|
-| Auth fails closed | ✅ | `crates/sidecar/src/auth.rs` — with `BASTION_REQUIRE_AUTH=1`, requests lacking DID auth or a valid `BASTION_API_KEY` are rejected. **Set `BASTION_REQUIRE_AUTH=1` on mainnet.** |
+| Auth fails closed | ✅ | `crates/sidecar/src/auth.rs` - with `BASTION_REQUIRE_AUTH=1`, requests lacking DID auth or a valid `BASTION_API_KEY` are rejected. **Set `BASTION_REQUIRE_AUTH=1` on mainnet.** |
 | Mutating endpoints auth-protected | ✅ | `/simulate`, `/api/v2/evaluate`, `/api/v2/simulate-evm`, delegate, delegation delete, stake unstake/claim, robot telemetry moved under the auth layer in `build_app`. |
-| Structured logging | ✅ | `main.rs::init_tracing` — `RUST_LOG` controls level; `BASTION_LOG_JSON=1` for JSON (set on Fly.io). |
+| Structured logging | ✅ | `main.rs::init_tracing` - `RUST_LOG` controls level; `BASTION_LOG_JSON=1` for JSON (set on Fly.io). |
 | Signer-path panic sweep | ✅ | `program_client.rs` only panics on a compile-time constant ID; the runtime submit path is panic-free. Remaining `unwrap`s are startup config or infallible response builders. |
 | `/metrics` (Prometheus) + request-latency tracing | ⬜ | Add before go-live. |
 | RPC cutover devnet → paid mainnet provider | ⬜ | `fly.toml` `SOLANA_RPC_URL` / `HELIUS_RPC_URL` still point at devnet; switch to a paid mainnet RPC. |
@@ -115,7 +115,7 @@ cargo test -p bastion-audit
 ## 6. Arcium (confidential evaluation) decision
 
 The Arcium MXE path is scaffolded but wired to `NoopArciumClient` (always `Pass`,
-empty signature) — `crates/arcium/src/client.rs`. **Do not ship a no-op as
+empty signature) - `crates/arcium/src/client.rs`. **Do not ship a no-op as
 "confidential."** Before mainnet, choose one and document it publicly:
 
 - **(a)** Ship with local-eval fallback only and label Arcium as **"preview / not yet
@@ -127,7 +127,7 @@ Status: ⬜ decision pending.
 
 ---
 
-## 7. External audit — GO-LIVE GATE
+## 7. External audit - GO-LIVE GATE
 
 | Item | Status | Notes |
 |---|---|---|

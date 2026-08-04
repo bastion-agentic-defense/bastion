@@ -1,4 +1,4 @@
-# Bastion — Complete Implementation Plan
+# Bastion - Complete Implementation Plan
 
 > Covers all 7 epics, their phases, dependencies, effort estimates, and acceptance criteria.
 > Target: close every gap identified in [`TRUSTFLOW_COMPARISON.md`](TRUSTFLOW_COMPARISON.md) and [`ROADMAP.md`](ROADMAP.md).
@@ -12,14 +12,14 @@
 | # | Epic | TrustFlow Equivalent | Severity | Current Status | Blocks |
 |---|------|---------------------|----------|---------------|--------|
 | A | Durable Workflow Engine | Temporal | **Critical** | 🚧 Design phase | C, E, G |
-| B | Real Arcium MPC | Vault (kinda — privacy layer) | **Medium** | 🚧 NoopArciumClient | Confidential claims |
+| B | Real Arcium MPC | Vault (kinda - privacy layer) | **Medium** | 🚧 NoopArciumClient | Confidential claims |
 | C | Settlement Router | Temporal routing | **Medium** | 🟡 Minimal router | `execute()` vision |
-| D | Pact Network | — | **Low** | 🚧 Planned | — |
+| D | Pact Network | - | **Low** | 🚧 Planned | - |
 | E | Secrets Management | Vault | **High** | ❌ Absent | Production agents |
 | F | General-Purpose Policy | OPA/Rego | **High** | ✅ Native only | Enterprise adoption |
 | G | EigenLayer AVS | EigenLayer | **Low** | ❌ Absent | Operator trust |
-| H | Post-Production Backlog | — | **Low** | Open | — |
-| I | Starknet ZK-Verified Execution | — | **Medium** | 🚧 Planned | Provable execution + native AA |
+| H | Post-Production Backlog | - | **Low** | Open | - |
+| I | Starknet ZK-Verified Execution | - | **Medium** | 🚧 Planned | Provable execution + native AA |
 
 ---
 
@@ -47,8 +47,8 @@
        └── Phase 7: EigenLayer (Epic G) ────────────┘
             Operator registry, AVS slashing
 
- Phase 5: Pact Network (Epic D) — INDEPENDENT
- Phase 6: Arcium MPC (Epic B) — BLOCKED on external audit gate
+ Phase 5: Pact Network (Epic D) - INDEPENDENT
+ Phase 6: Arcium MPC (Epic B) - BLOCKED on external audit gate
 ```
 
 ---
@@ -77,7 +77,7 @@
 
 ---
 
-## Phase 1: Durable Workflow Engine — Epic A (~1,700 LOC, 2-3 weeks)
+## Phase 1: Durable Workflow Engine - Epic A (~1,700 LOC, 2-3 weeks)
 
 **Goal:** Bastion's Temporal-equivalent. Turns the runtime from single-shot `execute()` into multi-step durable workflows with deterministic replay, crash recovery, retry, and HITL suspension.
 
@@ -149,7 +149,7 @@ Per [`docs/WORKFLOW_ENGINE_DESIGN.md`](WORKFLOW_ENGINE_DESIGN.md) for full archi
 
 ---
 
-## Phase 2: General-Purpose Policy — Epic F (~600 LOC, 1 week)
+## Phase 2: General-Purpose Policy - Epic F (~600 LOC, 1 week)
 
 **Goal:** Complement the 11 hardcoded Rust rules with an optional OPA Rego sidecar for custom policy-as-code.
 
@@ -163,9 +163,9 @@ PolicyEvaluator
 | Task | Files | Effort |
 |------|-------|--------|
 | `PluggablePolicy` trait (evaluate + dry_run + version) | `crates/core/src/policy/backend.rs` | ~80 LOC |
-| `NativePolicyBackend` — wraps existing 11 rules | `crates/core/src/policy/native.rs` | ~50 LOC |
-| `OpaPolicyClient` — HTTP client to OPA sidecar | `crates/core/src/policy/opa.rs` | ~150 LOC |
-| `PolicyConfig` — select backend per policy set | `crates/core/src/policy/config.rs` | ~50 LOC |
+| `NativePolicyBackend` - wraps existing 11 rules | `crates/core/src/policy/native.rs` | ~50 LOC |
+| `OpaPolicyClient` - HTTP client to OPA sidecar | `crates/core/src/policy/opa.rs` | ~150 LOC |
+| `PolicyConfig` - select backend per policy set | `crates/core/src/policy/config.rs` | ~50 LOC |
 | Docker compose OPA sidecar with example bundle | `docker-compose.opa.yml` | ~30 LOC |
 | Example Rego policies (amount-limit, time-window, role-based) | `policies/` directory | ~100 LOC |
 | SDK: `bastion.policy.evaluate(opaqueInput)` + `bastion.policy.dryRun(input)` | `packages/sdk/src/policy.ts` | ~100 LOC |
@@ -182,13 +182,13 @@ PolicyEvaluator
 
 ---
 
-## Phase 3: Secrets Management — Epic E (~500 LOC, 1 week)
+## Phase 3: Secrets Management - Epic E (~500 LOC, 1 week)
 
 **Goal:** Vault-equivalent. Activities fetch short-lived, scoped credentials automatically.
 
 | Task | Files | Effort |
 |------|-------|--------|
-| `VaultClient` — authenticate, read KV v2, issue DB creds, revoke | `crates/vault/src/client.rs` | ~200 LOC |
+| `VaultClient` - authenticate, read KV v2, issue DB creds, revoke | `crates/vault/src/client.rs` | ~200 LOC |
 | `SecretBroker` trait (abstraction: Vault or env fallback) | `crates/vault/src/broker.rs` | ~80 LOC |
 | Bastion agent identity → Vault entity/alias mapping | `crates/vault/src/identity.rs` | ~80 LOC |
 | `FetchSecret` Activity (real implementation) | `crates/workflow/src/activities/fetch_secret.rs` | ~50 LOC |
@@ -206,14 +206,14 @@ PolicyEvaluator
 
 ---
 
-## Phase 4: Settlement Router — Epic C (~800 LOC, 1-2 weeks)
+## Phase 4: Settlement Router - Epic C (~800 LOC, 1-2 weeks)
 
 **Goal:** Decompose a high-level intent into an ordered, chain-spanning execution plan.
 
 | Task | Files | Effort |
 |------|-------|--------|
-| `ExecutionPlan` type — ordered list of per-chain legs with dependencies | `crates/core/src/execution/plan.rs` | ~100 LOC |
-| `RouteSelector` — choose chains by cost, latency, reputation-weighted policy | `crates/core/src/execution/router.rs` | ~200 LOC |
+| `ExecutionPlan` type - ordered list of per-chain legs with dependencies | `crates/core/src/execution/plan.rs` | ~100 LOC |
+| `RouteSelector` - choose chains by cost, latency, reputation-weighted policy | `crates/core/src/execution/router.rs` | ~200 LOC |
 | Intent → plan decomposition | `crates/core/src/execution/decomposer.rs` | ~150 LOC |
 | Atomicity semantics: compensating actions for partial success | `crates/core/src/execution/atomicity.rs` | ~150 LOC |
 | Promote minimal router to real planner | `packages/sdk/src/execute.ts` | ~100 LOC |
@@ -226,11 +226,11 @@ PolicyEvaluator
 - [ ] Plan includes compensating actions: `if leg 2 fails → reverse leg 1`
 - [ ] Route selection prefers lower-cost chains when policy allows
 - [ ] Plan validates against existing per-chain simulation before execution begins
-- [ ] `execute()` call signature unchanged — intent-based interface preserved
+- [ ] `execute()` call signature unchanged - intent-based interface preserved
 
 ---
 
-## Phase 5: Pact Network — Epic D (~300 LOC, 3-5 days)
+## Phase 5: Pact Network - Epic D (~300 LOC, 3-5 days)
 
 **Goal:** Auto-wrap x402 outbound calls with Pact on-chain refund insurance.
 
@@ -252,7 +252,7 @@ PolicyEvaluator
 
 ---
 
-## Phase 6: Real Arcium MPC — Epic B (~600 LOC, 1-2 weeks)
+## Phase 6: Real Arcium MPC - Epic B (~600 LOC, 1-2 weeks)
 
 **Goal:** Replace `NoopArciumClient` with genuine MPC-backed confidential policy evaluation.
 
@@ -275,7 +275,7 @@ PolicyEvaluator
 
 ---
 
-## Phase 7: EigenLayer AVS — Epic G (~500 LOC, 1-2 weeks)
+## Phase 7: EigenLayer AVS - Epic G (~500 LOC, 1-2 weeks)
 
 **Goal:** Operator accountability via EigenLayer AVS slashing/rewards for distributed worker nodes.
 
@@ -283,7 +283,7 @@ PolicyEvaluator
 
 ---
 
-## Phase 8: Starknet ZK-Verified Execution — Epic I (~700 LOC, 1-2 weeks)
+## Phase 8: Starknet ZK-Verified Execution - Epic I (~700 LOC, 1-2 weeks)
 
 **Goal:** Add Starknet as an execution layer in Bastion's multi-chain planner. Starknet is an Ethereum ZK-rollup with native account abstraction (every account is a smart account), STARK proofs for provably correct execution, and L1-L2 messaging for trust anchoring to Ethereum.
 
@@ -296,10 +296,10 @@ PolicyEvaluator
 
 | Property | How Bastion Uses It |
 |----------|---------------------|
-| Native Account Abstraction | Agent wallets are smart accounts by default — no ERC-4337 bundler, no paymaster complexity |
+| Native Account Abstraction | Agent wallets are smart accounts by default - no ERC-4337 bundler, no paymaster complexity |
 | STARK validity proofs | Policy enforcement on Starknet is provably correct by cryptographic proof, not trust |
 | L1-L2 messaging | Execute on Starknet, settle trust records to Ethereum L1 via native bridge |
-| Cairo VM | ZK-optimized VM — different from EVM, requires Cairo language for contracts |
+| Cairo VM | ZK-optimized VM - different from EVM, requires Cairo language for contracts |
 | Starkzap SDK | TypeScript SDK with explicit LLM integration docs for AI agents |
 
 **Requirements:**
@@ -313,7 +313,7 @@ PolicyEvaluator
 | Starkzap SDK integration for agent wallet management | `packages/sdk/src/starknet.ts` | ~100 LOC |
 | L1-L2 messaging for trust settlement | `crates/starknet/src/messaging.rs` | ~50 LOC |
 
-**Depends on:** Phase 4 (Settlement Router — Starknet becomes a routing target in the cross-chain planner).
+**Depends on:** Phase 4 (Settlement Router - Starknet becomes a routing target in the cross-chain planner).
 
 **Acceptance criteria:**
 - [ ] `execute({ settlement: "starknet_sepolia", transaction })` simulates against Starknet Sepolia
@@ -359,14 +359,14 @@ These are independent improvements. All are Phase 0 candidates.
 | Phase | Epic | LOC | Duration | Depends On |
 |-------|------|-----|----------|------------|
 | 0 | Foundation + Backlog | ~780 | 3-5 days | None |
-| 1 | A — Durable Workflow Engine | ~1,700 | 2-3 weeks | Phase 0 |
-| 2 | F — OPA Policy Integration | ~600 | 1 week | Phase 0 |
-| 3 | E — Secrets Management | ~500 | 1 week | Phase 1 |
-| 4 | C — Settlement Router | ~800 | 1-2 weeks | Phase 1 |
-| 5 | D — Pact Network | ~300 | 3-5 days | **Independent** |
-| 6 | B — Real Arcium MPC | ~600 | 1-2 weeks | Audit gate |
-| 7 | G — EigenLayer AVS | ~500 | 1-2 weeks | Phase 1 |
-| 8 | I — Starknet ZK Execution | ~700 | 1-2 weeks | Phase 4 |
+| 1 | A - Durable Workflow Engine | ~1,700 | 2-3 weeks | Phase 0 |
+| 2 | F - OPA Policy Integration | ~600 | 1 week | Phase 0 |
+| 3 | E - Secrets Management | ~500 | 1 week | Phase 1 |
+| 4 | C - Settlement Router | ~800 | 1-2 weeks | Phase 1 |
+| 5 | D - Pact Network | ~300 | 3-5 days | **Independent** |
+| 6 | B - Real Arcium MPC | ~600 | 1-2 weeks | Audit gate |
+| 7 | G - EigenLayer AVS | ~500 | 1-2 weeks | Phase 1 |
+| 8 | I - Starknet ZK Execution | ~700 | 1-2 weeks | Phase 4 |
 | **Total** | | **~6,480 LOC** | **10-14 weeks sequential** | |
 
 **Parallelism opportunity:** Phases 2+3 can run in parallel after Phase 1. Phases 5 and 6 can run in parallel at any time. Phases 7 and 8 can run in parallel with Phase 4 (all depend on Phase 1 + Phase 4).
@@ -375,8 +375,8 @@ These are independent improvements. All are Phase 0 candidates.
 
 ## Invariants (from ROADMAP.md)
 
-- `crates/core` must stay chain-agnostic — no Solana or EVM imports
-- On-chain program must only contain audit/identity/policy primitives — no financial instruments
+- `crates/core` must stay chain-agnostic - no Solana or EVM imports
+- On-chain program must only contain audit/identity/policy primitives - no financial instruments
 - SDK major version bump required if IDL instruction set changes
 - `main` branch must always pass all 7 CI jobs before merge
 
