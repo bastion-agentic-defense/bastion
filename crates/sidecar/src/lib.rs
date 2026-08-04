@@ -8,7 +8,7 @@ use axum::{
         Html, IntoResponse,
         sse::{Event, KeepAlive, Sse},
     },
-    routing::{any, get, post},
+    routing::{any, delete, get, post, put},
 };
 use base64::Engine as _;
 use futures::stream::Stream;
@@ -34,6 +34,7 @@ pub mod policy;
 pub mod program_client;
 pub mod prompt_safety;
 pub mod simulation;
+pub mod trust_policy_handler;
 pub mod simulation_evm;
 
 use audit::{
@@ -71,7 +72,7 @@ where
 }
 
 #[derive(Clone)]
-struct AppState {
+pub(crate) struct AppState {
     policy_engine: Arc<RwLock<PolicyEngine>>,
     simulator: Arc<dyn Simulate + Send + Sync>,
     logger: Arc<AuditLogger>,
@@ -90,6 +91,7 @@ struct AppState {
     did_auth_state: auth::DidAuthState,
     arcium_evaluator: Arc<ArcumPolicyEvaluator<NoopArciumClient, GrondOracle>>,
     web2_engine: Arc<bastion_web2_firewall::ProxyEngine>,
+    policy_stores: Arc<RwLock<Vec<bastion_policy_engine::lifecycle::PolicyLifecycle>>>,
 }
 
 fn emit_event(tx: &broadcast::Sender<String>, event_type: &str, json_payload: &str) {
@@ -2054,6 +2056,7 @@ pub fn build_app(
         did_auth_state: did_auth_state.clone(),
         arcium_evaluator,
         web2_engine,
+        policy_stores: Arc::new(RwLock::new(Vec::new())),
     };
 
     async fn markdown_middleware(req: AxumRequest<Body>, next: Next) -> impl IntoResponse {
@@ -2082,6 +2085,17 @@ pub fn build_app(
             post(update_full_policy).put(update_full_policy),
         )
         .route("/policy/export", get(export_policy_toml))
+        // ── TrustPolicy CRUD (Kyverno-style declarative policies) ──
+        .route("/policies", get(trust_policy_handler::list_trust_policies).post(trust_policy_handler::create_trust_policy))
+        .route("/policies/{name}", get(trust_policy_handler::get_trust_policy).put(trust_policy_handler::update_trust_policy).delete(trust_policy_handler::delete_trust_policy))
+        .route("/policies/{name}/validate", post(trust_policy_handler::validate_trust_policy))
+        .route("/policies/{name}/test", post(trust_policy_handler::test_trust_policy))
+        .route("/policies/{name}/mode", post(trust_policy_handler::set_policy_mode))
+        .route("/policies/{name}/report", get(trust_policy_handler::get_policy_report))
+        .route("/exceptions", get(trust_policy_handler::list_exceptions).post(trust_policy_handler::create_exception))
+        .route("/exceptions/{id}", delete(trust_policy_handler::delete_exception))
+        .route("/scans", post(trust_policy_handler::trigger_scan))
+        .route("/scan/results", get(trust_policy_handler::get_scan_results))
         .route("/circuit-breaker/status", get(get_circuit_breaker_status))
         .route("/circuit-breaker/engage", post(engage_circuit_breaker))
         .route(

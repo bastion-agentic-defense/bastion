@@ -121,4 +121,63 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @bastion/sdk build
+      - run: pnpm --filter @zkos-labs/sdk build
+
+  # ── Web2 SDK ────────────────────────────────────────────────
+  web2-sdk:
+    name: web2-sdk (build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @zkos-labs/web2-sdk build
+
+  # ── MCP Server ──────────────────────────────────────────────
+  mcp-server:
+    name: mcp-server (build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @zkos-labs/mcp-server build
+
+  # ── Web2 firewall crate ─────────────────────────────────────
+  web2-crate:
+    name: web2-firewall (test + clippy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "crates/web2-firewall"
+      - run: cargo check -p bastion-web2-firewall
+      - run: cargo clippy -p bastion-web2-firewall -- -D warnings
+      - run: cargo test -p bastion-web2-firewall
+
+  policy-engine:
+    name: policy-engine (test + clippy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "crates/policy-engine"
+      - run: cargo check -p bastion-policy-engine
+      - run: cargo clippy -p bastion-policy-engine -- -D warnings
+      - run: cargo test -p bastion-policy-engine

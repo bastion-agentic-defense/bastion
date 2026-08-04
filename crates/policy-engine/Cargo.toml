@@ -1,0 +1,18 @@
+[package]
+name = "bastion-policy-engine"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+description = "Declarative TrustPolicy engine for Bastion. Kyverno-style policy-as-code for autonomous execution."
+
+[dependencies]
+bastion-core.path = "../core"
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml = "0.9"
+thiserror.workspace = true
+chrono = { version = "0.4", features = ["serde"] }
+uuid.workspace = true
+
+[dev-dependencies]
+tokio.workspace = true
