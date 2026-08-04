@@ -1,5 +1,5 @@
 /*
- * BastionConfidentialGate — Formal Verification Rules (Certora)
+ * BastionConfidentialGate - Formal Verification Rules (Certora)
  *
  * Invariants:
  * - I1: Action commitment mismatch reverts before any state change

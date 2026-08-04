@@ -1,5 +1,5 @@
 /*
- * BastionAudit — Formal Verification Rules (Certora)
+ * BastionAudit - Formal Verification Rules (Certora)
  *
  * Invariants proven:
  * - I1: Only the firewall can write (onlyFirewall modifier)

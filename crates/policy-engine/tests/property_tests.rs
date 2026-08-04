@@ -12,7 +12,7 @@
 use bastion_policy_engine::TrustPolicy;
 use bastion_core::policy::types::PolicyRule;
 
-/// Test: Roundtrip — every rule type survives TrustPolicy → PolicyRule conversion.
+/// Test: Roundtrip - every rule type survives TrustPolicy -> PolicyRule conversion.
 #[test]
 fn all_rule_types_preserved_in_mapping() {
     let yaml = r#"

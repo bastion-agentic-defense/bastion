@@ -1,5 +1,5 @@
 /*
- * BastionPolicy — Formal Verification Rules (Certora)
+ * BastionPolicy - Formal Verification Rules (Certora)
  *
  * Invariants proven:
  * - I1: Unregistered agents always blocked
