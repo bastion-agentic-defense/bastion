@@ -34,6 +34,7 @@ pub mod policy;
 pub mod program_client;
 pub mod prompt_safety;
 pub mod simulation;
+pub mod workflow_handler;
 pub mod trust_policy_handler;
 pub mod simulation_evm;
 pub mod workflow_routes;
@@ -2099,7 +2100,12 @@ pub fn build_app(
         .route("/exceptions/{id}", delete(trust_policy_handler::delete_exception))
         .route("/scans", post(trust_policy_handler::trigger_scan))
         .route("/scan/results", get(trust_policy_handler::get_scan_results))
-        .route("/circuit-breaker/status", get(get_circuit_breaker_status))
+        // ── Workflow Engine ──
+        .route("/workflows", get(workflow_handler::list_workflows).post(workflow_handler::start_workflow_yaml))
+        .route("/workflows/{id}", get(workflow_handler::get_workflow).delete(workflow_handler::cancel_workflow))
+        .route("/workflows/{id}/events", get(workflow_handler::get_workflow_events))
+        .route("/workflows/{id}/signal", post(workflow_handler::signal_workflow))
+        // ── Circuit Breaker ──
         .route("/circuit-breaker/engage", post(engage_circuit_breaker))
         .route(
             "/circuit-breaker/disengage",

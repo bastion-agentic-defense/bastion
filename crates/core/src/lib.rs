@@ -13,6 +13,7 @@
 pub mod adapter;
 pub mod audit;
 pub mod decision;
+pub mod execution;
 pub mod policy;
 pub mod risk;
 pub mod transaction;

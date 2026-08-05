@@ -1,117 +1,97 @@
-export interface WorkflowStepDef {
+import { BastionSidecar } from "./sidecar";
+
+export interface WorkflowStep {
   id: string;
   activity: string;
-  input?: Record<string, unknown>;
+  input: Record<string, unknown>;
   retry?: {
-    maxAttempts?: number;
-    initialBackoffMs?: number;
-    backoffMultiplier?: number;
+    maxAttempts: number;
+    initialBackoffMs: number;
+    backoffMultiplier: number;
+    timeoutMs: number;
   };
   timeoutMs?: number;
   requiresApproval?: boolean;
-  onFailure?: 'halt' | 'continue';
+  onFailure?: "halt" | "continue";
 }
 
-export interface WorkflowDefinition {
-  name: string;
-  steps: WorkflowStepDef[];
-}
-
-export type WorkflowStatus = 'running' | 'paused' | 'completed' | 'cancelled' | string;
-export type StepStatus = 'pending' | 'running' | 'completed' | 'paused' | 'skipped' | string;
-
-export interface StepState {
-  step_id: string;
-  status: StepStatus;
-  input: unknown;
-  output?: unknown;
-  attempt: number;
-  started_at?: number;
-  completed_at?: number;
-  error?: string;
+export interface WorkflowConfig {
+  yaml?: string;
+  steps?: WorkflowStep[];
+  agentId?: string;
 }
 
 export interface WorkflowState {
   id: string;
   definition: string;
-  status: WorkflowStatus;
+  status: string;
   current_step: number;
-  step_states: StepState[];
+  step_states: Array<{
+    step_id: string;
+    status: string;
+    input: Record<string, unknown>;
+    output?: Record<string, unknown>;
+    attempt: number;
+    started_at?: number;
+    completed_at?: number;
+    error?: string;
+  }>;
   created_at: number;
   updated_at: number;
   agent_id?: string;
-  tags: Record<string, string>;
 }
 
 export interface WorkflowEvent {
   type: string;
   id: string;
   step?: string;
+  attempt?: number;
   timestamp: number;
-  [key: string]: unknown;
+  output?: Record<string, unknown>;
+  error?: string;
+  backoff_ms?: number;
+  by?: string;
+  definition?: string;
 }
 
 export class BastionWorkflow {
-  private baseUrl: string;
+  private sidecar: BastionSidecar;
 
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl.replace(/\/$/, '');
+  constructor(sidecar: BastionSidecar) {
+    this.sidecar = sidecar;
   }
 
-  async start(
-    definition: WorkflowDefinition,
-    agentId?: string,
-  ): Promise<{ workflow_id: string }> {
-    const res = await fetch(`${this.baseUrl}/workflows`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ definition: definition.name, agent_id: agentId }),
+  async start(config: WorkflowConfig): Promise<{ workflowId: string }> {
+    if (config.yaml) {
+      const r = await this.sidecar["request"]("POST", "/workflows", {
+        yaml: config.yaml,
+        agent_id: config.agentId,
+      }) as { workflow_id: string };
+      return { workflowId: r.workflow_id };
+    }
+    throw new Error("Only YAML workflows are currently supported via the REST API");
+  }
+
+  async state(workflowId: string): Promise<WorkflowState> {
+    return this.sidecar["request"]("GET", `/workflows/${workflowId}`);
+  }
+
+  async replay(workflowId: string): Promise<WorkflowEvent[]> {
+    return this.sidecar["request"]("GET", `/workflows/${workflowId}/events`);
+  }
+
+  async signal(workflowId: string, signal: "approve" | "cancel"): Promise<void> {
+    await this.sidecar["request"]("POST", `/workflows/${workflowId}/signal`, {
+      signal,
     });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json() as Promise<{ workflow_id: string }>;
   }
 
-  async startYaml(yaml: string, agentId?: string): Promise<{ workflow_id: string }> {
-    const res = await fetch(`${this.baseUrl}/workflows/yaml`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ yaml, agent_id: agentId }),
-    });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json() as Promise<{ workflow_id: string }>;
+  async cancel(workflowId: string): Promise<void> {
+    await this.sidecar["request"]("DELETE", `/workflows/${workflowId}`);
   }
 
-  async list(): Promise<WorkflowState[]> {
-    const res = await fetch(`${this.baseUrl}/workflows`);
-    if (!res.ok) throw new Error(await res.text());
-    return res.json() as Promise<WorkflowState[]>;
-  }
-
-  async state(id: string): Promise<WorkflowState> {
-    const res = await fetch(`${this.baseUrl}/workflows/${id}`);
-    if (!res.ok) throw new Error(await res.text());
-    return res.json() as Promise<WorkflowState>;
-  }
-
-  async events(id: string): Promise<WorkflowEvent[]> {
-    const res = await fetch(`${this.baseUrl}/workflows/${id}/events`);
-    if (!res.ok) throw new Error(await res.text());
-    return res.json() as Promise<WorkflowEvent[]>;
-  }
-
-  async signal(id: string, signal: 'approve' | 'cancel'): Promise<void> {
-    const res = await fetch(`${this.baseUrl}/workflows/${id}/signal`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ signal }),
-    });
-    if (!res.ok) throw new Error(await res.text());
-  }
-
-  async cancel(id: string): Promise<void> {
-    const res = await fetch(`${this.baseUrl}/workflows/${id}`, {
-      method: 'DELETE',
-    });
-    if (!res.ok) throw new Error(await res.text());
+  async list(agentId?: string): Promise<WorkflowState[]> {
+    const query = agentId ? `?agent_id=${encodeURIComponent(agentId)}` : "";
+    return this.sidecar["request"]("GET", `/workflows${query}`);
   }
 }

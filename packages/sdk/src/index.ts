@@ -10,11 +10,11 @@ import type {
 
 // Recompute verification (trustless-ai compatible)
 export * as verify from "./verify";
+export { BastionWorkflow } from "./workflow";
+export type { WorkflowConfig, WorkflowState, WorkflowEvent, WorkflowStep } from "./workflow";
 
 export { AGENT_CAPABILITIES, DECISION, BastionEventStream } from "./types";
 export { BastionSidecar } from "./sidecar";
-export { BastionWorkflow } from "./workflow";
-export type { WorkflowStepDef, WorkflowDefinition, WorkflowState, WorkflowEvent } from "./workflow";
 export { Bastion } from "./execute";
 export type {
   BastionRuntimeConfig,
