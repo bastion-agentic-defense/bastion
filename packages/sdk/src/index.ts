@@ -13,6 +13,8 @@ export * as verify from "./verify";
 
 export { AGENT_CAPABILITIES, DECISION, BastionEventStream } from "./types";
 export { BastionSidecar } from "./sidecar";
+export { BastionWorkflow } from "./workflow";
+export type { WorkflowStepDef, WorkflowDefinition, WorkflowState, WorkflowEvent } from "./workflow";
 export { Bastion } from "./execute";
 export type {
   BastionRuntimeConfig,

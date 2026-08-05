@@ -28,6 +28,7 @@ bastion-core = { path = "../core" }
 bastion-policy-engine = { path = "../policy-engine" }
 bastion-arcium = { path = "../arcium" }
 bastion-web2-firewall = { path = "../web2-firewall" }
+bastion-workflow = { path = "../workflow" }
 chrono = { version = "0.4", features = ["serde"] }
 async-trait = "0.1"
 async-stream = "0.3"

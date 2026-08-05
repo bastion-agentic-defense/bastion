@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "crates/core",
     "crates/policy-engine",
+    "crates/workflow",
     "crates/sidecar",
     "crates/solana/programs/bastion-audit",
     "crates/web2-firewall",

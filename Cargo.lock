@@ -759,6 +759,7 @@ dependencies = [
  "bastion-core",
  "bastion-policy-engine",
  "bastion-web2-firewall",
+ "bastion-workflow",
  "bincode",
  "chrono",
  "dotenv",
@@ -795,6 +796,23 @@ dependencies = [
  "tokio",
  "tokio-test",
  "url",
+ "uuid",
+]
+
+[[package]]
+name = "bastion-workflow"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "bastion-core",
+ "chrono",
+ "dashmap 6.2.1",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sled",
+ "thiserror 2.0.18",
+ "tokio",
  "uuid",
 ]
 
@@ -1495,6 +1513,20 @@ dependencies = [
  "once_cell",
  "parking_lot_core 0.9.12",
  "rayon",
+]
+
+[[package]]
+name = "dashmap"
+version = "6.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6361d5c062261c78a176addb82d4c821ae42bed6089de0e12603cd25de2059c"
+dependencies = [
+ "cfg-if",
+ "crossbeam-utils",
+ "hashbrown 0.14.5",
+ "lock_api",
+ "once_cell",
+ "parking_lot_core 0.9.12",
 ]
 
 [[package]]
@@ -4582,7 +4614,7 @@ dependencies = [
  "byteorder",
  "bzip2",
  "crossbeam-channel",
- "dashmap",
+ "dashmap 5.5.3",
  "flate2",
  "fnv",
  "im",
@@ -4760,7 +4792,7 @@ checksum = "24a9f32c42402c4b9484d5868ac74b7e0a746e3905d8bfd756e1203e50cbb87e"
 dependencies = [
  "async-trait",
  "bincode",
- "dashmap",
+ "dashmap 5.5.3",
  "futures",
  "futures-util",
  "indexmap 2.14.0",
@@ -5269,7 +5301,7 @@ dependencies = [
  "byteorder",
  "bzip2",
  "crossbeam-channel",
- "dashmap",
+ "dashmap 5.5.3",
  "dir-diff",
  "flate2",
  "fnv",

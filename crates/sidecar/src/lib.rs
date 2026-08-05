@@ -36,6 +36,7 @@ pub mod prompt_safety;
 pub mod simulation;
 pub mod trust_policy_handler;
 pub mod simulation_evm;
+pub mod workflow_routes;
 
 use audit::{
     AuditEntry, AuditLogger, AuditResult, Decision, TransactionDetails, current_timestamp,
@@ -92,6 +93,7 @@ pub(crate) struct AppState {
     arcium_evaluator: Arc<ArcumPolicyEvaluator<NoopArciumClient, GrondOracle>>,
     web2_engine: Arc<bastion_web2_firewall::ProxyEngine>,
     policy_stores: Arc<RwLock<Vec<bastion_policy_engine::lifecycle::PolicyLifecycle>>>,
+    workflow_engine: Arc<bastion_workflow::WorkflowEngine>,
 }
 
 fn emit_event(tx: &broadcast::Sender<String>, event_type: &str, json_payload: &str) {
@@ -2057,6 +2059,7 @@ pub fn build_app(
         arcium_evaluator,
         web2_engine,
         policy_stores: Arc::new(RwLock::new(Vec::new())),
+        workflow_engine: workflow_routes::build_workflow_engine(),
     };
 
     async fn markdown_middleware(req: AxumRequest<Body>, next: Next) -> impl IntoResponse {
@@ -2166,6 +2169,12 @@ pub fn build_app(
         .route("/pending", get(get_pending))
         .route("/did/resolve/:did", get(resolve_did_handler))
         .route("/token-balances", get(get_token_balances))
+        // === Workflow routes ===
+        .route("/workflows", post(workflow_routes::start_workflow).get(workflow_routes::list_workflows))
+        .route("/workflows/yaml", post(workflow_routes::start_workflow_yaml))
+        .route("/workflows/:id", get(workflow_routes::get_workflow).delete(workflow_routes::delete_workflow))
+        .route("/workflows/:id/events", get(workflow_routes::get_workflow_events))
+        .route("/workflows/:id/signal", post(workflow_routes::signal_workflow))
         // === MCP reverse proxy (Node.js backend on :3001) ===
         .route("/mcp/*path", any(proxy_mcp))
         .route("/sse", any(proxy_mcp))
