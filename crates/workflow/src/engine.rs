@@ -7,7 +7,7 @@ use crate::activity::{ActivityContext, ActivityRegistry};
 use crate::definition::WorkflowDefinition;
 use crate::error::Result;
 use crate::error::WorkflowError;
-use crate::event::{timestamp_now, WorkflowEvent};
+use crate::event::{WorkflowEvent, timestamp_now};
 use crate::state::{StepState, StepStatus, WorkflowState, WorkflowStatus};
 use crate::store::WorkflowStore;
 
@@ -54,7 +54,10 @@ impl WorkflowEngine {
         }
 
         let mut state = WorkflowState::new(&name, agent_id.clone());
-        state.step_states = steps.iter().map(|s| StepState::new(&s.id, s.input.clone())).collect();
+        state.step_states = steps
+            .iter()
+            .map(|s| StepState::new(&s.id, s.input.clone()))
+            .collect();
 
         self.store.save_workflow(&state)?;
         self.store.index_by_status(&state.id, "Running")?;
@@ -70,15 +73,10 @@ impl WorkflowEngine {
         self.store.append_event(&state.id, &event)?;
 
         let wf_id = state.id.clone();
-        let steps = steps;
         self.spawn_loop(wf_id, steps, agent_id).await
     }
 
-    pub async fn start_yaml(
-        &self,
-        yaml: &str,
-        agent_id: Option<String>,
-    ) -> Result<String> {
+    pub async fn start_yaml(&self, yaml: &str, agent_id: Option<String>) -> Result<String> {
         let parsed = crate::definition::YamlWorkflow::from_yaml(yaml)
             .map_err(|e| WorkflowError::Validation(format!("invalid YAML: {}", e)))?;
         let def = parsed.to_definition();
@@ -103,8 +101,7 @@ impl WorkflowEngine {
                 if raw.is_none() {
                     return;
                 }
-                let mut state: WorkflowState =
-                    serde_json::from_slice(&raw.unwrap()).unwrap();
+                let mut state: WorkflowState = serde_json::from_slice(&raw.unwrap()).unwrap();
                 let status = state.status.clone();
                 let idx = state.current_step;
 
@@ -113,7 +110,9 @@ impl WorkflowEngine {
                         tokio::time::sleep(std::time::Duration::from_secs(1)).await;
                         continue;
                     }
-                    WorkflowStatus::Failed(_) | WorkflowStatus::Completed | WorkflowStatus::Cancelled => {
+                    WorkflowStatus::Failed(_)
+                    | WorkflowStatus::Completed
+                    | WorkflowStatus::Cancelled => {
                         return;
                     }
                     _ => {}
@@ -124,13 +123,20 @@ impl WorkflowEngine {
                         id: wf_id.clone(),
                         timestamp: timestamp_now(),
                     };
-                    store_events.insert(
-                        composite_key(&wf_id, store_events.scan_prefix(wf_id.as_bytes()).count() as u64),
-                        serde_json::to_vec(&ev).unwrap(),
-                    ).unwrap();
+                    store_events
+                        .insert(
+                            composite_key(
+                                &wf_id,
+                                store_events.scan_prefix(wf_id.as_bytes()).count() as u64,
+                            ),
+                            serde_json::to_vec(&ev).unwrap(),
+                        )
+                        .unwrap();
                     state.status = WorkflowStatus::Completed;
                     state.mark_updated();
-                    store_workflows.insert(key, serde_json::to_vec(&state).unwrap()).unwrap();
+                    store_workflows
+                        .insert(key, serde_json::to_vec(&state).unwrap())
+                        .unwrap();
                     return;
                 }
 
@@ -139,7 +145,9 @@ impl WorkflowEngine {
 
                 if step_state.is_terminal() {
                     state.current_step = idx + 1;
-                    store_workflows.insert(key, serde_json::to_vec(&state).unwrap()).unwrap();
+                    store_workflows
+                        .insert(key, serde_json::to_vec(&state).unwrap())
+                        .unwrap();
                     continue;
                 }
 
@@ -147,7 +155,9 @@ impl WorkflowEngine {
                     step_state.status = StepStatus::Paused;
                     state.status = WorkflowStatus::Paused;
                     state.mark_updated();
-                    store_workflows.insert(key, serde_json::to_vec(&state).unwrap()).unwrap();
+                    store_workflows
+                        .insert(key, serde_json::to_vec(&state).unwrap())
+                        .unwrap();
 
                     let ev = WorkflowEvent::WorkflowPaused {
                         id: wf_id.clone(),
@@ -155,10 +165,15 @@ impl WorkflowEngine {
                         reason: "awaiting approval".into(),
                         timestamp: timestamp_now(),
                     };
-                    store_events.insert(
-                        composite_key(&wf_id, store_events.scan_prefix(wf_id.as_bytes()).count() as u64),
-                        serde_json::to_vec(&ev).unwrap(),
-                    ).unwrap();
+                    store_events
+                        .insert(
+                            composite_key(
+                                &wf_id,
+                                store_events.scan_prefix(wf_id.as_bytes()).count() as u64,
+                            ),
+                            serde_json::to_vec(&ev).unwrap(),
+                        )
+                        .unwrap();
                     continue;
                 }
 
@@ -170,10 +185,15 @@ impl WorkflowEngine {
                     attempt,
                     timestamp: timestamp_now(),
                 };
-                store_events.insert(
-                    composite_key(&wf_id, store_events.scan_prefix(wf_id.as_bytes()).count() as u64),
-                    serde_json::to_vec(&ev).unwrap(),
-                ).unwrap();
+                store_events
+                    .insert(
+                        composite_key(
+                            &wf_id,
+                            store_events.scan_prefix(wf_id.as_bytes()).count() as u64,
+                        ),
+                        serde_json::to_vec(&ev).unwrap(),
+                    )
+                    .unwrap();
 
                 let activity = match activities.get(&step.activity) {
                     Some(a) => a,
@@ -185,12 +205,20 @@ impl WorkflowEngine {
                             attempt,
                             timestamp: timestamp_now(),
                         };
-                        store_events.insert(
-                            composite_key(&wf_id, store_events.scan_prefix(wf_id.as_bytes()).count() as u64),
-                            serde_json::to_vec(&ev_err).unwrap(),
-                        ).unwrap();
-                        state.status = WorkflowStatus::Failed(format!("unknown activity: {}", step.activity));
-                        store_workflows.insert(key, serde_json::to_vec(&state).unwrap()).unwrap();
+                        store_events
+                            .insert(
+                                composite_key(
+                                    &wf_id,
+                                    store_events.scan_prefix(wf_id.as_bytes()).count() as u64,
+                                ),
+                                serde_json::to_vec(&ev_err).unwrap(),
+                            )
+                            .unwrap();
+                        state.status =
+                            WorkflowStatus::Failed(format!("unknown activity: {}", step.activity));
+                        store_workflows
+                            .insert(key, serde_json::to_vec(&state).unwrap())
+                            .unwrap();
                         return;
                     }
                 };
@@ -203,7 +231,8 @@ impl WorkflowEngine {
                 };
 
                 let timeout = std::time::Duration::from_millis(step.timeout_ms);
-                let result = tokio::time::timeout(timeout, activity.execute(step.input.clone(), ctx)).await;
+                let result =
+                    tokio::time::timeout(timeout, activity.execute(step.input.clone(), ctx)).await;
 
                 match result {
                     Ok(Ok(output)) => {
@@ -217,14 +246,21 @@ impl WorkflowEngine {
                             output,
                             timestamp: timestamp_now(),
                         };
-                        store_events.insert(
-                            composite_key(&wf_id, store_events.scan_prefix(wf_id.as_bytes()).count() as u64),
-                            serde_json::to_vec(&ev).unwrap(),
-                        ).unwrap();
+                        store_events
+                            .insert(
+                                composite_key(
+                                    &wf_id,
+                                    store_events.scan_prefix(wf_id.as_bytes()).count() as u64,
+                                ),
+                                serde_json::to_vec(&ev).unwrap(),
+                            )
+                            .unwrap();
 
                         state.current_step = idx + 1;
                         state.mark_updated();
-                        store_workflows.insert(key, serde_json::to_vec(&state).unwrap()).unwrap();
+                        store_workflows
+                            .insert(key, serde_json::to_vec(&state).unwrap())
+                            .unwrap();
                     }
                     Ok(Err(e)) => {
                         let retry = step.retry.can_retry(attempt);
@@ -239,13 +275,20 @@ impl WorkflowEngine {
                                 backoff_ms: backoff,
                                 timestamp: timestamp_now(),
                             };
-                            store_events.insert(
-                                composite_key(&wf_id, store_events.scan_prefix(wf_id.as_bytes()).count() as u64),
-                                serde_json::to_vec(&ev).unwrap(),
-                            ).unwrap();
+                            store_events
+                                .insert(
+                                    composite_key(
+                                        &wf_id,
+                                        store_events.scan_prefix(wf_id.as_bytes()).count() as u64,
+                                    ),
+                                    serde_json::to_vec(&ev).unwrap(),
+                                )
+                                .unwrap();
 
                             state.mark_updated();
-                            store_workflows.insert(key, serde_json::to_vec(&state).unwrap()).unwrap();
+                            store_workflows
+                                .insert(key, serde_json::to_vec(&state).unwrap())
+                                .unwrap();
                             drop(state);
                             tokio::time::sleep(std::time::Duration::from_millis(backoff)).await;
                             continue;
@@ -258,22 +301,31 @@ impl WorkflowEngine {
                                 attempt,
                                 timestamp: timestamp_now(),
                             };
-                            store_events.insert(
-                                composite_key(&wf_id, store_events.scan_prefix(wf_id.as_bytes()).count() as u64),
-                                serde_json::to_vec(&ev).unwrap(),
-                            ).unwrap();
+                            store_events
+                                .insert(
+                                    composite_key(
+                                        &wf_id,
+                                        store_events.scan_prefix(wf_id.as_bytes()).count() as u64,
+                                    ),
+                                    serde_json::to_vec(&ev).unwrap(),
+                                )
+                                .unwrap();
 
                             match step.on_failure {
                                 crate::definition::FailurePolicy::Halt => {
                                     state.status = WorkflowStatus::Failed(e.to_string());
-                                    store_workflows.insert(key, serde_json::to_vec(&state).unwrap()).unwrap();
+                                    store_workflows
+                                        .insert(key, serde_json::to_vec(&state).unwrap())
+                                        .unwrap();
                                     return;
                                 }
                                 crate::definition::FailurePolicy::Continue => {
                                     step_state.status = StepStatus::Skipped;
                                     state.current_step = idx + 1;
                                     state.mark_updated();
-                                    store_workflows.insert(key, serde_json::to_vec(&state).unwrap()).unwrap();
+                                    store_workflows
+                                        .insert(key, serde_json::to_vec(&state).unwrap())
+                                        .unwrap();
                                 }
                             }
                         }
@@ -284,7 +336,9 @@ impl WorkflowEngine {
                             step_state.attempt = attempt + 1;
                             let backoff = step.retry.backoff_ms(attempt + 1);
                             state.mark_updated();
-                            store_workflows.insert(key, serde_json::to_vec(&state).unwrap()).unwrap();
+                            store_workflows
+                                .insert(key, serde_json::to_vec(&state).unwrap())
+                                .unwrap();
                             drop(state);
                             tokio::time::sleep(std::time::Duration::from_millis(backoff)).await;
                             continue;
@@ -297,12 +351,20 @@ impl WorkflowEngine {
                                 attempt,
                                 timestamp: timestamp_now(),
                             };
-                            store_events.insert(
-                                composite_key(&wf_id, store_events.scan_prefix(wf_id.as_bytes()).count() as u64),
-                                serde_json::to_vec(&ev).unwrap(),
-                            ).unwrap();
-                            state.status = WorkflowStatus::Failed(format!("timed out at step {}", step.id));
-                            store_workflows.insert(key, serde_json::to_vec(&state).unwrap()).unwrap();
+                            store_events
+                                .insert(
+                                    composite_key(
+                                        &wf_id,
+                                        store_events.scan_prefix(wf_id.as_bytes()).count() as u64,
+                                    ),
+                                    serde_json::to_vec(&ev).unwrap(),
+                                )
+                                .unwrap();
+                            state.status =
+                                WorkflowStatus::Failed(format!("timed out at step {}", step.id));
+                            store_workflows
+                                .insert(key, serde_json::to_vec(&state).unwrap())
+                                .unwrap();
                             return;
                         }
                     }
@@ -314,7 +376,9 @@ impl WorkflowEngine {
         Ok(wf_id_for_result)
     }
 
-    fn activities_ref_snapshot(&self) -> std::collections::HashMap<String, Arc<dyn crate::activity::Activity>> {
+    fn activities_ref_snapshot(
+        &self,
+    ) -> std::collections::HashMap<String, Arc<dyn crate::activity::Activity>> {
         let mut map = std::collections::HashMap::new();
         for name in self.activities.list() {
             if let Some(a) = self.activities.get(&name) {
@@ -420,7 +484,11 @@ impl WorkflowEngine {
             let events = self.store.load_events(&wf_id)?;
             if !events.is_empty() {
                 let mut recovered = state.clone();
-                recovered.step_states = state.step_states.iter().map(|_| StepState::new("", serde_json::Value::Null)).collect();
+                recovered.step_states = state
+                    .step_states
+                    .iter()
+                    .map(|_| StepState::new("", serde_json::Value::Null))
+                    .collect();
             }
 
             if matches!(state.status, WorkflowStatus::Paused) {

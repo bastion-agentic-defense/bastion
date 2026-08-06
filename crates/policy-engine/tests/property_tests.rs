@@ -9,8 +9,8 @@
 //
 // Usage: cargo test -p bastion-policy-engine --test property_tests
 
-use bastion_policy_engine::TrustPolicy;
 use bastion_core::policy::types::PolicyRule;
+use bastion_policy_engine::TrustPolicy;
 
 /// Test: Roundtrip - every rule type survives TrustPolicy -> PolicyRule conversion.
 #[test]
@@ -108,9 +108,18 @@ spec:
 "#;
     let policy = TrustPolicy::from_yaml(yaml).expect("valid YAML");
 
-    assert!(policy.matches("swap", "solana"), "Must match swap on solana");
-    assert!(!policy.matches("transfer", "solana"), "Must not match transfer");
-    assert!(!policy.matches("swap", "ethereum"), "Must not match ethereum chain");
+    assert!(
+        policy.matches("swap", "solana"),
+        "Must match swap on solana"
+    );
+    assert!(
+        !policy.matches("transfer", "solana"),
+        "Must not match transfer"
+    );
+    assert!(
+        !policy.matches("swap", "ethereum"),
+        "Must not match ethereum chain"
+    );
 }
 
 /// Test: AmountLimit maps value and currency correctly.
@@ -134,7 +143,11 @@ spec:
 
     assert_eq!(rules.len(), 1);
     match &rules[0] {
-        PolicyRule::AmountLimit { max_per_transaction, max_per_24h, currency } => {
+        PolicyRule::AmountLimit {
+            max_per_transaction,
+            max_per_24h,
+            currency,
+        } => {
             assert_eq!(*max_per_transaction, 5000);
             assert_eq!(*max_per_24h, Some(50000));
             assert_eq!(currency, "USDC");
@@ -164,7 +177,12 @@ spec:
     let rules = policy.to_policy_rules();
 
     match &rules[0] {
-        PolicyRule::Geofence { lat_min, lon_min, lat_max, lon_max } => {
+        PolicyRule::Geofence {
+            lat_min,
+            lon_min,
+            lat_max,
+            lon_max,
+        } => {
             assert!((*lat_min - (-6.2)).abs() < 0.001);
             assert!((*lon_min - 106.8).abs() < 0.001);
             assert!((*lat_max - (-6.1)).abs() < 0.001);
@@ -194,7 +212,10 @@ spec:
 
     assert_eq!(rules.len(), 1);
     match &rules[0] {
-        PolicyRule::HITL { trigger_above, timeout_seconds } => {
+        PolicyRule::HITL {
+            trigger_above,
+            timeout_seconds,
+        } => {
             assert_eq!(*trigger_above, 1000);
             assert_eq!(*timeout_seconds, 3600);
         }
@@ -220,6 +241,9 @@ spec:
     intent: transfer
 "#;
     let policy = TrustPolicy::from_yaml(yaml).expect("YAML parses with default name");
-    assert!(policy.metadata.name.is_empty(), "Name defaults to empty string");
+    assert!(
+        policy.metadata.name.is_empty(),
+        "Name defaults to empty string"
+    );
     assert!(policy.metadata.agent.is_none(), "Agent defaults to None");
 }

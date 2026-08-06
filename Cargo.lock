@@ -812,6 +812,7 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "sled",
+ "tempfile",
  "thiserror 2.0.18",
  "tokio",
  "uuid",

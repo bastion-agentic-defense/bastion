@@ -8,7 +8,7 @@ use axum::{
         Html, IntoResponse,
         sse::{Event, KeepAlive, Sse},
     },
-    routing::{any, delete, get, post, put},
+    routing::{any, delete, get, post},
 };
 use base64::Engine as _;
 use futures::stream::Stream;
@@ -34,9 +34,8 @@ pub mod policy;
 pub mod program_client;
 pub mod prompt_safety;
 pub mod simulation;
-pub mod workflow_handler;
-pub mod trust_policy_handler;
 pub mod simulation_evm;
+pub mod trust_policy_handler;
 pub mod workflow_routes;
 
 use audit::{
@@ -95,6 +94,9 @@ pub(crate) struct AppState {
     web2_engine: Arc<bastion_web2_firewall::ProxyEngine>,
     policy_stores: Arc<RwLock<Vec<bastion_policy_engine::lifecycle::PolicyLifecycle>>>,
     workflow_engine: Arc<bastion_workflow::WorkflowEngine>,
+    /// In-memory registry of in-flight execution plans keyed by plan id, used
+    /// by the `/execute` settlement endpoints for compensation.
+    execution_plans: Arc<RwLock<HashMap<String, workflow_routes::TrackedPlan>>>,
 }
 
 fn emit_event(tx: &broadcast::Sender<String>, event_type: &str, json_payload: &str) {
@@ -2060,7 +2062,8 @@ pub fn build_app(
         arcium_evaluator,
         web2_engine,
         policy_stores: Arc::new(RwLock::new(Vec::new())),
-        workflow_engine: workflow_routes::build_workflow_engine(),
+        workflow_engine: workflow_routes::build_workflow_engine(agent_store_path),
+        execution_plans: Arc::new(RwLock::new(HashMap::new())),
     };
 
     async fn markdown_middleware(req: AxumRequest<Body>, next: Next) -> impl IntoResponse {
@@ -2090,27 +2093,50 @@ pub fn build_app(
         )
         .route("/policy/export", get(export_policy_toml))
         // ── TrustPolicy CRUD (Kyverno-style declarative policies) ──
-        .route("/policies", get(trust_policy_handler::list_trust_policies).post(trust_policy_handler::create_trust_policy))
-        .route("/policies/{name}", get(trust_policy_handler::get_trust_policy).put(trust_policy_handler::update_trust_policy).delete(trust_policy_handler::delete_trust_policy))
-        .route("/policies/{name}/validate", post(trust_policy_handler::validate_trust_policy))
-        .route("/policies/{name}/test", post(trust_policy_handler::test_trust_policy))
-        .route("/policies/{name}/mode", post(trust_policy_handler::set_policy_mode))
-        .route("/policies/{name}/report", get(trust_policy_handler::get_policy_report))
-        .route("/exceptions", get(trust_policy_handler::list_exceptions).post(trust_policy_handler::create_exception))
-        .route("/exceptions/{id}", delete(trust_policy_handler::delete_exception))
+        .route(
+            "/policies",
+            get(trust_policy_handler::list_trust_policies)
+                .post(trust_policy_handler::create_trust_policy),
+        )
+        .route(
+            "/policies/{name}",
+            get(trust_policy_handler::get_trust_policy)
+                .put(trust_policy_handler::update_trust_policy)
+                .delete(trust_policy_handler::delete_trust_policy),
+        )
+        .route(
+            "/policies/{name}/validate",
+            post(trust_policy_handler::validate_trust_policy),
+        )
+        .route(
+            "/policies/{name}/test",
+            post(trust_policy_handler::test_trust_policy),
+        )
+        .route(
+            "/policies/{name}/mode",
+            post(trust_policy_handler::set_policy_mode),
+        )
+        .route(
+            "/policies/{name}/report",
+            get(trust_policy_handler::get_policy_report),
+        )
+        .route(
+            "/exceptions",
+            get(trust_policy_handler::list_exceptions).post(trust_policy_handler::create_exception),
+        )
+        .route(
+            "/exceptions/{id}",
+            delete(trust_policy_handler::delete_exception),
+        )
         .route("/scans", post(trust_policy_handler::trigger_scan))
         .route("/scan/results", get(trust_policy_handler::get_scan_results))
-        // ── Workflow Engine ──
-        .route("/workflows", get(workflow_handler::list_workflows).post(workflow_handler::start_workflow_yaml))
-        .route("/workflows/{id}", get(workflow_handler::get_workflow).delete(workflow_handler::cancel_workflow))
-        .route("/workflows/{id}/events", get(workflow_handler::get_workflow_events))
-        .route("/workflows/{id}/signal", post(workflow_handler::signal_workflow))
         // ── Circuit Breaker ──
         .route("/circuit-breaker/engage", post(engage_circuit_breaker))
         .route(
             "/circuit-breaker/disengage",
             post(disengage_circuit_breaker),
         )
+        .route("/circuit-breaker/status", get(get_circuit_breaker_status))
         .route("/agents", post(register_agent_handler))
         // State-changing evaluation + agent mutation endpoints are auth-protected.
         .route("/simulate", post(simulate))
@@ -2176,11 +2202,33 @@ pub fn build_app(
         .route("/did/resolve/:did", get(resolve_did_handler))
         .route("/token-balances", get(get_token_balances))
         // === Workflow routes ===
-        .route("/workflows", post(workflow_routes::start_workflow).get(workflow_routes::list_workflows))
-        .route("/workflows/yaml", post(workflow_routes::start_workflow_yaml))
-        .route("/workflows/:id", get(workflow_routes::get_workflow).delete(workflow_routes::delete_workflow))
-        .route("/workflows/:id/events", get(workflow_routes::get_workflow_events))
-        .route("/workflows/:id/signal", post(workflow_routes::signal_workflow))
+        .route(
+            "/workflows",
+            post(workflow_routes::start_workflow).get(workflow_routes::list_workflows),
+        )
+        .route(
+            "/workflows/yaml",
+            post(workflow_routes::start_workflow_yaml),
+        )
+        .route(
+            "/workflows/:id",
+            get(workflow_routes::get_workflow).delete(workflow_routes::delete_workflow),
+        )
+        .route(
+            "/workflows/:id/events",
+            get(workflow_routes::get_workflow_events),
+        )
+        .route(
+            "/workflows/:id/signal",
+            post(workflow_routes::signal_workflow),
+        )
+        // === Settlement executor (intent -> plan -> durable workflow) ===
+        .route("/execute", post(workflow_routes::execute_intent))
+        .route("/execute/:plan_id", get(workflow_routes::get_tracked_plan))
+        .route(
+            "/execute/:plan_id/compensate",
+            post(workflow_routes::compensate_plan),
+        )
         // === MCP reverse proxy (Node.js backend on :3001) ===
         .route("/mcp/*path", any(proxy_mcp))
         .route("/sse", any(proxy_mcp))

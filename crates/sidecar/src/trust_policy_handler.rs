@@ -1,4 +1,7 @@
-use axum::{Json, extract::{Path, State}};
+use axum::{
+    Json,
+    extract::{Path, State},
+};
 use bastion_policy_engine::TrustPolicy;
 use serde::{Deserialize, Serialize};
 
@@ -28,29 +31,36 @@ pub struct TestPolicyResponse {
     pub decision: String,
 }
 
-pub async fn list_trust_policies(
+pub(crate) async fn list_trust_policies(
     State(state): State<AppState>,
 ) -> Json<Vec<serde_json::Value>> {
     let policies = state.policy_stores.read().await;
-    let result: Vec<_> = policies.iter().map(|p| {
-        serde_json::json!({
-            "name": p.policy.metadata.name,
-            "api_version": p.policy.api_version,
-            "kind": p.policy.kind,
-            "mode": format!("{:?}", p.current_mode),
-            "evaluations": p.status().evaluations,
-            "blocks": p.status().blocks,
+    let result: Vec<_> = policies
+        .iter()
+        .map(|p| {
+            serde_json::json!({
+                "name": p.policy.metadata.name,
+                "api_version": p.policy.api_version,
+                "kind": p.policy.kind,
+                "mode": format!("{:?}", p.current_mode),
+                "evaluations": p.status().evaluations,
+                "blocks": p.status().blocks,
+            })
         })
-    }).collect();
+        .collect();
     Json(result)
 }
 
-pub async fn create_trust_policy(
+pub(crate) async fn create_trust_policy(
     State(state): State<AppState>,
     Json(req): Json<CreatePolicyRequest>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, String)> {
-    let policy = TrustPolicy::from_yaml(&req.yaml)
-        .map_err(|e| (axum::http::StatusCode::BAD_REQUEST, format!("Invalid YAML: {}", e)))?;
+    let policy = TrustPolicy::from_yaml(&req.yaml).map_err(|e| {
+        (
+            axum::http::StatusCode::BAD_REQUEST,
+            format!("Invalid YAML: {}", e),
+        )
+    })?;
 
     let name = policy.metadata.name.clone();
     let lifecycle = bastion_policy_engine::lifecycle::PolicyLifecycle::new(policy);
@@ -63,12 +73,14 @@ pub async fn create_trust_policy(
     })))
 }
 
-pub async fn get_trust_policy(
+pub(crate) async fn get_trust_policy(
     State(state): State<AppState>,
     Path(name): Path<String>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, String)> {
     let policies = state.policy_stores.read().await;
-    let p = policies.iter().find(|p| p.policy.metadata.name == name)
+    let p = policies
+        .iter()
+        .find(|p| p.policy.metadata.name == name)
         .ok_or_else(|| (axum::http::StatusCode::NOT_FOUND, "Policy not found".into()))?;
 
     Ok(Json(serde_json::json!({
@@ -84,37 +96,49 @@ pub async fn get_trust_policy(
     })))
 }
 
-pub async fn update_trust_policy(
+pub(crate) async fn update_trust_policy(
     State(state): State<AppState>,
     Path(name): Path<String>,
     Json(req): Json<CreatePolicyRequest>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, String)> {
-    let new_policy = TrustPolicy::from_yaml(&req.yaml)
-        .map_err(|e| (axum::http::StatusCode::BAD_REQUEST, format!("Invalid YAML: {}", e)))?;
+    let new_policy = TrustPolicy::from_yaml(&req.yaml).map_err(|e| {
+        (
+            axum::http::StatusCode::BAD_REQUEST,
+            format!("Invalid YAML: {}", e),
+        )
+    })?;
 
     let mut policies = state.policy_stores.write().await;
-    let pos = policies.iter().position(|p| p.policy.metadata.name == name)
+    let pos = policies
+        .iter()
+        .position(|p| p.policy.metadata.name == name)
         .ok_or_else(|| (axum::http::StatusCode::NOT_FOUND, "Policy not found".into()))?;
 
     let lifecycle = bastion_policy_engine::lifecycle::PolicyLifecycle::new(new_policy);
     policies[pos] = lifecycle;
 
-    Ok(Json(serde_json::json!({ "status": "updated", "name": name })))
+    Ok(Json(
+        serde_json::json!({ "status": "updated", "name": name }),
+    ))
 }
 
-pub async fn delete_trust_policy(
+pub(crate) async fn delete_trust_policy(
     State(state): State<AppState>,
     Path(name): Path<String>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, String)> {
     let mut policies = state.policy_stores.write().await;
-    let pos = policies.iter().position(|p| p.policy.metadata.name == name)
+    let pos = policies
+        .iter()
+        .position(|p| p.policy.metadata.name == name)
         .ok_or_else(|| (axum::http::StatusCode::NOT_FOUND, "Policy not found".into()))?;
 
     policies.remove(pos);
-    Ok(Json(serde_json::json!({ "status": "deleted", "name": name })))
+    Ok(Json(
+        serde_json::json!({ "status": "deleted", "name": name }),
+    ))
 }
 
-pub async fn validate_trust_policy(
+pub(crate) async fn validate_trust_policy(
     Json(req): Json<CreatePolicyRequest>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, String)> {
     match TrustPolicy::from_yaml(&req.yaml) {
@@ -130,13 +154,15 @@ pub async fn validate_trust_policy(
     }
 }
 
-pub async fn test_trust_policy(
+pub(crate) async fn test_trust_policy(
     State(state): State<AppState>,
     Path(name): Path<String>,
     Json(req): Json<TestPolicyRequest>,
 ) -> Result<Json<TestPolicyResponse>, (axum::http::StatusCode, String)> {
     let policies = state.policy_stores.read().await;
-    let policy = policies.iter().find(|p| p.policy.metadata.name == name)
+    let policy = policies
+        .iter()
+        .find(|p| p.policy.metadata.name == name)
         .ok_or_else(|| (axum::http::StatusCode::NOT_FOUND, "Policy not found".into()))?;
 
     let matches = policy.policy.matches(&req.intent, &req.chain);
@@ -151,30 +177,41 @@ pub async fn test_trust_policy(
     }))
 }
 
-pub async fn set_policy_mode(
+pub(crate) async fn set_policy_mode(
     State(state): State<AppState>,
     Path(name): Path<String>,
     Json(req): Json<PolicyModeRequest>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, String)> {
     let mut policies = state.policy_stores.write().await;
-    let policy = policies.iter_mut().find(|p| p.policy.metadata.name == name)
+    let policy = policies
+        .iter_mut()
+        .find(|p| p.policy.metadata.name == name)
         .ok_or_else(|| (axum::http::StatusCode::NOT_FOUND, "Policy not found".into()))?;
 
     match req.mode.as_str() {
         "enforce" => policy.enforce(),
         "audit" => policy.audit(),
-        _ => return Err((axum::http::StatusCode::BAD_REQUEST, "Mode must be 'audit' or 'enforce'".into())),
+        _ => {
+            return Err((
+                axum::http::StatusCode::BAD_REQUEST,
+                "Mode must be 'audit' or 'enforce'".into(),
+            ));
+        }
     }
 
-    Ok(Json(serde_json::json!({ "status": "updated", "name": name, "mode": req.mode })))
+    Ok(Json(
+        serde_json::json!({ "status": "updated", "name": name, "mode": req.mode }),
+    ))
 }
 
-pub async fn get_policy_report(
+pub(crate) async fn get_policy_report(
     State(state): State<AppState>,
     Path(name): Path<String>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, String)> {
     let policies = state.policy_stores.read().await;
-    let p = policies.iter().find(|p| p.policy.metadata.name == name)
+    let p = policies
+        .iter()
+        .find(|p| p.policy.metadata.name == name)
         .ok_or_else(|| (axum::http::StatusCode::NOT_FOUND, "Policy not found".into()))?;
 
     Ok(Json(serde_json::json!({
@@ -194,11 +231,11 @@ pub struct CreateExceptionRequest {
     pub approved_by: String,
 }
 
-pub async fn list_exceptions() -> Json<Vec<serde_json::Value>> {
+pub(crate) async fn list_exceptions() -> Json<Vec<serde_json::Value>> {
     Json(vec![])
 }
 
-pub async fn create_exception(
+pub(crate) async fn create_exception(
     Json(req): Json<CreateExceptionRequest>,
 ) -> Json<serde_json::Value> {
     Json(serde_json::json!({
@@ -209,14 +246,14 @@ pub async fn create_exception(
     }))
 }
 
-pub async fn delete_exception(Path(_id): Path<String>) -> Json<serde_json::Value> {
+pub(crate) async fn delete_exception(Path(_id): Path<String>) -> Json<serde_json::Value> {
     Json(serde_json::json!({ "status": "deleted" }))
 }
 
-pub async fn trigger_scan() -> Json<serde_json::Value> {
+pub(crate) async fn trigger_scan() -> Json<serde_json::Value> {
     Json(serde_json::json!({ "scan": "triggered" }))
 }
 
-pub async fn get_scan_results() -> Json<serde_json::Value> {
+pub(crate) async fn get_scan_results() -> Json<serde_json::Value> {
     Json(serde_json::json!({ "last_scan": null }))
 }

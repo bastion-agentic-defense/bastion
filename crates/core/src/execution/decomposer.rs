@@ -66,12 +66,19 @@ impl IntentDecomposer {
         action: &crate::execution::plan::Action,
     ) -> Option<CompensatingAction> {
         let (description, reverse_type) = match &action.action_type {
-            ActionType::Swap => ("Reverse swap to original token".to_string(), ActionType::Swap),
+            ActionType::Swap => (
+                "Reverse swap to original token".to_string(),
+                ActionType::Swap,
+            ),
             ActionType::Transfer => ("Return transferred funds".to_string(), ActionType::Transfer),
-            ActionType::Bridge => {
-                ("Bridge assets back to source chain".to_string(), ActionType::Bridge)
-            }
-            ActionType::Stake => ("Unstake to reverse position".to_string(), ActionType::Unstake),
+            ActionType::Bridge => (
+                "Bridge assets back to source chain".to_string(),
+                ActionType::Bridge,
+            ),
+            ActionType::Stake => (
+                "Unstake to reverse position".to_string(),
+                ActionType::Unstake,
+            ),
             ActionType::Lend => ("Withdraw lent assets".to_string(), ActionType::Lend),
             ActionType::Borrow => ("Repay borrowed assets".to_string(), ActionType::Borrow),
             ActionType::Unstake => return None,
@@ -155,7 +162,11 @@ mod tests {
         assert!(plan.legs[0].compensating_action.is_some());
         assert!(plan.legs[1].compensating_action.is_some());
         assert_eq!(
-            plan.legs[0].compensating_action.as_ref().unwrap().action_type,
+            plan.legs[0]
+                .compensating_action
+                .as_ref()
+                .unwrap()
+                .action_type,
             ActionType::Swap
         );
     }

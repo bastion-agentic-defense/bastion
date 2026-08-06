@@ -58,7 +58,11 @@ impl WorkflowStore {
         }
     }
 
-    pub fn append_event(&self, wf_id: &str, event: &crate::event::WorkflowEvent) -> super::Result<()> {
+    pub fn append_event(
+        &self,
+        wf_id: &str,
+        event: &crate::event::WorkflowEvent,
+    ) -> super::Result<()> {
         let tree = self.events_tree()?;
         let seq = tree.scan_prefix(wf_id.as_bytes()).count() as u64;
         let mut key = Vec::with_capacity(wf_id.len() + 9);
@@ -143,7 +147,12 @@ impl WorkflowStore {
         Ok(ids)
     }
 
-    pub fn save_idempotency(&self, wf_id: &str, step_id: &str, output: &serde_json::Value) -> super::Result<()> {
+    pub fn save_idempotency(
+        &self,
+        wf_id: &str,
+        step_id: &str,
+        output: &serde_json::Value,
+    ) -> super::Result<()> {
         let tree = self.idempotency_tree()?;
         let mut key = Vec::with_capacity(wf_id.len() + 1 + step_id.len());
         key.extend_from_slice(wf_id.as_bytes());
@@ -153,7 +162,11 @@ impl WorkflowStore {
         Ok(())
     }
 
-    pub fn check_idempotency(&self, wf_id: &str, step_id: &str) -> super::Result<Option<serde_json::Value>> {
+    pub fn check_idempotency(
+        &self,
+        wf_id: &str,
+        step_id: &str,
+    ) -> super::Result<Option<serde_json::Value>> {
         let tree = self.idempotency_tree()?;
         let mut key = Vec::with_capacity(wf_id.len() + 1 + step_id.len());
         key.extend_from_slice(wf_id.as_bytes());

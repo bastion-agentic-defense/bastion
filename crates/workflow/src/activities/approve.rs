@@ -1,11 +1,13 @@
-use async_trait::async_trait;
 use crate::{Activity, ActivityContext, WorkflowError};
+use async_trait::async_trait;
 
 pub struct ApproveActivity;
 
 #[async_trait]
 impl Activity for ApproveActivity {
-    fn name(&self) -> &str { "approve" }
+    fn name(&self) -> &str {
+        "approve"
+    }
 
     async fn execute(
         &self,

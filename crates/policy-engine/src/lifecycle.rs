@@ -8,7 +8,10 @@ pub struct PolicyLifecycle {
 
 impl PolicyLifecycle {
     pub fn new(policy: TrustPolicy) -> Self {
-        Self { current_mode: PolicyMode::Audit, policy }
+        Self {
+            current_mode: PolicyMode::Audit,
+            policy,
+        }
     }
 
     /// Promote from Audit to Enforce mode.

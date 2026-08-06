@@ -15,11 +15,21 @@ pub struct RetryPolicy {
     pub timeout_ms: u64,
 }
 
-fn default_max_attempts() -> u32 { 1 }
-fn default_initial_backoff() -> u64 { 1000 }
-fn default_max_backoff() -> u64 { 30000 }
-fn default_multiplier() -> f64 { 2.0 }
-fn default_timeout() -> u64 { 30000 }
+fn default_max_attempts() -> u32 {
+    1
+}
+fn default_initial_backoff() -> u64 {
+    1000
+}
+fn default_max_backoff() -> u64 {
+    30000
+}
+fn default_multiplier() -> f64 {
+    2.0
+}
+fn default_timeout() -> u64 {
+    30000
+}
 
 impl Default for RetryPolicy {
     fn default() -> Self {
@@ -38,8 +48,8 @@ impl RetryPolicy {
         if attempt <= 1 {
             return 0;
         }
-        let delay = self.initial_backoff_ms as f64
-            * self.backoff_multiplier.powi((attempt as i32) - 2);
+        let delay =
+            self.initial_backoff_ms as f64 * self.backoff_multiplier.powi((attempt as i32) - 2);
         (delay as u64).min(self.max_backoff_ms)
     }
 
@@ -88,7 +98,10 @@ mod tests {
 
     #[test]
     fn can_retry_boundary() {
-        let rp = RetryPolicy { max_attempts: 3, ..Default::default() };
+        let rp = RetryPolicy {
+            max_attempts: 3,
+            ..Default::default()
+        };
         assert!(rp.can_retry(0));
         assert!(rp.can_retry(1));
         assert!(rp.can_retry(2));

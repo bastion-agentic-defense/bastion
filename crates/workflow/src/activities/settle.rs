@@ -1,11 +1,13 @@
-use async_trait::async_trait;
 use crate::{Activity, ActivityContext, WorkflowError};
+use async_trait::async_trait;
 
 pub struct SettleActivity;
 
 #[async_trait]
 impl Activity for SettleActivity {
-    fn name(&self) -> &str { "settle" }
+    fn name(&self) -> &str {
+        "settle"
+    }
 
     async fn execute(
         &self,

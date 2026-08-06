@@ -12,7 +12,7 @@ pub mod router;
 pub use atomicity::{AtomicityManager, CompensationStatus};
 pub use decomposer::IntentDecomposer;
 pub use plan::{
-    Action, ActionType, CompensatingAction, Constraint, ConstraintType, ExecutionPlan, Intent,
-    Leg, LegStatus, PlanStatus,
+    Action, ActionType, CompensatingAction, Constraint, ConstraintType, ExecutionPlan, Intent, Leg,
+    LegStatus, PlanStatus,
 };
 pub use router::{ChainMetrics, RouteSelector, RouteWeights};

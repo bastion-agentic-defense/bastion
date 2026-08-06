@@ -66,8 +66,14 @@ impl AuditRecord {
         // filtered/transformed input.
         let input_hash = sha256_hex(raw_input.as_bytes());
 
-        let wyriwe_hash =
-            sha256_hex(&[raw_input_hash.as_bytes(), sanitization_pipeline_hash.as_bytes(), input_hash.as_bytes()].concat());
+        let wyriwe_hash = sha256_hex(
+            &[
+                raw_input_hash.as_bytes(),
+                sanitization_pipeline_hash.as_bytes(),
+                input_hash.as_bytes(),
+            ]
+            .concat(),
+        );
 
         // ERC-8281 OCP: the observation is the policy decision + payload hash.
         let observation = format!("{:?}:{}", decision, payload_hash);

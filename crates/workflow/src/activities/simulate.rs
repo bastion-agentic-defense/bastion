@@ -1,11 +1,13 @@
-use async_trait::async_trait;
 use crate::{Activity, ActivityContext, WorkflowError};
+use async_trait::async_trait;
 
 pub struct SimulateActivity;
 
 #[async_trait]
 impl Activity for SimulateActivity {
-    fn name(&self) -> &str { "simulate" }
+    fn name(&self) -> &str {
+        "simulate"
+    }
 
     async fn execute(
         &self,

@@ -1,11 +1,13 @@
-use async_trait::async_trait;
 use crate::{Activity, ActivityContext, WorkflowError};
+use async_trait::async_trait;
 
 pub struct SleepActivity;
 
 #[async_trait]
 impl Activity for SleepActivity {
-    fn name(&self) -> &str { "sleep" }
+    fn name(&self) -> &str {
+        "sleep"
+    }
 
     async fn execute(
         &self,

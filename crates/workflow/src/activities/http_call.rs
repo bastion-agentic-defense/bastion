@@ -1,11 +1,13 @@
-use async_trait::async_trait;
 use crate::{Activity, ActivityContext, WorkflowError};
+use async_trait::async_trait;
 
 pub struct HttpCallActivity;
 
 #[async_trait]
 impl Activity for HttpCallActivity {
-    fn name(&self) -> &str { "http_call" }
+    fn name(&self) -> &str {
+        "http_call"
+    }
 
     async fn execute(
         &self,

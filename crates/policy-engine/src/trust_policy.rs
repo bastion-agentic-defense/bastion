@@ -254,8 +254,12 @@ impl Default for BackgroundConfig {
     }
 }
 
-const fn default_scan_interval() -> u64 { 3600 }
-const fn default_true() -> bool { true }
+const fn default_scan_interval() -> u64 {
+    3600
+}
+const fn default_true() -> bool {
+    true
+}
 
 /// A time-bound exception to a TrustPolicy.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -316,21 +320,40 @@ impl TrustPolicy {
             rules.push(PolicyRule::AmountLimit {
                 max_per_transaction: max,
                 max_per_24h: self.spec.validate.max_per_24h,
-                currency: self.spec.r#match.currency.clone().unwrap_or_else(|| "SOL".into()),
+                currency: self
+                    .spec
+                    .r#match
+                    .currency
+                    .clone()
+                    .unwrap_or_else(|| "SOL".into()),
             });
         }
 
         // Destination
         if !self.spec.validate.allowlist.is_empty() || !self.spec.validate.blocklist.is_empty() {
             rules.push(PolicyRule::Destination {
-                allowlist: self.spec.validate.allowlist.iter().map(|a| Address::new(a.clone())).collect(),
-                blocklist: self.spec.validate.blocklist.iter().map(|a| Address::new(a.clone())).collect(),
+                allowlist: self
+                    .spec
+                    .validate
+                    .allowlist
+                    .iter()
+                    .map(|a| Address::new(a.clone()))
+                    .collect(),
+                blocklist: self
+                    .spec
+                    .validate
+                    .blocklist
+                    .iter()
+                    .map(|a| Address::new(a.clone()))
+                    .collect(),
             });
         }
 
         // Frequency
         if let Some(max) = self.spec.validate.max_transactions_per_hour {
-            rules.push(PolicyRule::Frequency { max_transactions_per_hour: max });
+            rules.push(PolicyRule::Frequency {
+                max_transactions_per_hour: max,
+            });
         }
 
         // HITL
@@ -343,7 +366,10 @@ impl TrustPolicy {
 
         // Reputation
         if let Some(score) = self.spec.validate.min_reputation_score {
-            rules.push(PolicyRule::Reputation { minimum_score: score, elevated_limit_multiplier: None });
+            rules.push(PolicyRule::Reputation {
+                minimum_score: score,
+                elevated_limit_multiplier: None,
+            });
         }
 
         // TxTypeAllowlist
@@ -375,17 +401,24 @@ impl TrustPolicy {
 
         // SpeedLimit
         if let Some(speed) = self.spec.validate.max_speed_mps {
-            rules.push(PolicyRule::SpeedLimit { max_speed_mps: speed });
+            rules.push(PolicyRule::SpeedLimit {
+                max_speed_mps: speed,
+            });
         }
 
         // EnergyBudget
         if let Some(joules) = self.spec.validate.max_joules_24h {
-            rules.push(PolicyRule::EnergyBudget { max_joules_24h: joules });
+            rules.push(PolicyRule::EnergyBudget {
+                max_joules_24h: joules,
+            });
         }
 
         // OperatingHours
         if let Some(hours) = &self.spec.validate.operating_hours {
-            rules.push(PolicyRule::OperatingHours { min_hour: hours.min_hour, max_hour: hours.max_hour });
+            rules.push(PolicyRule::OperatingHours {
+                min_hour: hours.min_hour,
+                max_hour: hours.max_hour,
+            });
         }
 
         rules
@@ -394,10 +427,10 @@ impl TrustPolicy {
     /// Check if this policy matches a given intent and chain.
     pub fn matches(&self, intent: &str, chain: &str) -> bool {
         let m = &self.spec.r#match;
-        if let Some(ref required_intent) = m.intent {
-            if required_intent != intent {
-                return false;
-            }
+        if let Some(ref required_intent) = m.intent
+            && required_intent != intent
+        {
+            return false;
         }
         if !m.chains.is_empty() && !m.chains.contains(&chain.to_string()) {
             return false;

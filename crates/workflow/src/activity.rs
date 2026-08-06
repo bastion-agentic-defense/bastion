@@ -26,7 +26,9 @@ pub struct ActivityRegistry {
 
 impl ActivityRegistry {
     pub fn new() -> Self {
-        Self { activities: HashMap::new() }
+        Self {
+            activities: HashMap::new(),
+        }
     }
 
     pub fn register<A: Activity + 'static>(&mut self, activity: A) {

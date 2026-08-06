@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use crate::state::{WorkflowState, WorkflowStatus, StepStatus};
 use super::error::Result;
+use crate::state::{StepStatus, WorkflowState, WorkflowStatus};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -117,10 +117,20 @@ fn apply(ev: &WorkflowEvent, state: &mut WorkflowState) -> Result<()> {
                 ss.completed_at = Some(ev.ts());
             }
             state.current_step = state.current_step.max(
-                state.step_states.iter().position(|s| &s.step_id == step).unwrap_or(0) + 1
+                state
+                    .step_states
+                    .iter()
+                    .position(|s| &s.step_id == step)
+                    .unwrap_or(0)
+                    + 1,
             );
         }
-        WorkflowEvent::StepFailed { step, error, attempt, .. } => {
+        WorkflowEvent::StepFailed {
+            step,
+            error,
+            attempt,
+            ..
+        } => {
             if let Some(ss) = state.step_states.iter_mut().find(|s| &s.step_id == step) {
                 ss.status = StepStatus::Failed(error.clone());
                 ss.attempt = *attempt;

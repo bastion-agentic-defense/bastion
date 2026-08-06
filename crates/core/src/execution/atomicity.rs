@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 /// Tracks and orchestrates compensating actions when an execution plan
 /// encounters a failure after some legs have already completed
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AtomicityManager {
     /// Legs whose compensating action finished successfully
     pub compensated: Vec<Uuid>,

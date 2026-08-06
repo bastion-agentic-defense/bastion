@@ -13,7 +13,12 @@ pub struct TrustException {
 }
 
 impl TrustException {
-    pub fn new(policy_name: impl Into<String>, reason: impl Into<String>, expires_at: u64, approved_by: impl Into<String>) -> Self {
+    pub fn new(
+        policy_name: impl Into<String>,
+        reason: impl Into<String>,
+        expires_at: u64,
+        approved_by: impl Into<String>,
+    ) -> Self {
         Self {
             id: uuid::Uuid::new_v4().to_string(),
             policy_name: policy_name.into(),

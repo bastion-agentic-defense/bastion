@@ -94,6 +94,9 @@ impl StepState {
     }
 
     pub fn is_terminal(&self) -> bool {
-        matches!(self.status, StepStatus::Completed | StepStatus::Failed(_) | StepStatus::Skipped)
+        matches!(
+            self.status,
+            StepStatus::Completed | StepStatus::Failed(_) | StepStatus::Skipped
+        )
     }
 }
