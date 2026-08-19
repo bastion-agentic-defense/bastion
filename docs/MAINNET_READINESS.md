@@ -88,7 +88,7 @@ cargo test -p bastion-audit
 | Item | Status | Notes |
 |---|---|---|
 | `[programs.mainnet]` block in `Anchor.toml` | ✅ | Placeholder ID present; replace with generated mainnet ID. |
-| Verifiable build | ⬜ | `anchor build --verifiable` (or `solana-verify`) so the audit firm reproduces the binary hash. |
+| Verifiable build | 🟡 | `anchor build --verifiable` (or `solana-verify`) so the audit firm reproduces the binary hash. **Unblocked:** the program crate is now edition 2021 so Anchor 0.30.1 can parse its manifest (previously `edition = "2024"` broke `anchor build`/`deploy`/`test`). Produce the hash once the surface is frozen (§7). |
 | Deploy | ⬜ | `anchor deploy --provider.cluster mainnet-beta` from a funded deployer (~2.5 SOL buffer). |
 | Initialize atomically post-deploy | ⬜ | Call `initialize(admin = <Squads vault>)` in the same operational step (closes the front-run window with the interim control). |
 | Transfer upgrade authority to the Squads vault | ⬜ | `solana program set-upgrade-authority <PROGRAM_ID> --new-upgrade-authority <VAULT>`; verify with `solana program show <PROGRAM_ID>`. |

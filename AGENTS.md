@@ -341,6 +341,11 @@ anchor build
 anchor deploy --provider.cluster devnet
 ```
 
+> The on-chain crate (`crates/solana/programs/bastion-audit`) is pinned to
+> **edition 2021** because Anchor 0.30.1's manifest parser rejects `edition = "2024"`.
+> For a standalone BPF build without the Anchor CLI, use
+> `cd crates/solana/programs/bastion-audit && cargo build-sbf`.
+
 ---
 
 ## 11. CI/CD (GitHub Actions)
@@ -409,6 +414,10 @@ Only wallets listed in `App.tsx`'s `solanaWallets` array are available. Currentl
 ### Anchor version must match CLI
 
 Both the Anchor JS client (`@coral-xyz/anchor@^0.30.1`) and Anchor CLI (`anchor 0.30.1`) must match. Mismatched versions cause IDL deserialization and BN (`_bn`) errors.
+
+### On-chain crate must stay on edition 2021
+
+Anchor 0.30.1's manifest parser rejects `edition = "2024"` (its edition enum stops at 2021), so `anchor build` / `anchor deploy` / `anchor test` fail with `data did not match any variant of untagged enum Inheritable`. The `bastion-audit` crate is pinned to `edition = "2021"` for this reason. The rest of the workspace remains edition 2024 — the on-chain crate is the only one the Anchor CLI parses.
 
 ### Forge submodules required
 
