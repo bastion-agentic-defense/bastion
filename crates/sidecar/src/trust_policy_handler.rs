@@ -250,10 +250,12 @@ pub(crate) async fn delete_exception(Path(_id): Path<String>) -> Json<serde_json
     Json(serde_json::json!({ "status": "deleted" }))
 }
 
-pub(crate) async fn trigger_scan() -> Json<serde_json::Value> {
-    Json(serde_json::json!({ "scan": "triggered" }))
+pub(crate) async fn trigger_scan(State(state): State<AppState>) -> Json<serde_json::Value> {
+    let result = crate::scanner::run_scan(&state).await;
+    Json(serde_json::to_value(result).unwrap_or_default())
 }
 
-pub(crate) async fn get_scan_results() -> Json<serde_json::Value> {
-    Json(serde_json::json!({ "last_scan": null }))
+pub(crate) async fn get_scan_results(State(state): State<AppState>) -> Json<serde_json::Value> {
+    let last = state.last_scan.read().await.clone();
+    Json(serde_json::json!({ "last_scan": last }))
 }

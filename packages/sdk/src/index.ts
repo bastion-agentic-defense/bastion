@@ -30,6 +30,12 @@ export type {
 } from "./workflow";
 
 export { AGENT_CAPABILITIES, DECISION, BastionEventStream } from "./types";
+export type {
+  ScanResult,
+  ScanFinding,
+  ScanFindingKind,
+  ScanResultsResponse,
+} from "./types";
 export { BastionSidecar } from "./sidecar";
 export { Bastion } from "./execute";
 export type {

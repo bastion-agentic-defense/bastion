@@ -11,6 +11,8 @@ import type {
   CircuitBreakerStatus,
   EvmSimulateRequest,
   EvmSimulateResponse,
+  ScanResult,
+  ScanResultsResponse,
 } from "./types";
 
 export class BastionSidecar {
@@ -95,6 +97,16 @@ export class BastionSidecar {
 
   disengageCircuitBreaker(): Promise<CircuitBreakerStatus> {
     return this.request<CircuitBreakerStatus>("POST", "/circuit-breaker/disengage");
+  }
+
+  /** Trigger an on-demand background trust scan. */
+  triggerScan(): Promise<ScanResult> {
+    return this.request<ScanResult>("POST", "/scans");
+  }
+
+  /** Fetch the most recent background trust scan result, if any. */
+  scanResults(): Promise<ScanResultsResponse> {
+    return this.request<ScanResultsResponse>("GET", "/scan/results");
   }
 
   simulateEvm(req: EvmSimulateRequest): Promise<EvmSimulateResponse> {

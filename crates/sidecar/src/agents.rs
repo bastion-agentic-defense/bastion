@@ -26,6 +26,10 @@ pub struct TrackedAgent {
     pub delegation_depth: Option<u8>,
     pub child_dids: Vec<String>,
     pub is_delegator: bool,
+    /// Unix timestamp (seconds) when a delegated agent's authority expires.
+    /// `None` means the delegation does not expire.
+    #[serde(default)]
+    pub delegation_expires_at: Option<i64>,
 
     // ── Connectivity ──
     pub sidecar_endpoint: Option<String>,
@@ -134,6 +138,7 @@ impl AgentStore {
             delegation_depth: Some(0),
             child_dids: Vec::new(),
             is_delegator: false,
+            delegation_expires_at: None,
             device_type,
             firmware_version,
             last_known_location,

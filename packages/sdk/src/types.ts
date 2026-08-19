@@ -160,6 +160,38 @@ export interface CircuitBreakerStatus {
   engaged: boolean;
 }
 
+// ── Background trust scanner ─────────────────────────────────────────────────
+
+/** The category of violation a scan finding reports. */
+export type ScanFindingKind =
+  | "expired_approval"
+  | "expired_delegation"
+  | "policy_drift"
+  | "unsettled_transaction";
+
+/** A single violation observed by the background scanner. */
+export interface ScanFinding {
+  kind: ScanFindingKind;
+  /** Approval id, agent DID, policy name, or plan id. */
+  id: string;
+  detail: string;
+}
+
+/** Result of a background trust scan (camelCase as served by the sidecar). */
+export interface ScanResult {
+  timestamp: number;
+  expiredApprovals: number;
+  expiredDelegations: number;
+  policyDrifts: number;
+  unsettledTransactions: number;
+  findings: ScanFinding[];
+}
+
+/** Response from GET /scan/results. */
+export interface ScanResultsResponse {
+  last_scan: ScanResult | null;
+}
+
 // ── EVM Simulation types ─────────────────────────────────────────────────────
 
 export interface EvmTxParams {

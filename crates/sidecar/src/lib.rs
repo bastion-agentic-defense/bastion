@@ -33,6 +33,7 @@ pub mod markdown;
 pub mod policy;
 pub mod program_client;
 pub mod prompt_safety;
+pub mod scanner;
 pub mod simulation;
 pub mod simulation_evm;
 pub mod trust_policy_handler;
@@ -59,6 +60,9 @@ struct PendingApproval {
     transaction: solana_sdk::transaction::Transaction,
     simulation_result: SimulationResult,
     intent: Option<String>,
+    /// Unix timestamp (seconds) when the hold was created, used by the
+    /// background scanner to detect expired approvals.
+    created_at: u64,
 }
 
 fn serialize_tx<S>(
@@ -97,6 +101,8 @@ pub(crate) struct AppState {
     /// In-memory registry of in-flight execution plans keyed by plan id, used
     /// by the `/execute` settlement endpoints for compensation.
     execution_plans: Arc<RwLock<HashMap<String, workflow_routes::TrackedPlan>>>,
+    /// Most recent background trust scan result, served by `GET /scan/results`.
+    last_scan: Arc<RwLock<Option<bastion_policy_engine::ScanResult>>>,
 }
 
 fn emit_event(tx: &broadcast::Sender<String>, event_type: &str, json_payload: &str) {
@@ -1009,6 +1015,7 @@ async fn simulate(
                         transaction: tx,
                         simulation_result: result.clone(),
                         intent,
+                        created_at: current_timestamp(),
                     },
                 );
 
@@ -1808,7 +1815,7 @@ struct DelegateRequest {
     #[serde(default)]
     _delegation_budget_sol: Option<u64>,
     #[serde(default)]
-    _delegation_expires_at: Option<i64>,
+    delegation_expires_at: Option<i64>,
 }
 
 async fn post_agent_delegate(
@@ -1854,6 +1861,7 @@ async fn post_agent_delegate(
     if let Some(mut child_data) = state.agent_store.get_agent(&req.child_did) {
         child_data.parent_did = Some(parent_did.clone());
         child_data.delegation_depth = Some(depth as u8);
+        child_data.delegation_expires_at = req.delegation_expires_at;
         let _ = state.agent_store.save_agent(&child_data);
     }
     Ok(Json(serde_json::json!({
@@ -2064,7 +2072,12 @@ pub fn build_app(
         policy_stores: Arc::new(RwLock::new(Vec::new())),
         workflow_engine: workflow_routes::build_workflow_engine(agent_store_path),
         execution_plans: Arc::new(RwLock::new(HashMap::new())),
+        last_scan: Arc::new(RwLock::new(None)),
     };
+
+    // Background trust scanner: sweeps for expired approvals, expired
+    // delegations, policy drift, and unsettled plans on a fixed interval.
+    scanner::spawn(app_state.clone());
 
     async fn markdown_middleware(req: AxumRequest<Body>, next: Next) -> impl IntoResponse {
         if let Some(md_response) = crate::markdown::negotiate_markdown(&req) {
@@ -2099,25 +2112,25 @@ pub fn build_app(
                 .post(trust_policy_handler::create_trust_policy),
         )
         .route(
-            "/policies/{name}",
+            "/policies/:name",
             get(trust_policy_handler::get_trust_policy)
                 .put(trust_policy_handler::update_trust_policy)
                 .delete(trust_policy_handler::delete_trust_policy),
         )
         .route(
-            "/policies/{name}/validate",
+            "/policies/:name/validate",
             post(trust_policy_handler::validate_trust_policy),
         )
         .route(
-            "/policies/{name}/test",
+            "/policies/:name/test",
             post(trust_policy_handler::test_trust_policy),
         )
         .route(
-            "/policies/{name}/mode",
+            "/policies/:name/mode",
             post(trust_policy_handler::set_policy_mode),
         )
         .route(
-            "/policies/{name}/report",
+            "/policies/:name/report",
             get(trust_policy_handler::get_policy_report),
         )
         .route(
@@ -2125,7 +2138,7 @@ pub fn build_app(
             get(trust_policy_handler::list_exceptions).post(trust_policy_handler::create_exception),
         )
         .route(
-            "/exceptions/{id}",
+            "/exceptions/:id",
             delete(trust_policy_handler::delete_exception),
         )
         .route("/scans", post(trust_policy_handler::trigger_scan))
