@@ -16,7 +16,7 @@
 
 | Layer | Technology | Version |
 |-------|-----------|---------|
-| **Rust Sidecar** | Rust (edition 2024), Axum 0.8, Tokio 1, Sled 0.34 | 1.85+ |
+| **Rust Sidecar** | Rust (edition 2024), Axum 0.7, Tokio 1, Sled 0.34 | 1.85+ |
 | **Rust Core** | serde, thiserror, uuid, async-trait | 0.1.0 |
 | **Rust Web2 Firewall** | bastion-web2-firewall, http, url, reqwest | 0.1.0 |
 | **Solana On-Chain** | Anchor 0.30.1, solana-program 1.18, borsh 1 | 0.2.0 |
@@ -60,7 +60,7 @@ bastion/
 ├── evm/                       ← Solidity contracts (Foundry)
 │   ├── src/                   ← BastionFirewall, BastionPolicy, BastionAudit,
 │   │                             BastionRegistry, BastionERC8004Registry, BastionSidecar
-│   ├── test/                  ← 4 Foundry test files (~54 tests)
+│   ├── test/                  ← Foundry test files (62 tests)
 │   ├── script/                ← DeployBastion.s.sol
 │   └── lib/                   ← forge-std, openzeppelin-contracts, solady (submodules)
 ├── docs/                      ← Architecture, contributing, deployment plans
@@ -147,11 +147,11 @@ For the sidecar, `HELIUS_API_KEY` is required. Set via `config.toml` or environm
 | **Core crate** | `cargo test -p bastion-core` | Unit tests |
 | **Sidecar** | `cargo test -p bastion-sidecar` | Integration tests |
 | **Solana program** | `cargo test -p bastion-audit --features devnet` | On-chain tests |
-| **EVM contracts** | `cd evm && forge test -vvv` | ~54 Foundry tests |
+| **EVM contracts** | `cd evm && forge test -vvv` | 62 Foundry tests |
 | **EVM gas report** | `cd evm && forge test --gas-report` | Gas usage analysis |
 | **Solana Anchor** | `cd crates/solana && anchor test` | Needs local validator |
 
-> Dashboard and SDK have no test suites yet.
+> The SDK has a Jest suite (`packages/sdk/src/*.test.ts`, 20 tests). The dashboard has no component tests yet.
 
 ---
 
@@ -249,7 +249,7 @@ Agent Operator (policy config, HITL review)
 - **App shell:** `apps/web/src/App.tsx`, providers, wallet setup, routing
 - **Pages:** `apps/web/src/pages/Landing.tsx`, `Dashboard.tsx`, `integrate/Integrate.tsx`
 - **Solana hooks:** `apps/web/src/hooks/useBastionProgram.ts`
-- **EVM hooks:** `apps/web/src/hooks/useBastionEVM.ts` (currently stubs)
+- **EVM hooks:** `apps/web/src/hooks/useBastionEVM.ts` (wagmi/viem read+write)
 - **Chain context:** `apps/web/src/context/ChainContext.tsx`, Solana/Celo switching
 - **Theme:** `apps/web/src/context/ThemeContext.tsx`
 
@@ -353,11 +353,15 @@ Triggers on push/PR to `main` (ignoring `.md` and `docs/`).
 |-----|-------------|
 | `core` | cargo check, clippy, test for `bastion-core` |
 | `sidecar` | cargo check, clippy, test for `bastion-sidecar` |
+| `policy-engine` | cargo check, clippy, test for `bastion-policy-engine` |
+| `web2-crate` | cargo check, clippy, test for `bastion-web2-firewall` |
 | `solana` | Install Solana CLI 1.18.26 + Anchor 0.30.1, cargo check, test |
 | `fmt` | `cargo fmt --all -- --check` |
 | `evm` | Checkout submodules, `forge build`, `forge test -vvv` |
 | `web` | `pnpm install`, `pnpm --filter bastion-dashboard build` |
 | `sdk` | `pnpm install`, `pnpm --filter @zkos-labs/sdk build` |
+| `web2-sdk` | `pnpm install`, `pnpm --filter @zkos-labs/web2-sdk build` |
+| `mcp-server` | `pnpm install`, `pnpm --filter @zkos-labs/mcp-server build` |
 
 ---
 
@@ -394,9 +398,9 @@ import { BackpackWalletAdapter } from '@solana/wallet-adapter-backpack';
 
 The Dashboard fetches from the on-chain program at `A29V5MUVs73y7XBHHxPpPcAW7h4gGHupbDdwYSwA2n9D` (devnet). If not deployed, Anchor will fail to fetch accounts. The try-catch in `useBastionProgram.ts` handles this gracefully but will show empty data.
 
-### EVM dashboard hooks are stubs
+### EVM dashboard hooks import the committed ABIs
 
-`apps/web/src/hooks/useBastionEVM.ts` currently returns null/empty for all functions. EVM contract interaction via the dashboard is not yet implemented. The ABIs are defined but the hooks need to be wired up to `useReadContract` / `useWriteContract`.
+`apps/web/src/hooks/useBastionEVM.ts` reads/writes the deployed contracts through wagmi/viem. It imports the committed JSON ABIs from `apps/web/src/abi/*.ts` (the single source of truth, regenerated from the forge build). Do not re-declare `parseAbi([...])` strings in the hook — the function/event names then drift from the on-chain contracts (e.g. `getEntryCount` vs `entryCount`, the `AuditRecorded` field list).
 
 ### Solana wallet adapters need explicit config
 
@@ -452,7 +456,7 @@ pnpm --filter @zkos-labs/sdk build
 2. Implement changes
 3. Run pre-commit checks above
 4. Push and create PR
-5. CI must pass all 7 jobs
+5. CI must pass all 11 jobs
 6. Merge to `main` via squash or rebase
 
 ### After merging to main

@@ -14,7 +14,7 @@
 ## Deployer Key
 
 - Address: `0x40320e012e8F6b668ea4583873D0901Dff92D5eb`
-- Stored in `evm/.env` (gitignored)
+- Not committed to the repo. Copy `evm/.env.example` → `evm/.env` (gitignored) and set `PRIVATE_KEY`.
 - Fund via: https://faucet.celo.org/celo-sepolia
 
 ## Completed Work

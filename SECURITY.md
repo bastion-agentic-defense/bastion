@@ -67,18 +67,19 @@ Bastion provides multiple defense layers across blockchain transactions and Web2
 
 ### Solana SDK Transitive Dependencies
 
-Bastion uses the Solana SDK which has transitive dependencies with known advisories:
+Bastion pins the Solana 1.18.26 SDK (required by Anchor 0.30.1), which carries transitive RustSec advisories. These are inherited from the SDK, not Bastion's own code, and are allowlisted in `.cargo/audit.toml` pending a Solana SDK bump (tracked in `docs/MAINNET_READINESS.md` §5):
 
-- **RUSTSEC-2026-0097**: rand 0.7.3 / 0.8.5, unsound with custom logger (used by solana_rbpf, tungstenite)
-- **RUSTSEC-2026-0012**: keccak 0.1.5, unsound ARMv8 assembly (used by sha3 → solana-zk-token-sdk)
-- **RUSTSEC-2023-0033**: borsh 0.9.3, unsound ZST parsing (used by solana-program)
-- **RUSTSEC-2025-0010**: ring 0.16.20, unmaintained (used by quinn, hyper)
-- **RUSTSEC-2025-0134**: rustls-pemfile, unmaintained
-- **RUSTSEC-2021-0145**: atty, unsound unaligned read
-- **RUSTSEC-2025-0119**: number_prefix, unmaintained (used by indicatif)
-- **RUSTSEC-2024-0436**: paste, unmaintained (used by ark-ff)
+- **RUSTSEC-2026-0204** — crossbeam-epoch 0.9.18 (invalid pointer deref)
+- **RUSTSEC-2024-0344** — curve25519-dalek 3.2.1 (timing variability)
+- **RUSTSEC-2022-0093** — ed25519-dalek 1.0.1 (double-pubkey signing oracle)
+- **RUSTSEC-2026-0258** — h2 0.3.27 / 0.4.14 (unbounded empty DATA frames)
+- **RUSTSEC-2026-0037** — quinn-proto 0.10.6 (DoS, high)
+- **RUSTSEC-2026-0185** — quinn-proto 0.10.6 (remote memory exhaustion, high)
+- **RUSTSEC-2025-0009** — ring 0.16.20 (AES panic under overflow checks)
+- **RUSTSEC-2026-0098 / -0099 / -0104** — rustls-webpki 0.101.7 (name-constraint / wildcard / CRL panics)
+- **RUSTSEC-2026-0009** — time 0.3.36 (DoS via stack exhaustion)
 
-**Mitigation**: These are inherited from Solana's official SDK. They do not represent vulnerabilities in Bastion's own code. The Solana team is aware and working on updates.
+**Mitigation**: Allowlisted in `.cargo/audit.toml`; the CI `audit` job still fails on any *new* advisory. Resolve via a Solana SDK upgrade before go-live.
 
 ## Threat Model
 

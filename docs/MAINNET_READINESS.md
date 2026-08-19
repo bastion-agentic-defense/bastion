@@ -108,7 +108,7 @@ cargo test -p bastion-audit
 | RPC cutover devnet → paid mainnet provider | ⬜ | `fly.toml` `SOLANA_RPC_URL` / `HELIUS_RPC_URL` still point at devnet; switch to a paid mainnet RPC. |
 | Secrets via Fly.io (Helius/Alchemy/Grond keys, signer keypair) | ⬜ | Remove from env files; document rotation. |
 | Deploy host rename (`bastion-agentique.fly.dev` → zkOS-Labs host/domain) | ⬜ | **Deferred.** The org rebrand (bastion-agentique → zkos-labs) intentionally kept the live Fly app name `bastion-agentique` and host `bastion-agentique.fly.dev` to avoid a DNS/infra migration. Revisit before mainnet: rename the Fly app or attach a custom domain, then update SDK/web defaults and `.well-known/*`. |
-| `cargo audit` / `cargo deny` in CI + triage RUSTSEC items | 🟡 | Advisories tracked in `SECURITY.md` (inherited from Solana SDK). Add the CI gate with an allowlist for the known transitive advisories. |
+| `cargo audit` / `cargo deny` in CI + triage RUSTSEC items | ✅ | `cargo audit` runs in CI (`.github/workflows/ci.yml` `audit` job); 11 known Solana-SDK advisories allowlisted in `.cargo/audit.toml` and tracked in `SECURITY.md`. Any new advisory fails CI. Remaining: bump Solana SDK to clear the allowlist. |
 
 ---
 
