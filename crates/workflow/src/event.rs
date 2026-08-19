@@ -137,7 +137,7 @@ fn apply(ev: &WorkflowEvent, state: &mut WorkflowState) -> Result<()> {
                 ss.error = Some(error.clone());
             }
         }
-        WorkflowEvent::WorkflowPaused { reason: _, .. } => {
+        WorkflowEvent::WorkflowPaused { .. } => {
             state.status = WorkflowStatus::Paused;
         }
         WorkflowEvent::WorkflowResumed { .. } => {
