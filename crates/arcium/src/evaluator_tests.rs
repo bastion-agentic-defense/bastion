@@ -150,6 +150,31 @@ mod tests {
         assert!(decision.is_blocked());
     }
 
+    #[test]
+    fn disabled_evaluator_reports_not_confidential() {
+        let evaluator: ArcumPolicyEvaluator<MockArciumClient, MockTrustSignalProvider> =
+            ArcumPolicyEvaluator::disabled(test_config());
+        assert!(!evaluator.confidential_active());
+    }
+
+    #[tokio::test]
+    async fn disabled_evaluator_runs_local_only() {
+        // With Arcium disabled, a Solana tx must be evaluated by the local
+        // policy engine rather than short-circuited by an Arcium client.
+        let evaluator: ArcumPolicyEvaluator<MockArciumClient, MockTrustSignalProvider> =
+            ArcumPolicyEvaluator::disabled(test_config());
+        let policy = test_policy();
+        // Under the amount limit → allowed by local policy.
+        assert!(evaluator.evaluate(&test_tx(), &policy).await.is_allowed());
+        // Over the amount limit → blocked by local policy.
+        assert!(
+            evaluator
+                .evaluate(&blocking_tx(), &policy)
+                .await
+                .is_blocked()
+        );
+    }
+
     #[tokio::test]
     async fn mxe_config_serializes() {
         let config = MxeConfig {

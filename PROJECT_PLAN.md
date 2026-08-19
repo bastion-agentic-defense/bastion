@@ -31,7 +31,7 @@ The core is a working transaction firewall deployed on Solana devnet with EVM su
 | MCP server (15 tools, 3 prompts) | Shipped |
 | Web2 API policy adapter | Shipped |
 | TypeScript SDK | Shipped |
-| Confidential ZK policy verdicts (CAPV) | Integrated |
+| Confidential ZK policy verdicts (CAPV) | Example gate (compiled, not deployed) |
 | trustless-ai ERC stack (8004, 8263, 8281, 8299) | Integrated |
 | Durable workflow engine | Planned |
 | Cross-chain settlement router | Planned |

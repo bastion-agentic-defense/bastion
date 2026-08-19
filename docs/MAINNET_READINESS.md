@@ -123,7 +123,18 @@ empty signature) - `crates/arcium/src/client.rs`. **Do not ship a no-op as
 - **(b)** Block go-live of the confidential claim on a real MXE client + Arcis circuit
   (`crates/arcium/src/circuits/policy_evaluator.rs` is currently a stub).
 
-Status: ⬜ decision pending.
+Status: ✅ **Decision (a) — "preview / not enforcing".**
+
+The runtime enforces this honestly:
+
+- `arcium_enabled` defaults to `false` and now actually gates the wiring in
+  `crates/sidecar/src/lib.rs` (with it off, the evaluator is
+  `ArcumPolicyEvaluator::disabled(..)` with `arcium: None`).
+- `/health` reports `confidential_compute: false`.
+- The SDK refuses `execute({ privacy: "confidential" })` unless the runtime reports
+  genuine MPC compute (`packages/sdk/src/execute.ts`).
+- Option (b) — a real MXE client + Arcis circuits — is tracked as Epic B in
+  `docs/ROADMAP.md` and stays behind the external-audit hard gate.
 
 ---
 

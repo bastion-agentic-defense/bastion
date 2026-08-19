@@ -2033,10 +2033,15 @@ pub fn build_app(
         computation_timeout: policy.arcium_timeout_ms,
         required_nodes: policy.arcium_required_nodes,
     };
-    let arcium_evaluator = Arc::new(
+    // Honor `arcium_enabled` (default false). With it disabled, the evaluator
+    // has no Arcium client, so `/health` reports `confidential_compute: false`
+    // and the Arcium gate never short-circuits local evaluation.
+    let arcium_evaluator = Arc::new(if policy.arcium_enabled {
         ArcumPolicyEvaluator::with_oracle(NoopArciumClient, arcium_config, grond_oracle.clone())
-            .with_fallback(policy.arcium_fallback),
-    );
+            .with_fallback(policy.arcium_fallback)
+    } else {
+        ArcumPolicyEvaluator::disabled(arcium_config)
+    });
 
     // Web2 API gateway firewall with a safe default rule set: block requests that
     // leak secrets in the body and strip credential-bearing headers. Callers can

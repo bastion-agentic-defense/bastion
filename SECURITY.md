@@ -88,7 +88,7 @@ Bastion protects against six threat actor classes:
 1. **Compromised Agent**, LLM manipulated through prompt injection, trust runtime provides the final policy enforcement layer
 2. **Malicious Operator**, On-chain policy lives where operator cannot modify it unilaterally
 3. **Policy Bypass**, Aggregate behavioral analysis with sliding window counters
-4. **Intent Observer** (Arcium MXE), MPC confidentiality prevents strategy extraction from transaction metadata
+4. **Intent Observer** (Arcium MXE — *preview, not yet enforcing*): once a live MXE client ships, MPC confidentiality will prevent strategy extraction from transaction metadata. Today the no-op client means evaluation is **not** confidential (see `docs/MAINNET_READINESS.md` §6).
 5. **Cross-Chain Correlator** (Base spoke), Randomized delays and batching obscure cross-chain patterns
 6. **Governance Attacker**, Time-locked multisig policy upgrades prevent hostile governance capture
 
