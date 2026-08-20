@@ -1,9 +1,8 @@
 use crate::simulation::SimulationResult;
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use sled::Db;
-use solana_sdk::hash::hash;
-use solana_sdk::transaction::Transaction;
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -41,54 +40,6 @@ impl TransactionDetails {
             account_keys: vec![],
         }
     }
-
-    pub fn from_transaction_request(request_payload_base64: String, tx: &Transaction) -> Self {
-        Self {
-            request_payload_base64: Some(request_payload_base64),
-            signature: tx.signatures.first().map(|sig| sig.to_string()),
-            program_ids: tx
-                .message
-                .instructions
-                .iter()
-                .filter_map(|ix| {
-                    tx.message
-                        .account_keys
-                        .get(usize::from(ix.program_id_index))
-                        .map(|key| key.to_string())
-                })
-                .collect(),
-            account_keys: tx
-                .message
-                .account_keys
-                .iter()
-                .map(|k| k.to_string())
-                .collect(),
-        }
-    }
-
-    pub fn from_transaction(tx: &Transaction) -> Self {
-        Self {
-            request_payload_base64: None,
-            signature: tx.signatures.first().map(|sig| sig.to_string()),
-            program_ids: tx
-                .message
-                .instructions
-                .iter()
-                .filter_map(|ix| {
-                    tx.message
-                        .account_keys
-                        .get(usize::from(ix.program_id_index))
-                        .map(|key| key.to_string())
-                })
-                .collect(),
-            account_keys: tx
-                .message
-                .account_keys
-                .iter()
-                .map(|k| k.to_string())
-                .collect(),
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -111,7 +62,14 @@ pub struct AuditEntry {
 }
 
 pub fn hash_transaction_payload(payload: &str) -> String {
-    hash(payload.as_bytes()).to_string()
+    let mut hasher = Sha256::new();
+    hasher.update(payload.as_bytes());
+    let digest = hasher.finalize();
+    let mut hex = String::with_capacity(digest.len() * 2);
+    for b in digest {
+        hex.push_str(&format!("{b:02x}"));
+    }
+    hex
 }
 
 pub struct AuditLogger {

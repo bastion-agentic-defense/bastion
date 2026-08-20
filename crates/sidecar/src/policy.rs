@@ -4,8 +4,6 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use solana_sdk::transaction::Transaction;
-
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Policy {
     #[serde(default)]
@@ -20,44 +18,6 @@ pub struct Policy {
     pub blocked_addresses: Vec<String>,
     #[serde(default)]
     pub simulation_checks_enabled: bool,
-    #[serde(default = "default_helius_rpc_url")]
-    pub helius_rpc_url: String,
-    #[serde(default)]
-    pub alchemy_api_key: String,
-    #[serde(default = "default_alchemy_rpc_url")]
-    pub alchemy_rpc_url: String,
-    #[serde(default)]
-    pub arcium_enabled: bool,
-    #[serde(default)]
-    pub arcium_cluster_id: String,
-    #[serde(default)]
-    pub arcium_mxe_id: String,
-    #[serde(default = "default_arcium_timeout")]
-    pub arcium_timeout_ms: u64,
-    #[serde(default = "default_arcium_required_nodes")]
-    pub arcium_required_nodes: u32,
-    #[serde(default = "default_true")]
-    pub arcium_fallback: bool,
-}
-
-fn default_helius_rpc_url() -> String {
-    "https://mainnet.helius-rpc.com/".to_string()
-}
-
-fn default_alchemy_rpc_url() -> String {
-    "https://solana-mainnet.g.alchemy.com/v2/".to_string()
-}
-
-fn default_arcium_timeout() -> u64 {
-    5000
-}
-
-fn default_arcium_required_nodes() -> u32 {
-    1
-}
-
-fn default_true() -> bool {
-    true
 }
 
 impl Default for Policy {
@@ -69,100 +29,7 @@ impl Default for Policy {
             allowed_programs: vec![],
             blocked_addresses: vec![],
             simulation_checks_enabled: true,
-            helius_rpc_url: default_helius_rpc_url(),
-            alchemy_api_key: String::new(),
-            alchemy_rpc_url: default_alchemy_rpc_url(),
-            arcium_enabled: false,
-            arcium_cluster_id: String::new(),
-            arcium_mxe_id: String::new(),
-            arcium_timeout_ms: default_arcium_timeout(),
-            arcium_required_nodes: default_arcium_required_nodes(),
-            arcium_fallback: default_true(),
         }
-    }
-}
-
-impl Policy {
-    pub fn check_transaction(&self, tx: &Transaction) -> Result<(), String> {
-        for instruction in &tx.message.instructions {
-            let program_id_index = usize::from(instruction.program_id_index);
-            let program_id = tx
-                .message
-                .account_keys
-                .get(program_id_index)
-                .ok_or_else(|| format!("Invalid program_id_index: {}", program_id_index))?;
-            let program_id_str = program_id.to_string();
-
-            if !self.allowed_programs.is_empty()
-                && !self
-                    .allowed_programs
-                    .iter()
-                    .any(|allowed_program| allowed_program == &program_id_str)
-            {
-                return Err(format!("Program not allowed: {}", program_id));
-            }
-        }
-
-        if let Some(limit) = self.max_sol_per_tx {
-            let total_sol = Self::compute_total_sol_outflow(tx);
-            if total_sol > limit {
-                return Err(format!(
-                    "Transaction value {} SOL exceeds max_sol_per_tx limit {}",
-                    total_sol, limit
-                ));
-            }
-        }
-
-        if !self.blocked_addresses.is_empty() {
-            Self::check_blocked_addresses(tx, &self.blocked_addresses)?;
-        }
-
-        Ok(())
-    }
-
-    fn compute_total_sol_outflow(tx: &Transaction) -> u64 {
-        let mut total_lamports: u64 = 0;
-
-        for instruction in &tx.message.instructions {
-            let program_id_index = usize::from(instruction.program_id_index);
-            let program_id = match tx.message.account_keys.get(program_id_index) {
-                Some(p) => p,
-                None => continue,
-            };
-
-            let program_str = program_id.to_string();
-
-            if program_str == "System1111111111111111111111111111111" && instruction.data.len() >= 4
-            {
-                let instruction_type = instruction.data[0];
-                if (instruction_type == 2 || instruction_type == 3) && instruction.data.len() >= 40
-                {
-                    let lamports = u64::from_le_bytes([
-                        instruction.data[8],
-                        instruction.data[9],
-                        instruction.data[10],
-                        instruction.data[11],
-                        instruction.data[12],
-                        instruction.data[13],
-                        instruction.data[14],
-                        instruction.data[15],
-                    ]);
-                    total_lamports += lamports;
-                }
-            }
-        }
-
-        total_lamports / 1_000_000_000
-    }
-
-    fn check_blocked_addresses(tx: &Transaction, blocked: &[String]) -> Result<(), String> {
-        for account_key in &tx.message.account_keys {
-            let key_str = account_key.to_string();
-            if blocked.contains(&key_str) {
-                return Err(format!("Transaction involves blocked address: {}", key_str));
-            }
-        }
-        Ok(())
     }
 }
 
@@ -313,60 +180,6 @@ impl Default for BlockintRules {
     }
 }
 
-impl BlockintRules {
-    pub fn check_transaction(&self, tx: &Transaction) -> Result<(), String> {
-        if self.mint_authority_changes_blocked || self.freeze_authority_changes_blocked {
-            self.check_token_authority_changes(tx)?;
-        }
-        if !self.risk_labeled_addresses.is_empty() {
-            self.check_risk_labeled_addresses(tx)?;
-        }
-        Ok(())
-    }
-
-    fn check_token_authority_changes(&self, tx: &Transaction) -> Result<(), String> {
-        let token_program = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-        let token_2022_program = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
-        for instruction in &tx.message.instructions {
-            let pid_idx = usize::from(instruction.program_id_index);
-            let pid = match tx.message.account_keys.get(pid_idx) {
-                Some(p) => p.to_string(),
-                None => continue,
-            };
-            if pid != token_program && pid != token_2022_program {
-                continue;
-            }
-            if instruction.data.is_empty() {
-                continue;
-            }
-            let ix_type = instruction.data[0];
-            match ix_type {
-                9 | 10 if self.mint_authority_changes_blocked => {
-                    return Err("Blockint: mint authority change blocked by policy".into());
-                }
-                4 if self.freeze_authority_changes_blocked => {
-                    return Err("Blockint: freeze authority change blocked by policy".into());
-                }
-                _ => {}
-            }
-        }
-        Ok(())
-    }
-
-    fn check_risk_labeled_addresses(&self, tx: &Transaction) -> Result<(), String> {
-        for key in &tx.message.account_keys {
-            let addr = key.to_string();
-            if self.risk_labeled_addresses.contains(&addr) {
-                return Err(format!(
-                    "Blockint: transaction involves risk-labeled address: {}",
-                    addr
-                ));
-            }
-        }
-        Ok(())
-    }
-}
-
 pub struct FlashLoanPatternCheck;
 
 impl SimulationCheck for FlashLoanPatternCheck {
@@ -512,10 +325,12 @@ impl PolicyEngine {
         Ok(())
     }
 
-    pub fn check_transaction(&self, tx: &Transaction) -> Result<(), String> {
-        self.policy.check_transaction(tx)?;
-        self.blockint_rules.check_transaction(tx)?;
-
+    /// Chain-agnostic rate-limit gate: increments and enforces the configured
+    /// per-minute transaction limit. Callers route through this after any
+    /// chain-specific structural checks; the Solana-only `check_transaction`
+    /// (which coupled this gate to a chain-specific transaction type) was removed
+    /// with the EVM pivot.
+    pub fn check_rate_limit(&self) -> Result<(), String> {
         if let Some(rate_limiter) = &self.rate_limiter {
             let mut limiter = rate_limiter
                 .lock()

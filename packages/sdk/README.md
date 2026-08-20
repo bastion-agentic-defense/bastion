@@ -1,102 +1,162 @@
 # Bastion SDK
 
-TypeScript SDK for the Bastion Programmable Trust Runtime. Identity, policy, execution, and observability for autonomous systems.
+EVM + HTTP TypeScript SDK for the Bastion Programmable Trust Runtime. Identity, policy, execution, and observability for autonomous systems.
 
-> **Package moved:** this package was previously published as `@bastion-agentique/sdk`.
-> It now ships as **`@zkos-labs/sdk`** following the move to the zkOS Labs org. Update your
-> imports and `package.json` dependency; the `@bastion-agentique/*` packages are deprecated.
+> **Package moved:** this package was previously published as `@zkos-labs/sdk`
+> (and, before that, `@bastion-agentique/sdk`). Following Bastion's full-EVM
+> pivot it now ships as **`@zkos-labs/bastion-sdk`**. The Solana Anchor program
+> client (`BastionClient`) is gone — update your imports to the EVM/HTTP surface
+> below.
 
 ## Installation
 
 ```bash
-npm install @zkos-labs/sdk
-pnpm add @zkos-labs/sdk
-yarn add @zkos-labs/sdk
+npm install @zkos-labs/bastion-sdk viem
+pnpm add @zkos-labs/bastion-sdk viem
+yarn add @zkos-labs/bastion-sdk viem
 ```
 
 ## Quick Start
 
+### HTTP (sidecar) — simulate, policy, audit
+
 ```typescript
-import { Connection, Keypair, PublicKey } from "@solana/web3.js";
-import { BastionClient, AGENT_CAPABILITIES, DECISION } from "@zkos-labs/sdk";
+import { BastionSidecar, Bastion } from "@zkos-labs/bastion-sdk";
 
-const connection = new Connection("https://api.devnet.solana.com");
-const client = new BastionClient({ connection });
-const wallet = Keypair.generate();
+const sidecar = new BastionSidecar({
+  baseUrl: "https://bastion-agentique.fly.dev/",
+  apiKey: process.env.BASTION_API_KEY,
+});
 
-// Register an agent on-chain
-const registerTx = await client.registerAgent(wallet, "MyAgent", AGENT_CAPABILITIES.TRANSFER);
-await connection.sendTransaction(registerTx, [wallet]);
+// One-line trust decision for an EVM transaction.
+const bastion = new Bastion({ sidecar });
+const result = await bastion.execute({
+  action: "swap",
+  settlement: "base",
+  transaction: {
+    from: "0x...",
+    to: "0x...",
+    value: "0x0",
+    data: "0x...",
+  },
+  agentId: "agent-001",
+});
+console.log(result.decision); // "pass" | "block" | "pending_hitl"
+```
 
-// Stake SOL for higher transaction limits
-const stakeTx = await client.stakeLamports(wallet, 5_000_000_000);
-await connection.sendTransaction(stakeTx, [wallet]);
+### EVM contracts — read/write (viem)
 
-// Set security policy
-const jupiter = new PublicKey("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4");
-const policyTx = await client.setPolicy(wallet, [jupiter], 1, 10);
-await connection.sendTransaction(policyTx, [wallet]);
+```typescript
+import { createPublicClient, createWalletClient, http } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { base } from "viem/chains";
+import { BastionEVMClient } from "@zkos-labs/bastion-sdk";
 
-// Log an audit decision
-const logTx = await client.logAudit(wallet, DECISION.ALLOWED, new Array(32).fill(0), "Transaction passed all checks");
-await connection.sendTransaction(logTx, [wallet]);
+const publicClient = createPublicClient({ chain: base, transport: http() });
+const walletClient = createWalletClient({
+  chain: base,
+  transport: http(),
+  account: privateKeyToAccount("0x..."),
+});
 
-// Emergency pause
-const pauseTx = await client.emergencyPause(wallet);
-await connection.sendTransaction(pauseTx, [wallet]);
+const client = new BastionEVMClient({
+  publicClient,
+  walletClient,
+  chain: base,
+  contracts: {
+    audit: "0x...",
+    policy: "0x...",
+    firewall: "0x...",
+  },
+});
+
+const count = await client.getEntryCount();
+const policy = await client.readPolicy("0xAgent...");
+const { allowed, reason } = await client.validate(
+  "0xAgent...",
+  "0xTarget...",
+  0n,
+  "0x...",
+);
+const txHash = await client.writePolicy("0xAgent...", {
+  agent: "0xAgent...",
+  isActive: true,
+  maxValuePerTx: 1000000n,
+  maxGasPerTx: 500000n,
+  dailyTxLimit: 100n,
+  cooldownSeconds: 60n,
+  allowedTargets: [],
+  allowedSelectors: [],
+  extraData: "0x",
+});
+```
+
+### ERC-8354 (draft) — confidential verdicts
+
+```typescript
+import { commitPolicyAction, verdictDigest, verifyVerdict } from "@zkos-labs/bastion-sdk";
+
+const commitment = commitPolicyAction({
+  chainId: 8453n,
+  domainId: "0x...",
+  agentId: 7n,
+  target: "0x...",
+  value: 0n,
+  callDataHash: "0x...",
+  actionNonce: 1n,
+});
+```
+
+### ERC-8380 (draft) — capability credentials
+
+```typescript
+import { issueCapability, isConsumed } from "@zkos-labs/bastion-sdk";
+
+const capability = issueCapability({
+  agentId: 7n,
+  homeChainId: 8453n,
+  homeDomainId: "0x...",
+  capabilityIndex: 0n,
+  actionCommitment: "0x...",
+  executor: "0x...",
+  expiry: 1893456000n,
+});
 ```
 
 ## API Reference
 
-### Agent Operations
+### `BastionSidecar` (HTTP)
 
 | Method | Description |
 |--------|-------------|
-| `registerAgent(signer, name, capabilities)` | Register agent on-chain |
-| `fetchAgent(authority)` | Get agent by authority |
-| `fetchAllAgents()` | Get all agents (getProgramAccounts) |
-| `getAgentAddress(authority)` | Derive agent PDA |
-| `getAgentDID(authority)` | Get W3C DID (`did:bastion:solana:{pda}`) |
-| `getAuditEntryAddress(index)` | Derive audit entry PDA |
+| `simulate(req)` | Run a transaction through the firewall (`POST /simulate`) |
+| `simulateEvm(req)` | Run an EVM tx through the firewall (`POST /api/v2/simulate-evm`) |
+| `logs(query?)` | Fetch audit log entries (`GET /logs`) |
+| `getPolicy()` / `updatePolicy()` | Read/update the sidecar policy |
+| `approve(req)` | Human-in-the-loop override (`POST /override`) |
+| `circuitBreakerStatus()` | Circuit breaker state |
+| `triggerScan()` / `scanResults()` | Background trust scans |
+| `events()` | SSE event stream |
 
-### Staking
+### `Bastion` (runtime facade)
 
-| Method | Description |
-|--------|-------------|
-| `stakeLamports(signer, amount)` | Stake SOL for higher limits |
-| `requestUnstake(signer)` | Start 7-day unstake cooldown |
-| `claimUnstake(signer)` | Claim SOL after cooldown |
-| `fetchAgentStake(authority)` | Get agent stake status |
+`execute(req)` composes privacy enforcement → EVM simulation/policy evaluation →
+verification. Settlement networks: `ethereum | base | celo | zksync | robinhood | monad`.
 
-### Policy
+### `BastionWorkflow` (durable execution)
 
-| Method | Description |
-|--------|-------------|
-| `setPolicy(signer, programs, maxSol, rateLimit)` | Set on-chain policy |
-| `fetchPolicy()` | Get current policy |
-| `getPolicyAddress()` | Derive policy PDA |
+`executeIntent`, `plan`, `compensate`, `signal`, `replay`, `start`, `state`, `list`.
 
-### Audit
+### `BastionEVMClient` (viem)
 
 | Method | Description |
 |--------|-------------|
-| `logAudit(signer, decision, simResult, reason, programId?)` | Log audit on-chain |
-| `fetchAuditState()` | Get audit stats (total, allowed, blocked) |
-| `getAuditStateAddress()` | Derive audit state PDA |
-
-### Circuit Breaker
-
-| Method | Description |
-|--------|-------------|
-| `emergencyPause(signer)` | Pause protocol |
-| `emergencyResume(signer)` | Resume protocol |
-
-### Events
-
-| Method | Description |
-|--------|-------------|
-| `addEventListener(name, callback)` | Subscribe to on-chain events |
-| `removeEventListener(id)` | Remove subscription |
+| `getEntryCount()` | Total on-chain audit entries |
+| `readAuditEntry(entryId)` | Read one audit entry |
+| `readPolicy(agent)` | Read per-agent policy |
+| `writePolicy(agent, policy)` | Set per-agent policy (wallet client required) |
+| `validate(agent, target, value, callData)` | Check a transaction against policy |
+| `isPaused()` / `pause()` / `unpause()` | Firewall circuit breaker |
 
 ### Constants
 
@@ -110,53 +170,6 @@ await connection.sendTransaction(pauseTx, [wallet]);
 | `DECISION.ALLOWED` | `0` | Transaction allowed |
 | `DECISION.BLOCKED` | `1` | Transaction blocked |
 | `DECISION.PENDING` | `2` | Awaiting HITL override |
-
-## Program ID
-
-```
-A29V5MUVs73y7XBHHxPpPcAW7h4gGHupbDdwYSwA2n9D
-```
-
-Deployed on Solana devnet. Program source at [github.com/zkos-labs/bastion](https://github.com/zkos-labs/bastion).
-
-## Delegation
-
-Parent agents can spawn sub-agents with delegated authority:
-
-```typescript
-// Delegate to child agent
-const delegateTx = await client.delegateAgent(
-  parentWallet,
-  childWallet,
-  "SubAgent-ETH",
-  AGENT_CAPABILITIES.TRANSFER,       // restricted capabilities
-  Math.floor(Date.now() / 1000) + 86400  // 24h expiry
-);
-
-// Revoke delegation
-const revokeTx = await client.revokeDelegation(parentWallet, childAuthority);
-
-// Fetch delegation tree
-const tree = await client.fetchAgentTree(wallet.publicKey);
-```
-
-## Staking
-
-Stake SOL to unlock higher transaction limits via StakeWeighted policy:
-
-```typescript
-// Stake 5 SOL
-const tx = await client.stakeLamports(wallet, 5_000_000_000);
-
-// 48h minimum before unstake, 7-day cooldown
-const unstakeTx = await client.requestUnstake(wallet);
-
-// After 7 days, claim your SOL
-const claimTx = await client.claimUnstake(wallet);
-
-// Effective limit = base * (1 + stake/min_stake * multiplier) * decay^depth
-// Capped at 10x, floored at 0.1x
-```
 
 ## License
 

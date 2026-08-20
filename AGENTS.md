@@ -19,15 +19,12 @@
 | **Rust Sidecar** | Rust (edition 2024), Axum 0.7, Tokio 1, Sled 0.34 | 1.85+ |
 | **Rust Core** | serde, thiserror, uuid, async-trait | 0.1.0 |
 | **Rust Web2 Firewall** | bastion-web2-firewall, http, url, reqwest | 0.1.0 |
-| **Solana On-Chain** | Anchor 0.30.1, solana-program 1.18, borsh 1 | 0.2.0 |
 | **EVM Contracts** | Solidity 0.8.28, Foundry, OpenZeppelin, Solady | - |
 | **Dashboard** | React 18, Vite 5, TailwindCSS 3.4, TypeScript 5 | 0.2.0 |
-| **SDK** | TypeScript 5, Anchor 0.30.1, @solana/web3.js 1.91 | 0.5.1 |
+| **SDK** | TypeScript 5, viem 2, chain-agnostic HTTP (`@zkos-labs/bastion-sdk`) | 1.0.0 |
 | **Web2 SDK** | TypeScript 5, BastionWeb2Client | 0.1.0 |
 | **EVM Wallet** | wagmi 2.12, viem 2.21, RainbowKit 2.2, TanStack Query 5 | - |
-| **Solana Wallet** | wallet-adapter-react, wallet-adapter-solflare/phantom/backpack | - |
-| **Arcium MXE** | Arcis (Rust MPC circuits), @arcium-hq/client | mainnet-alpha |
-| **Ethereum Standards** | ERC-8004, ERC-7579, ERC-4337, ERC-8126, EIP-7702, x402, EAS, Sign Protocol, Pact Network | composed |
+| **Ethereum Standards** | ERC-8004, ERC-7579, ERC-4337, ERC-8126, EIP-7702, x402, EAS, Sign Protocol, Pact Network, ERC-8354 (draft), ERC-8380 (draft) | composed |
 | **Ethereum Tooling** | ETHSKILLS, Base MCP/Skills, Blockscout MCP, Foundry, Scaffold-ETH 2 | - |
 | **Package Manager** | pnpm 9+ (workspaces) | - |
 | **CI/CD** | GitHub Actions, Netlify, Vercel | - |
@@ -41,26 +38,29 @@ bastion/
 ├── apps/web/                  ← React dashboard (Vite + TailwindCSS)
 │   ├── src/
 │   │   ├── pages/             ← Landing, Dashboard, Integrate
-│   │   ├── hooks/             ← useBastionProgram, useBastionEVM
+│   │   ├── hooks/             ← useBastionEVM (wagmi/viem read+write)
 │   │   ├── components/        ← Navbar, VideoBackground, EvmProviderErrorBoundary
 │   │   ├── context/           ← ThemeContext, ChainContext
 │   │   ├── abi/               ← EVM contract ABIs (JSON, on main branch)
-│   │   └── idl.json           ← Solana Anchor IDL
+│   │   └── lib/               ← chains.ts, evmConfig.ts (EVM chains incl. Monad)
 │   └── dist/                  ← Built output (Netlify/Vercel publish dir)
-├── packages/sdk/              ← @zkos-labs/sdk (TypeScript)
+├── packages/sdk/              ← @zkos-labs/bastion-sdk (TypeScript, EVM + HTTP)
 │   └── src/
-│       ├── index.ts           ← BastionClient class
-│       ├── types.ts           ← AuditState, AuditEntry, Agent, Policy types
-│       └── idl.json           ← Anchor IDL
+│       ├── index.ts           ← BastionEVMClient + HTTP exports
+│       ├── evm.ts             ← viem EVM contract client
+│       ├── erc8354.ts         ← ERC-8354 verdict wrappers
+│       ├── erc8380.ts         ← ERC-8380 credential wrappers
+│       └── types.ts           ← AuditState, AuditEntry, Agent, Policy types
 ├── crates/                    ← Rust workspace
 │   ├── core/                  ← Chain-agnostic policy engine (bastion-core)
 │   ├── sidecar/               ← HTTP evaluator server (Axum, bastion-sidecar)
-│   ├── web2-firewall/         ← Web2 API proxy firewall (bastion-web2-firewall)
-│   └── solana/programs/       ← Anchor on-chain program (bastion-audit)
+│   └── web2-firewall/         ← Web2 API proxy firewall (bastion-web2-firewall)
 ├── evm/                       ← Solidity contracts (Foundry)
 │   ├── src/                   ← BastionFirewall, BastionPolicy, BastionAudit,
-│   │                             BastionRegistry, BastionERC8004Registry, BastionSidecar
-│   ├── test/                  ← Foundry test files (62 tests)
+│   │   │                         BastionRegistry, BastionERC8004Registry, BastionSidecar
+│   │   └── erc8354/           ← ERC-8354 confidential verdict contracts
+│   │   └── erc8380/           ← ERC-8380 unclonable credential contracts
+│   ├── test/                  ← Foundry test files (62 + ERC-8354/8380 tests)
 │   ├── script/                ← DeployBastion.s.sol
 │   └── lib/                   ← forge-std, openzeppelin-contracts, solady (submodules)
 ├── docs/                      ← Architecture, contributing, deployment plans
@@ -84,8 +84,6 @@ bastion/
 - **pnpm** >= 9 (`corepack enable && corepack prepare pnpm@latest --activate`)
 - **Rust** >= 1.85 (`rustup`)
 - **Foundry** (`foundryup`, for EVM contracts)
-- **Solana CLI** 1.18.x (`solana --version`)
-- **Anchor CLI** 0.30.1 (`avm install 0.30.1 && avm use 0.30.1`)
 
 ### Quick Setup
 
@@ -118,7 +116,10 @@ ETH_RPC_URL=https://eth.llamarpc.com
 POLYGON_RPC_URL=https://polygon-rpc.com
 ```
 
-For the sidecar, `HELIUS_API_KEY` is required. Set via `config.toml` or environment.
+For the sidecar, set the per-chain EVM RPC env vars (e.g. `ETH_RPC_URL`,
+`BASE_RPC_URL`, `CELO_RPC_URL`, `ZKSYNC_RPC_URL`, `ROBINHOOD_RPC_URL`,
+`ETH_SEPOLIA_RPC_URL`, `MONAD_RPC_URL`) to enable EVM simulation. No Helius/Solana
+key is required.
 
 ---
 
@@ -129,12 +130,11 @@ For the sidecar, `HELIUS_API_KEY` is required. Set via `config.toml` or environm
 | **All JS** | `pnpm build` | Recursive across workspaces |
 | **Dashboard** | `pnpm --filter bastion-dashboard build` | Vite production build → `apps/web/dist/` |
 | **Dashboard dev** | `pnpm --filter bastion-dashboard dev` | Vite dev server on port 3000 |
-| **SDK** | `pnpm --filter @zkos-labs/sdk build` | `tsc` → `packages/sdk/dist/` |
+| **SDK** | `pnpm --filter @zkos-labs/bastion-sdk build` | `tsc` → `packages/sdk/dist/` |
 | **All Rust** | `cargo build` | From workspace root |
 | **Rust release** | `cargo build --release` | Optimized binary in `target/release/` |
 | **Rust check** | `cargo check` | Fast type-check only |
 | **EVM contracts** | `cd evm && forge build` | Foundry compile → `evm/out/` |
-| **Solana Anchor** | `cd crates/solana && anchor build` | Build BPF bytecode |
 | **Docker** | `docker build -t bastion-sidecar .` | Sidecar container |
 
 ---
@@ -146,10 +146,8 @@ For the sidecar, `HELIUS_API_KEY` is required. Set via `config.toml` or environm
 | **All Rust** | `cargo test` | Workspace-level |
 | **Core crate** | `cargo test -p bastion-core` | Unit tests |
 | **Sidecar** | `cargo test -p bastion-sidecar` | Integration tests |
-| **Solana program** | `cargo test -p bastion-audit --features devnet` | On-chain tests |
-| **EVM contracts** | `cd evm && forge test -vvv` | 62 Foundry tests |
+| **EVM contracts** | `cd evm && forge test -vvv` | Foundry tests (incl. ERC-8354/8380) |
 | **EVM gas report** | `cd evm && forge test --gas-report` | Gas usage analysis |
-| **Solana Anchor** | `cd crates/solana && anchor test` | Needs local validator |
 
 > The SDK has a Jest suite (`packages/sdk/src/*.test.ts`, 20 tests). The dashboard has no component tests yet.
 
@@ -186,32 +184,34 @@ Agent Operator (policy config, HITL review)
 │    ┌────┴─────────────────────────────┐                          │
 │    ▼                                  ▼                          │
 │  ┌──────────────┐               ┌───────────────────┐           │
-│  │crates/sidecar│               │crates/web2-firewall│  ← NEW  │
-│  │(Solana/chain)│               │(Web2 proxy engine) │          │
+│  │crates/sidecar│               │crates/web2-firewall│          │
+│  │(EVM policy)  │               │(Web2 proxy engine) │          │
 │  └──────┬───────┘               └───────────────────┘           │
 │         │                                                        │
-│    ┌────┴──────────────────────────┐                             │
-│    ▼                               ▼                             │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐                       │
-│  │ Solana   │  │   EVM    │  │  Arcium  │                       │
-│  │ (Anchor) │  │(Solidity)│  │ (Compact)│                       │
-│  └──────────┘  └──────────┘  └──────────┘                       │
+│         ▼                                                        │
+│  ┌───────────────────────────────┐                               │
+│  │            EVM (Solidity)     │                               │
+│  │  Firewall · Policy · Audit ·  │                               │
+│  │  Registry · ERC-8004 · ERC-8354 · ERC-8380                    │
+│  └───────────────────────────────┘                               │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
 ### How components relate
 
-1. **`crates/core`**, Chain-agnostic policy engine. Defines `NormalizedTransaction`, `FirewallDecision`, `PolicyEvaluator<P: TrustSignalProvider>`, `PolicyRule` (11 variants), `PolicySet`, `TrustAdapter` trait, `TrustSignalProvider` trait, `Chain` enum (8 chains: Solana, Ethereum, Base, Polygon, Arbitrum, Celo, ZkSync, Robinhood), and `AuditRecord`.
+1. **`crates/core`**, Chain-agnostic policy engine. Defines `NormalizedTransaction`, `FirewallDecision`, `PolicyEvaluator<P: TrustSignalProvider>`, `PolicyRule` (11 variants), `PolicySet`, `TrustAdapter` trait, `TrustSignalProvider` trait, `Chain` enum (EVM chains: Ethereum, Base, Polygon, Arbitrum, Celo, ZkSync, Robinhood, Monad), and `AuditRecord`.
 
-2. **`crates/sidecar`**, Axum HTTP server (port 3000) that runs the policy evaluator. Exposes REST API for simulation, audit logging, policy management, circuit breaker, and human override. Uses Helius API for Solana simulation, Sled DB for audit logs, GrondOSINT for risk oracle.
+2. **`crates/sidecar`**, Axum HTTP server (port 3000) that runs the policy evaluator. Exposes REST API for EVM simulation (`/api/v2/simulate-evm`), audit logging, policy management, circuit breaker, and human override. Uses per-chain EVM RPC for simulation, Sled DB for audit logs, GrondOSINT for risk oracle, and can issue ERC-8354 verdicts (feature-flagged).
 
-3. **`crates/solana/programs/bastion-audit`**, Anchor program deployed on Solana devnet. Program ID: `A29V5MUVs73y7XBHHxPpPcAW7h4gGHupbDdwYSwA2n9D`. Instructions: `initialize`, `logAudit`, `registerAgent`, `updateAgentReputation`, `setPolicy`, `emergencyPause`, `emergencyResume`.
+3. **`evm/`**, Solidity contracts implementing the ERC-7579 validator module, policy engine, immutable EIP-712 audit trail, agent registry, ERC-8004 identity, sidecar oracle, plus the **ERC-8354** confidential-verdict and **ERC-8380** unclonable-credential contracts (see `docs/ERCS.md`).
 
-4. **`evm/`**, 6 Solidity contracts implementing ERC-7579 validator module, policy engine, immutable EIP-712 audit trail, agent registry, ERC-8004 identity, and sidecar oracle.
+4. **`apps/web/`**, React dashboard with EVM (RainbowKit/wagmi) wallet connection across Sepolia/Base/Celo/zkSync/Robinhood/Monad. Shows audit logs, policy settings, stats.
 
-5. **`apps/web/`**, React dashboard with Solana (wallet-adapter) and EVM (RainbowKit) wallet connections. Shows audit logs, policy settings, stats. Supports chain switching between Solana and Celo.
+5. **`packages/sdk/`**, TypeScript SDK (`@zkos-labs/bastion-sdk`) — viem EVM contract client + chain-agnostic HTTP layer + ERC-8354/8380 wrappers.
 
-6. **`packages/sdk/`**, TypeScript SDK (`@zkos-labs/sdk`) wrapping the Solana Anchor program. Exposes `BastionClient` with typed methods for all on-chain operations.
+> **Archived:** Solana (Anchor program + wallet stack) and Arcium are retired —
+> see [`docs/ARCHIVE.md`](docs/ARCHIVE.md). Their files remain on disk for history
+> but are not part of the active workspace/CI.
 
 ---
 
@@ -222,16 +222,9 @@ Agent Operator (policy config, HITL review)
 - **Entry:** `crates/sidecar/src/main.rs`, binds `0.0.0.0:3000`
 - **Routes:** `crates/sidecar/src/lib.rs`, all HTTP handlers
 - **Policy engine:** `crates/core/`, chain-agnostic evaluation logic
-- **Simulation:** `crates/sidecar/src/simulation.rs`, Helius API integration
+- **EVM simulation:** `crates/sidecar/src/simulation_evm.rs`, per-chain RPC simulation
 - **Audit DB:** `crates/sidecar/src/audit.rs`, Sled-based log store
 - **Risk oracle:** `crates/sidecar/src/grond_oracle.rs`, GrondOSINT integration
-- **On-chain client:** `crates/sidecar/src/program_client.rs`, Anchor program RPC
-
-### Solana On-Chain
-
-- **Program:** `crates/solana/programs/bastion-audit/src/lib.rs`
-- **IDL:** `crates/solana/programs/bastion-audit/idl/bastion_audit.json`
-- **Config:** `crates/solana/Anchor.toml`
 
 ### EVM Contracts
 
@@ -241,6 +234,8 @@ Agent Operator (policy config, HITL review)
 - **Registry:** `evm/src/BastionRegistry.sol`, Agent + target directory
 - **ERC-8004:** `evm/src/BastionERC8004Registry.sol`, Agent identity (ERC-721 + EIP-712)
 - **Sidecar:** `evm/src/BastionSidecar.sol`, Oracle request/fulfill pattern
+- **ERC-8354:** `evm/src/erc8354/`, confidential verdict contracts
+- **ERC-8380:** `evm/src/erc8380/`, unclonable credential contracts
 - **Deploy:** `evm/script/DeployBastion.s.sol`
 
 ### Web Dashboard
@@ -248,16 +243,17 @@ Agent Operator (policy config, HITL review)
 - **Entry:** `apps/web/src/main.tsx`
 - **App shell:** `apps/web/src/App.tsx`, providers, wallet setup, routing
 - **Pages:** `apps/web/src/pages/Landing.tsx`, `Dashboard.tsx`, `integrate/Integrate.tsx`
-- **Solana hooks:** `apps/web/src/hooks/useBastionProgram.ts`
 - **EVM hooks:** `apps/web/src/hooks/useBastionEVM.ts` (wagmi/viem read+write)
-- **Chain context:** `apps/web/src/context/ChainContext.tsx`, Solana/Celo switching
+- **Chain config:** `apps/web/src/lib/chains.ts`, `apps/web/src/lib/evmConfig.ts`
 - **Theme:** `apps/web/src/context/ThemeContext.tsx`
 
 ### TypeScript SDK
 
-- **Entry:** `packages/sdk/src/index.ts`, `BastionClient` class
+- **Entry:** `packages/sdk/src/index.ts`, `BastionEVMClient` + HTTP exports
+- **EVM client:** `packages/sdk/src/evm.ts` (viem)
+- **ERC-8354:** `packages/sdk/src/erc8354.ts`
+- **ERC-8380:** `packages/sdk/src/erc8380.ts`
 - **Types:** `packages/sdk/src/types.ts`
-- **IDL:** `packages/sdk/src/idl.json`
 
 ---
 
@@ -267,11 +263,15 @@ Agent Operator (policy config, HITL review)
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `HELIUS_API_KEY` | *required* | Helius simulation API key |
-| `BASTION_ON_CHAIN` | (unset) | Enable on-chain audit logging |
-| `SOLANA_RPC_URL` | `https://api.devnet.solana.com` | Solana RPC endpoint |
-| `BASTION_KEYPAIR_PATH` | *required if ON_CHAIN* | Path to signer keypair JSON |
+| `ETH_RPC_URL` | (unset) | Ethereum mainnet RPC (EVM simulation) |
+| `ETH_SEPOLIA_RPC_URL` | (unset) | Sepolia RPC |
+| `BASE_RPC_URL` | (unset) | Base mainnet RPC |
+| `CELO_RPC_URL` | (unset) | Celo mainnet RPC |
+| `ZKSYNC_RPC_URL` | (unset) | zkSync Era RPC |
+| `ROBINHOOD_RPC_URL` | (unset) | Robinhood RPC |
+| `MONAD_RPC_URL` | (unset) | Monad RPC |
 | `GROND_API_URL` | (unset) | GrondOSINT base URL |
+| `BASTION_REQUIRE_AUTH` | (unset) | Fail closed on unauthenticated requests |
 
 ### EVM / Foundry (in `evm/.env`)
 
@@ -317,7 +317,7 @@ vercel --prod
 
 ```bash
 docker build -t bastion-sidecar .
-docker run -p 3000:3000 -e HELIUS_API_KEY=... bastion-sidecar
+docker run -p 3000:3000 -e ETH_RPC_URL=... bastion-sidecar
 # Or: docker compose up
 ```
 
@@ -330,21 +330,8 @@ cd evm
 source .env
 forge script script/DeployBastion.s.sol --rpc-url celo --broadcast --verify
 
-# Polygons/Base: adjust --rpc-url
+# Polygon/Base/Monad: adjust --rpc-url (e.g. --rpc-url monad)
 ```
-
-### Solana Anchor
-
-```bash
-cd crates/solana
-anchor build
-anchor deploy --provider.cluster devnet
-```
-
-> The on-chain crate (`crates/solana/programs/bastion-audit`) is pinned to
-> **edition 2021** because Anchor 0.30.1's manifest parser rejects `edition = "2024"`.
-> For a standalone BPF build without the Anchor CLI, use
-> `cd crates/solana/programs/bastion-audit && cargo build-sbf`.
 
 ---
 
@@ -360,11 +347,11 @@ Triggers on push/PR to `main` (ignoring `.md` and `docs/`).
 | `sidecar` | cargo check, clippy, test for `bastion-sidecar` |
 | `policy-engine` | cargo check, clippy, test for `bastion-policy-engine` |
 | `web2-crate` | cargo check, clippy, test for `bastion-web2-firewall` |
-| `solana` | Install Solana CLI 1.18.26 + Anchor 0.30.1, cargo check, test |
+| `audit` | `cargo audit` |
 | `fmt` | `cargo fmt --all -- --check` |
 | `evm` | Checkout submodules, `forge build`, `forge test -vvv` |
 | `web` | `pnpm install`, `pnpm --filter bastion-dashboard build` |
-| `sdk` | `pnpm install`, `pnpm --filter @zkos-labs/sdk build` |
+| `sdk` | `pnpm install`, `pnpm --filter @zkos-labs/bastion-sdk build` + test |
 | `web2-sdk` | `pnpm install`, `pnpm --filter @zkos-labs/web2-sdk build` |
 | `mcp-server` | `pnpm install`, `pnpm --filter @zkos-labs/mcp-server build` |
 
@@ -385,39 +372,21 @@ Triggers on push/PR to `main` (ignoring `.md` and `docs/`).
 'function getEntry(uint256 id) returns ((address agent, string reason))'
 ```
 
-### Don't use `@solana/wallet-adapter-wallets`, use individual adapters
-
-The monolithic `@solana/wallet-adapter-wallets` package pulls in ~40+ adapters including `@coinbase/wallet-sdk` which breaks the Vite build with buffer polyfill issues. Use individual adapter packages instead:
-
-```typescript
-import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
-import { SolflareWalletAdapter } from '@solana/wallet-adapter-solflare';
-import { BackpackWalletAdapter } from '@solana/wallet-adapter-backpack';
-```
-
 ### `buffer/` alias is fragile
 
 `vite.config.ts` aliases `buffer` → `buffer/`. This is needed for EVM wallet dependencies. If the build fails with `Could not load buffer/`, ensure `buffer` is in `apps/web/package.json` dependencies and pnpm's node_modules are intact.
-
-### Solana program must be deployed before Dashboard works
-
-The Dashboard fetches from the on-chain program at `A29V5MUVs73y7XBHHxPpPcAW7h4gGHupbDdwYSwA2n9D` (devnet). If not deployed, Anchor will fail to fetch accounts. The try-catch in `useBastionProgram.ts` handles this gracefully but will show empty data.
 
 ### EVM dashboard hooks import the committed ABIs
 
 `apps/web/src/hooks/useBastionEVM.ts` reads/writes the deployed contracts through wagmi/viem. It imports the committed JSON ABIs from `apps/web/src/abi/*.ts` (the single source of truth, regenerated from the forge build). Do not re-declare `parseAbi([...])` strings in the hook — the function/event names then drift from the on-chain contracts (e.g. `getEntryCount` vs `entryCount`, the `AuditRecorded` field list).
 
-### Solana wallet adapters need explicit config
+### ERC-8354/8380 are draft standards
 
-Only wallets listed in `App.tsx`'s `solanaWallets` array are available. Currently: Phantom, Solflare, Backpack. To add more adapters, install the individual adapter package and add it to the array.
-
-### Anchor version must match CLI
-
-Both the Anchor JS client (`@coral-xyz/anchor@^0.30.1`) and Anchor CLI (`anchor 0.30.1`) must match. Mismatched versions cause IDL deserialization and BN (`_bn`) errors.
-
-### On-chain crate must stay on edition 2021
-
-Anchor 0.30.1's manifest parser rejects `edition = "2024"` (its edition enum stops at 2021), so `anchor build` / `anchor deploy` / `anchor test` fail with `data did not match any variant of untagged enum Inheritable`. The `bastion-audit` crate is pinned to `edition = "2021"` for this reason. The rest of the workspace remains edition 2024 — the on-chain crate is the only one the Anchor CLI parses.
+The confidential-verdict (ERC-8354) and unclonable-credential (ERC-8380) contracts
+and SDK wrappers track the current **draft** specs (see `docs/ERCS.md`). Their ABIs
+are pinned to a draft commit and may change before finalization. The `"ERC-1953/..."`
+domain-separator tag strings in ERC-8380 are frozen as-is for compatibility even
+though the assigned number is 8380.
 
 ### Forge submodules required
 
@@ -456,7 +425,7 @@ cd evm && forge build && forge test -vvv && forge fmt --check
 pnpm --filter bastion-dashboard build
 
 # SDK
-pnpm --filter @zkos-labs/sdk build
+pnpm --filter @zkos-labs/bastion-sdk build && pnpm --filter @zkos-labs/bastion-sdk test
 ```
 
 ### PR Process
@@ -473,18 +442,15 @@ pnpm --filter @zkos-labs/sdk build
 - Netlify auto-deploys from `main`
 - Vercel auto-deploys from `main` (project: `bastion-web`)
 - If EVM contracts changed: re-deploy via `forge script`
-- If Solana program changed: re-deploy via `anchor deploy`
 
 ---
 
 ## 14. Browser / Wallet Compatibility
 
-The dashboard supports:
-
-- **Solana:** Phantom, Solflare, Backpack wallets (via `@solana/wallet-adapter`). Connected through devnet by default.
-- **EVM (Celo):** MetaMask, WalletConnect (via RainbowKit/wagmi). Custom Celo chain config at `apps/web/src/App.tsx:26-37`.
-
-Chain switching is handled by `ChainContext`, toggles between Solana and Celo providers.
+The dashboard is EVM-only and supports MetaMask, WalletConnect, and other
+RainbowKit/wagmi wallets across Sepolia, Base, Celo, zkSync, Robinhood, and Monad.
+Chain config lives in `apps/web/src/lib/evmConfig.ts`; chain switching is handled
+by wagmi/RainbowKit.
 
 ---
 
@@ -492,4 +458,5 @@ Chain switching is handled by `ChainContext`, toggles between Solana and Celo pr
 
 - **License:** Apache-2.0
 - **Security policy:** `SECURITY.md`
-- **Protocols:** ERC-7579 (validator module), ERC-4337 (account abstraction), ERC-8004 (agent identity), EIP-712 (typed structured data)
+- **Protocols:** ERC-7579 (validator module), ERC-4337 (account abstraction), ERC-8004 (agent identity), ERC-7812 (evidence), EIP-712 (typed structured data), ERC-8354 (draft), ERC-8380 (draft)
+- **Retired:** Solana + Arcium — see [`docs/ARCHIVE.md`](docs/ARCHIVE.md)

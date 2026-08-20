@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useAccount, useWriteContract, usePublicClient } from 'wagmi';
 import { decodeEventLog, type Abi, type Log } from 'viem';
 
@@ -265,7 +265,7 @@ export function useBastionEVM() {
     [isConnected, writeContractAsync, addresses.policy, address],
   );
 
-  return {
+  return useMemo(() => ({
     fetchStats,
     fetchPaused,
     fetchAuditEntries,
@@ -275,5 +275,5 @@ export function useBastionEVM() {
     updatePolicy,
     isConnected,
     address,
-  };
+  }), [fetchStats, fetchPaused, fetchAuditEntries, fetchPolicy, emergencyPause, emergencyResume, updatePolicy, isConnected, address]);
 }

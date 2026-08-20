@@ -1,62 +1,6 @@
-import { PublicKey } from "@solana/web3.js";
-
-export interface AuditState {
-  owner: PublicKey;
-  authority: PublicKey;
-  bump: number;
-  totalAudits: number;
-  allowedCount: number;
-  blockedCount: number;
-  paused: boolean;
-  pausedAt: number;
-  resumedAt: number;
-}
-
-export interface AuditEntry {
-  authority: PublicKey;
-  timestamp: number;
-  decision: number;
-  simulationResult: number[];
-  reasoning: string;
-  programId?: number[];
-  bump: number;
-}
-
-export interface Agent {
-  authority: PublicKey;
-  name: string;
-  capabilityBitmask: number;
-  reputationScore: number;
-  registeredAt: number;
-  bump: number;
-}
-
-export interface Policy {
-  authority: PublicKey;
-  allowedPrograms: PublicKey[];
-  maxSolPerTx: number;
-  rateLimitPerMinute: number;
-  bump: number;
-}
-
-export interface AgentRegistered {
-  agent: PublicKey;
-  authority: PublicKey;
-  name: string;
-}
-
-export interface ReputationUpdated {
-  agent: PublicKey;
-  newScore: number;
-}
-
-export interface ProtocolPaused {
-  authority: PublicKey;
-}
-
-export interface ProtocolResumed {
-  authority: PublicKey;
-}
+// Chain-agnostic + EVM/HTTP types. The Solana Anchor account types (AuditState,
+// AuditEntry, Agent, Policy, event payloads, Pubkey) were removed with the full-EVM
+// pivot — see git history for the Anchor-era definitions.
 
 export const AGENT_CAPABILITIES = {
   TRANSFER: 1 << 0,
@@ -85,25 +29,6 @@ export interface SidecarConfig {
   baseUrl: string;
   /** Optional API key sent as X-API-Key header */
   apiKey?: string;
-}
-
-export interface SimulateRequest {
-  /** Base64-encoded serialized Solana transaction */
-  transaction: string;
-  intent?: string;
-}
-
-export interface SimulateResponse {
-  units_consumed?: number;
-  balance_changes?: Record<string, number>;
-  logs?: string[];
-  error?: string;
-  simulation_hash?: number[];
-}
-
-export interface SimulateBlockedResponse {
-  error: string;
-  block_id?: string;
 }
 
 export interface SidecarAuditEntry {
@@ -146,9 +71,6 @@ export interface HealthResponse {
   uptime_seconds: number;
   db_healthy: boolean;
   db_size_bytes: number;
-  /** Whether genuine confidential (Arcium MPC) evaluation is active. `false`
-   *  while only the no-op client is configured. */
-  confidential_compute?: boolean;
 }
 
 export interface OverrideRequest {
@@ -217,14 +139,14 @@ export interface EvmSimulateResponse {
   allowed: boolean;
   decision: string;
   reason?: string;
-  simulationResult?: {
+  simulation_result?: {
     logs: string[];
     error?: unknown;
-    balanceChanges?: Record<string, number>;
-    simulationHash?: number[];
+    balance_changes?: Record<string, number>;
+    simulation_hash?: number[];
   };
-  riskScore?: number;
-  riskSummary?: string;
+  risk_score?: number;
+  risk_summary?: string;
 }
 
 // ── SSE Events ────────────────────────────────────────────────────────────────

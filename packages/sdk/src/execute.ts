@@ -1,10 +1,5 @@
-import type { BastionClient } from "./index";
 import { BastionSidecar } from "./sidecar";
-import type {
-  EvmTxParams,
-  SimulateResponse,
-  EvmSimulateResponse,
-} from "./types";
+import type { EvmTxParams, EvmSimulateResponse } from "./types";
 
 /**
  * The unified Bastion runtime facade.
@@ -14,44 +9,49 @@ import type {
  * firewall primitives - simulation, policy evaluation, and audit - behind a
  * single `execute()` call.
  *
- * This is a thin composition over {@link BastionSidecar} (and optionally
- * {@link BastionClient} for on-chain settlement); it introduces no new backend.
+ * This is a thin composition over {@link BastionSidecar} for EVM settlement; it
+ * introduces no new backend.
  */
 
 /** Privacy guarantee requested for an action. */
 export type Privacy = "public" | "confidential";
 
-/** Settlement network for an action. `"sepolia"` is the Ethereum testnet. */
-export type Settlement = "solana" | "ethereum" | "base" | "celo" | "sepolia";
+/** Settlement network for an action. EVM chains only. */
+export type Settlement =
+  | "ethereum"
+  | "base"
+  | "celo"
+  | "zksync"
+  | "robinhood"
+  | "monad";
 
 const EVM_SETTLEMENTS: readonly Settlement[] = [
   "ethereum",
   "base",
   "celo",
-  "sepolia",
+  "zksync",
+  "robinhood",
+  "monad",
 ];
 
 export interface BastionRuntimeConfig {
   /** Sidecar client used for policy evaluation, simulation, and audit. */
   sidecar: BastionSidecar;
-  /** Optional on-chain client (used for Solana settlement / on-chain audit). */
-  client?: BastionClient;
 }
 
 export interface ExecuteRequest {
   /** Intent label for the action, e.g. "swap". Passed to the firewall as intent. */
   action: string;
-  /** Which network the action settles on. Selects the evaluation path. */
+  /** Which EVM network the action settles on. Selects the evaluation path. */
   settlement: Settlement;
-  /** Desired privacy. Defaults to "public". "confidential" requires the runtime
-   *  to be running genuine Arcium MPC - otherwise `execute` throws. */
+  /** Desired privacy. Defaults to "public". "confidential" is retired (Arcium
+   *  removed) and always throws; use ERC-8354 confidential verdicts instead. */
   privacy?: Privacy;
   /** Named policy to evaluate against (reserved; currently informational -
    *  the sidecar applies its configured policy set). */
   policy?: string;
-  /** The concrete payload to evaluate: a base64 Solana transaction (for
-   *  `settlement: "solana"`) or EVM tx params (for EVM settlements). */
-  transaction: string | EvmTxParams;
+  /** The concrete EVM transaction payload to evaluate. */
+  transaction: EvmTxParams;
   /** Optional agent identifier attributed to the action. */
   agentId?: string;
 }
@@ -69,7 +69,7 @@ export interface ExecuteResult {
   /** Approval id to resolve a human-in-the-loop hold (when pending_hitl). */
   approvalId?: string;
   /** Raw simulation payload from the underlying firewall, when available. */
-  simulation?: SimulateResponse | EvmSimulateResponse;
+  simulation?: EvmSimulateResponse;
 }
 
 interface SidecarError {
@@ -80,97 +80,41 @@ interface SidecarError {
 
 export class Bastion {
   private sidecar: BastionSidecar;
-  private client?: BastionClient;
 
   constructor(config: BastionRuntimeConfig) {
     this.sidecar = config.sidecar;
-    this.client = config.client;
   }
 
   /**
    * Evaluate an action against the trust pipeline and return a decision.
    *
-   * Composes: privacy enforcement → policy evaluation + simulation (per
-   * settlement network) → verification. Returns `pass` / `block` / `pending_hitl`.
+   * Composes: privacy enforcement → EVM policy evaluation + simulation →
+   * verification. Returns `pass` / `block` / `pending_hitl`.
    */
   async execute(req: ExecuteRequest): Promise<ExecuteResult> {
     const privacy: Privacy = req.privacy ?? "public";
 
-    // Honesty guard: never evaluate "confidential" in the clear. If the runtime
-    // is not running genuine Arcium MPC, refuse rather than silently downgrade.
+    // Honesty guard: confidential (Arcium MPC) evaluation is retired. Refuse
+    // rather than silently downgrade to public. ERC-8354 confidential verdicts
+    // are the replacement path (see docs/ERCS.md).
     if (privacy === "confidential") {
-      const health = await this.sidecar.health();
-      if (!health.confidential_compute) {
-        throw new Error(
-          "Confidential execution requested, but the Bastion runtime is not " +
-            "running confidential (Arcium MPC) compute. Refusing to proceed " +
-            "rather than evaluating in the clear.",
-        );
-      }
-    }
-
-    if (req.settlement === "solana") {
-      return this.executeSolana(req, privacy);
-    }
-    if (EVM_SETTLEMENTS.includes(req.settlement)) {
-      return this.executeEvm(req, privacy);
-    }
-    throw new Error(`Unsupported settlement network: ${req.settlement}`);
-  }
-
-  private async executeSolana(
-    req: ExecuteRequest,
-    privacy: Privacy,
-  ): Promise<ExecuteResult> {
-    if (typeof req.transaction !== "string") {
       throw new Error(
-        "Solana settlement requires a base64-encoded transaction string",
+        "Confidential execution is retired (Arcium removed in the full-EVM " +
+          "pivot). Use public execution, or ERC-8354 confidential verdicts.",
       );
     }
-    try {
-      const simulation = await this.sidecar.simulate({
-        transaction: req.transaction,
-        intent: req.action,
-      });
-      return {
-        decision: "pass",
-        action: req.action,
-        settlement: req.settlement,
-        privacy,
-        simulation,
-      };
-    } catch (err) {
-      const e = err as SidecarError;
-      // The sidecar signals a firewall decision with HTTP 403. Anything else
-      // (network, 5xx, misconfiguration) is a genuine error and rethrows.
-      if (e.status !== 403) throw err;
-      const reason = e.body?.error ?? e.message;
-      // A block_id means the action is held for human-in-the-loop approval.
-      if (e.body?.block_id) {
-        return {
-          decision: "pending_hitl",
-          action: req.action,
-          settlement: req.settlement,
-          privacy,
-          reason,
-          approvalId: e.body.block_id,
-        };
-      }
-      return {
-        decision: "block",
-        action: req.action,
-        settlement: req.settlement,
-        privacy,
-        reason,
-      };
+
+    if (!EVM_SETTLEMENTS.includes(req.settlement)) {
+      throw new Error(`Unsupported settlement network: ${req.settlement}`);
     }
+    return this.executeEvm(req, privacy);
   }
 
   private async executeEvm(
     req: ExecuteRequest,
     privacy: Privacy,
   ): Promise<ExecuteResult> {
-    if (typeof req.transaction === "string") {
+    if (typeof (req.transaction as unknown) === "string") {
       throw new Error(
         "EVM settlement requires an EvmTxParams object, not a string",
       );

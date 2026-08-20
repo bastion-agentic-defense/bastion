@@ -1,5 +1,10 @@
 # Bastion - Solana Mainnet Readiness
 
+> ⚠️ **RETIRED.** Bastion has pivoted to full-EVM; the Solana program and sidecar
+> integration described here are **archived** (see [`docs/ARCHIVE.md`](ARCHIVE.md)).
+> This checklist is kept for history only — do not execute it. See
+> [`docs/EVM_READINESS.md`](EVM_READINESS.md) for the active EVM mainnet checklist.
+
 > Living checklist for taking the `bastion-audit` Anchor program and its off-chain
 > sidecar to **Solana mainnet-beta with real value**. Nothing in this document
 > authorizes real-value traffic before the external audit sign-off (§7).

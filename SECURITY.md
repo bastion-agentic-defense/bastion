@@ -18,14 +18,13 @@ Bastion provides multiple defense layers across blockchain transactions and Web2
 
 ### Blockchain Transaction Security
 
-1. **Transaction Interception**, All Solana transactions pass through policy checks before signing
-2. **Helius Simulation**, State change prediction via Helius API for Solana
-3. **EVM Simulation**, Celo eth_call simulation for EVM transactions
-4. **Program Allowlists**, Only approved programs can be called (whitelist mode)
-5. **Native Token Caps**, Configurable SOL per transaction and 24h limits
-6. **Rate Limiting**, Per-minute transaction frequency caps
-7. **Balance Drain Detection**, Blocks transactions exceeding configured lamport drain limits
-8. **Emergency Pause**, Fleet-wide circuit breaker via `/circuit-breaker/engage`
+1. **Transaction Interception**, All EVM transactions pass through policy checks before broadcast
+2. **EVM Simulation**, Per-chain `eth_call` simulation (Sepolia, Base, Celo, zkSync, Robinhood, Monad) before execution
+3. **Program / Target Allowlists**, Only approved targets can be called (whitelist mode)
+4. **Value Caps**, Configurable per-transaction and 24h value limits
+5. **Rate Limiting**, Per-minute transaction frequency caps
+6. **Balance Drain Detection**, Blocks transactions exceeding configured drain limits
+7. **Emergency Pause**, Fleet-wide circuit breaker via `/circuit-breaker/engage`
 
 ### Daemon BlockInt Security Checks
 
@@ -39,10 +38,10 @@ Bastion provides multiple defense layers across blockchain transactions and Web2
 ### Agent Identity and Access Control
 
 15. **W3C DID Identity**, Every agent receives a did:bastion identifier with cryptographic verification
-16. **On-Chain Agent Registry**, Anchor PDA accounts with name, capability bitmap, reputation score
+16. **On-Chain Agent Registry**, EVM registry accounts with name, capability bitmap, reputation score
 17. **DID Authentication**, Nonce challenge-response with Ed25519 signature verification
 18. **Delegation Constraints**, Max 3 levels deep, child capabilities must be subset of parent
-19. **Delegation Budget**, Per-sub-agent lamport ceilings with running spend counters
+19. **Delegation Budget**, Per-sub-agent value ceilings with running spend counters
 20. **ERC-8004 Identity**, Soulbound ERC-721 tokens with EIP-712 wallet binding for EVM agents
 
 ### Web2 API Firewall Security
@@ -57,7 +56,7 @@ Bastion provides multiple defense layers across blockchain transactions and Web2
 
 ### Audit and Compliance
 
-28. **On-Chain Audit Trail**, Anchor program writes every decision to Solana as immutable records
+28. **On-Chain Audit Trail**, EIP-712 signed audit entries written on EVM as immutable records
 29. **Local Audit Logging**, Sled DB for fast local querying with pagination and filtering
 30. **SSE Event Stream**, Real-time audit events via `/events` (Server-Sent Events)
 31. **Human Override Queue**, Blocked transactions held for human review with UUID tracking
@@ -65,21 +64,17 @@ Bastion provides multiple defense layers across blockchain transactions and Web2
 
 ## Known Issues
 
-### Solana SDK Transitive Dependencies
+### Draft ERC integrations (ERC-8354, ERC-8380)
 
-Bastion pins the Solana 1.18.26 SDK (required by Anchor 0.30.1), which carries transitive RustSec advisories. These are inherited from the SDK, not Bastion's own code, and are allowlisted in `.cargo/audit.toml` pending a Solana SDK bump (tracked in `docs/MAINNET_READINESS.md` §5):
+The confidential-verdict (ERC-8354) and unclonable-credential (ERC-8380)
+integrations track the current **draft** specs (see `docs/ERCS.md`) and are
+experimental, feature-flagged, and ABI-pinned to a draft commit. They are not
+yet covered by an external audit. The `"ERC-1953/..."` domain-separator tag
+strings in ERC-8380 are frozen for compatibility.
 
-- **RUSTSEC-2026-0204** — crossbeam-epoch 0.9.18 (invalid pointer deref)
-- **RUSTSEC-2024-0344** — curve25519-dalek 3.2.1 (timing variability)
-- **RUSTSEC-2022-0093** — ed25519-dalek 1.0.1 (double-pubkey signing oracle)
-- **RUSTSEC-2026-0258** — h2 0.3.27 / 0.4.14 (unbounded empty DATA frames)
-- **RUSTSEC-2026-0037** — quinn-proto 0.10.6 (DoS, high)
-- **RUSTSEC-2026-0185** — quinn-proto 0.10.6 (remote memory exhaustion, high)
-- **RUSTSEC-2025-0009** — ring 0.16.20 (AES panic under overflow checks)
-- **RUSTSEC-2026-0098 / -0099 / -0104** — rustls-webpki 0.101.7 (name-constraint / wildcard / CRL panics)
-- **RUSTSEC-2026-0009** — time 0.3.36 (DoS via stack exhaustion)
-
-**Mitigation**: Allowlisted in `.cargo/audit.toml`; the CI `audit` job still fails on any *new* advisory. Resolve via a Solana SDK upgrade before go-live.
+> **Retired:** the Solana SDK transitive-advisory allowlist was removed when the
+> Solana crates left the workspace (see `docs/ARCHIVE.md`). `cargo audit` now
+> fails on any advisory present in the (EVM-only) dependency graph.
 
 ## Threat Model
 
@@ -88,7 +83,7 @@ Bastion protects against six threat actor classes:
 1. **Compromised Agent**, LLM manipulated through prompt injection, trust runtime provides the final policy enforcement layer
 2. **Malicious Operator**, On-chain policy lives where operator cannot modify it unilaterally
 3. **Policy Bypass**, Aggregate behavioral analysis with sliding window counters
-4. **Intent Observer** (Arcium MXE — *preview, not yet enforcing*): once a live MXE client ships, MPC confidentiality will prevent strategy extraction from transaction metadata. Today the no-op client means evaluation is **not** confidential (see `docs/MAINNET_READINESS.md` §6).
+4. **Intent Observer** (ERC-8354 confidential verdicts — *draft, not yet enforcing*): once the ZK verdict path ships, a committed (secret) policy is proven without revealing the rules that permitted the action. See `docs/ERCS.md`.
 5. **Cross-Chain Correlator** (Base spoke), Randomized delays and batching obscure cross-chain patterns
 6. **Governance Attacker**, Time-locked multisig policy upgrades prevent hostile governance capture
 

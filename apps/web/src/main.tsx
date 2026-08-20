@@ -22,8 +22,7 @@ if (typeof window !== 'undefined') {
         console.warn(
           '[Bastion] window.ethereum is locked (getter-only). ' +
           'Multiple wallet extensions are conflicting. ' +
-          'Injected EVM wallet connector disabled - use WalletConnect instead. ' +
-          'Solana wallet is unaffected.',
+          'Injected EVM wallet connector disabled - use WalletConnect instead.',
         );
       }
     }

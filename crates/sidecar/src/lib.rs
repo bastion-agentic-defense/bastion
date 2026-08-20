@@ -20,7 +20,6 @@ use tokio::sync::{RwLock, broadcast};
 use tokio_stream::StreamExt;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::services::ServeDir;
-use uuid::Uuid;
 
 pub mod agents;
 pub mod audit;
@@ -31,7 +30,6 @@ pub mod grond_oracle;
 pub mod logger;
 pub mod markdown;
 pub mod policy;
-pub mod program_client;
 pub mod prompt_safety;
 pub mod scanner;
 pub mod simulation;
@@ -43,21 +41,13 @@ use audit::{
     AuditEntry, AuditLogger, AuditResult, Decision, TransactionDetails, current_timestamp,
     hash_transaction_payload,
 };
-use bastion_arcium::{ArcumPolicyEvaluator, MxeConfig, NoopArciumClient};
-use bastion_core::transaction::TxType;
 use grond_oracle::GrondOracle;
-use policy::{
-    FlashLoanPatternCheck, HighSlippageCheck, IntentClassification, MaxUnitsCheck, NoErrorCheck,
-    Policy, PolicyEngine, SimulationCheck, classify_intent,
-};
-use program_client::OnChainClient;
-use simulation::{Simulate, SimulationResult};
+use policy::{Policy, PolicyEngine};
+use simulation::SimulationResult;
 use simulation_evm::{EvmSimulate, EvmSimulateRequest, EvmSimulateResponse, EvmSimulator};
 
 #[derive(Clone, serde::Serialize)]
 struct PendingApproval {
-    #[serde(serialize_with = "serialize_tx")]
-    transaction: solana_sdk::transaction::Transaction,
     simulation_result: SimulationResult,
     intent: Option<String>,
     /// Unix timestamp (seconds) when the hold was created, used by the
@@ -65,36 +55,21 @@ struct PendingApproval {
     created_at: u64,
 }
 
-fn serialize_tx<S>(
-    tx: &solana_sdk::transaction::Transaction,
-    serializer: S,
-) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-{
-    let bytes = bincode::serialize(tx).map_err(serde::ser::Error::custom)?;
-    serializer.serialize_str(&base64::engine::general_purpose::STANDARD.encode(bytes))
-}
-
 #[derive(Clone)]
 pub(crate) struct AppState {
     policy_engine: Arc<RwLock<PolicyEngine>>,
-    simulator: Arc<dyn Simulate + Send + Sync>,
     logger: Arc<AuditLogger>,
-    on_chain: Arc<OnChainClient>,
     pending_approvals: Arc<RwLock<HashMap<String, PendingApproval>>>,
     grond_oracle: GrondOracle,
     /// EVM simulators keyed by normalized lowercase chain name ("ethereum",
     /// "base", "celo", "sepolia"). Populated from per-chain RPC env vars; a chain
     /// absent from the map has no configured RPC and yields a 503 on request.
     evm_simulators: Arc<HashMap<String, Arc<EvmSimulator>>>,
-    alchemy_sim: Option<Arc<crate::simulation::AlchemySimulator>>,
     event_tx: broadcast::Sender<String>,
     started_at: std::time::Instant,
     did_cache: Arc<RwLock<HashMap<String, did::DidResolveResult>>>,
     agent_store: Arc<agents::AgentStore>,
     did_auth_state: auth::DidAuthState,
-    arcium_evaluator: Arc<ArcumPolicyEvaluator<NoopArciumClient, GrondOracle>>,
     web2_engine: Arc<bastion_web2_firewall::ProxyEngine>,
     policy_stores: Arc<RwLock<Vec<bastion_policy_engine::lifecycle::PolicyLifecycle>>>,
     workflow_engine: Arc<bastion_workflow::WorkflowEngine>,
@@ -108,12 +83,6 @@ pub(crate) struct AppState {
 fn emit_event(tx: &broadcast::Sender<String>, event_type: &str, json_payload: &str) {
     let msg = format!("event: {event_type}\ndata: {json_payload}\n\n");
     let _ = tx.send(msg);
-}
-
-#[derive(serde::Deserialize)]
-struct SimulateRequest {
-    transaction: String,
-    intent: Option<String>,
 }
 
 #[derive(serde::Deserialize)]
@@ -184,10 +153,6 @@ struct HealthResponse {
     uptime_seconds: u64,
     db_healthy: bool,
     db_size_bytes: u64,
-    /// Whether genuine confidential (Arcium MPC) evaluation is active. Reports
-    /// `false` while only the no-op client is configured, so clients never treat
-    /// evaluation as confidential when it is not.
-    confidential_compute: bool,
 }
 
 #[derive(serde::Serialize)]
@@ -400,9 +365,7 @@ async fn auth_verify(
     State(state): State<AppState>,
     Json(req): Json<auth::AuthVerifyRequest>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    use solana_sdk::pubkey::Pubkey;
-    use solana_sdk::signature::Signature;
-    use std::str::FromStr;
+    use ed25519_dalek::Signature;
 
     // 1. Consume the nonce
     if !state
@@ -423,8 +386,8 @@ async fn auth_verify(
         Json(serde_json::json!({"error": "Agent not found"})),
     ))?;
 
-    // 3. Parse pubkey and signature
-    let pubkey = Pubkey::from_str(&agent.authority).map_err(|_| {
+    // 3. Parse the authority pubkey and signature
+    let verifying_key = agents::authority_verifying_key(&agent.authority).map_err(|_| {
         (
             axum::http::StatusCode::INTERNAL_SERVER_ERROR,
             Json(serde_json::json!({"error": "Invalid agent authority key"})),
@@ -440,7 +403,7 @@ async fn auth_verify(
             )
         })?;
 
-    let signature = Signature::try_from(sig_bytes.as_slice()).map_err(|_| {
+    let signature = Signature::from_slice(&sig_bytes).map_err(|_| {
         (
             axum::http::StatusCode::BAD_REQUEST,
             Json(serde_json::json!({"error": "Invalid signature"})),
@@ -448,7 +411,10 @@ async fn auth_verify(
     })?;
 
     // 4. Verify
-    if !signature.verify(pubkey.as_ref(), req.nonce.as_bytes()) {
+    if verifying_key
+        .verify_strict(req.nonce.as_bytes(), &signature)
+        .is_err()
+    {
         return Err((
             axum::http::StatusCode::UNAUTHORIZED,
             Json(serde_json::json!({"error": "Signature verification failed"})),
@@ -546,7 +512,6 @@ async fn health(State(state): State<AppState>) -> Json<HealthResponse> {
         uptime_seconds: state.started_at.elapsed().as_secs(),
         db_healthy: state.logger.is_healthy(),
         db_size_bytes: state.logger.size_on_disk(),
-        confidential_compute: state.arcium_evaluator.confidential_active(),
     })
 }
 
@@ -676,394 +641,6 @@ async fn delete_audit_log(State(state): State<AppState>, Path(id): Path<u64>) ->
     }
 }
 
-async fn simulate(
-    State(state): State<AppState>,
-    Json(request): Json<SimulateRequest>,
-) -> impl IntoResponse {
-    let intent = request.intent.clone();
-    let request_payload = request.transaction.clone();
-    let request_details = TransactionDetails::from_request_payload(request_payload.clone());
-
-    let tx_bytes = match base64::engine::general_purpose::STANDARD.decode(&request.transaction) {
-        Ok(bytes) => bytes,
-        Err(err) => {
-            let reason = format!("Invalid base64 transaction: {err}");
-            let entry = AuditEntry {
-                transaction_signature: None,
-                ..build_audit_entry(
-                    None,
-                    Decision::Blocked(reason.clone()),
-                    AuditResult::Blocked,
-                    reason.clone(),
-                    None,
-                    intent.clone(),
-                    Some(request_details.clone()),
-                )
-            };
-            let _ = state.logger.log(entry);
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(ErrorResponse {
-                    error: reason,
-                    block_id: None,
-                }),
-            )
-                .into_response();
-        }
-    };
-
-    let tx: solana_sdk::transaction::Transaction = match bincode::deserialize(&tx_bytes) {
-        Ok(tx) => tx,
-        Err(err) => {
-            let reason = format!("Invalid transaction payload: {err}");
-            let entry = AuditEntry {
-                transaction_signature: None,
-                ..build_audit_entry(
-                    None,
-                    Decision::Blocked(reason.clone()),
-                    AuditResult::Blocked,
-                    reason.clone(),
-                    None,
-                    intent.clone(),
-                    Some(request_details.clone()),
-                )
-            };
-            let _ = state.logger.log(entry);
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(ErrorResponse {
-                    error: reason,
-                    block_id: None,
-                }),
-            )
-                .into_response();
-        }
-    };
-
-    let tx_details = TransactionDetails::from_transaction_request(request_payload, &tx);
-    let signature = tx_details.signature.clone();
-
-    {
-        let engine = state.policy_engine.read().await;
-        if let Err(err) = engine.check_circuit_breaker() {
-            let entry = AuditEntry {
-                ..build_audit_entry(
-                    signature.clone(),
-                    Decision::Blocked(err.clone()),
-                    AuditResult::Blocked,
-                    err.clone(),
-                    None,
-                    intent.clone(),
-                    Some(tx_details.clone()),
-                )
-            };
-            let _ = state.logger.log(entry);
-            return (
-                StatusCode::FORBIDDEN,
-                Json(ErrorResponse {
-                    error: err,
-                    block_id: None,
-                }),
-            )
-                .into_response();
-        }
-    }
-
-    if let Some(ref intent_str) = intent {
-        let classification = classify_intent(&Some(intent_str.clone()));
-        if let IntentClassification::Malicious(pattern) = classification {
-            let err = format!(
-                "Intent classified as malicious: detected '{}' pattern",
-                pattern
-            );
-            let entry = AuditEntry {
-                ..build_audit_entry(
-                    signature.clone(),
-                    Decision::Blocked(err.clone()),
-                    AuditResult::Blocked,
-                    err.clone(),
-                    None,
-                    intent.clone(),
-                    Some(tx_details.clone()),
-                )
-            };
-            let _ = state.logger.log(entry);
-            return (
-                StatusCode::FORBIDDEN,
-                Json(ErrorResponse {
-                    error: err,
-                    block_id: None,
-                }),
-            )
-                .into_response();
-        }
-    }
-
-    let policy_check = {
-        let engine = state.policy_engine.read().await;
-        engine.check_transaction(&tx)
-    };
-
-    if let Err(err) = policy_check {
-        let entry = AuditEntry {
-            ..build_audit_entry(
-                signature.clone(),
-                Decision::Blocked(err.clone()),
-                AuditResult::Blocked,
-                err.clone(),
-                None,
-                intent.clone(),
-                Some(tx_details.clone()),
-            )
-        };
-        let _ = state.logger.log(entry);
-
-        emit_event(
-            &state.event_tx,
-            "AuditRecorded",
-            &serde_json::json!({
-                "decision": "Blocked",
-                "reason": err,
-                "timestamp": current_timestamp()
-            })
-            .to_string(),
-        );
-
-        return (
-            StatusCode::FORBIDDEN,
-            Json(ErrorResponse {
-                error: err,
-                block_id: None,
-            }),
-        )
-            .into_response();
-    }
-
-    // Arcium MXE evaluation (Solana-only, optional)
-    // With NoopArciumClient this always returns Pass. When a real Arcium client
-    // is plugged in, this will evaluate through the MXE before simulation.
-    let arcium_decision = {
-        let arcium_tx = bastion_core::NormalizedTransaction::new(
-            tx.signatures
-                .first()
-                .map(|s| s.to_string())
-                .unwrap_or_default(),
-            format!(
-                "{:?}",
-                tx.message
-                    .account_keys
-                    .first()
-                    .unwrap_or(&solana_sdk::pubkey::Pubkey::default())
-            ),
-            format!(
-                "{:?}",
-                tx.message
-                    .account_keys
-                    .get(1)
-                    .unwrap_or(&solana_sdk::pubkey::Pubkey::default())
-            ),
-            0,
-            "SOL".to_string(),
-            TxType::Transfer,
-            bastion_core::transaction::Chain::Solana,
-        );
-        let policy_set = bastion_core::PolicySet::new();
-        state
-            .arcium_evaluator
-            .evaluate(&arcium_tx, &policy_set)
-            .await
-    };
-
-    if arcium_decision.is_blocked() {
-        let reason = match &arcium_decision {
-            bastion_core::FirewallDecision::Block { reason, .. } => reason.clone(),
-            _ => "Arcium blocked transaction".to_string(),
-        };
-        let entry = AuditEntry {
-            ..build_audit_entry(
-                signature.clone(),
-                Decision::Blocked(reason.clone()),
-                AuditResult::Blocked,
-                reason.clone(),
-                None,
-                intent.clone(),
-                Some(tx_details.clone()),
-            )
-        };
-        let _ = state.logger.log(entry);
-        return (
-            StatusCode::FORBIDDEN,
-            Json(ErrorResponse {
-                error: reason,
-                block_id: None,
-            }),
-        )
-            .into_response();
-    }
-
-    let simulator = state.simulator.clone();
-    let tx_clone = tx.clone();
-    let spawn_result =
-        tokio::task::spawn_blocking(move || simulator.simulate_transaction(&tx_clone)).await;
-
-    let res = match spawn_result {
-        Ok(r) => r,
-        Err(err) => {
-            let reason = format!("Simulation task failed: {err}");
-            let entry = AuditEntry {
-                ..build_audit_entry(
-                    signature.clone(),
-                    Decision::Blocked(reason.clone()),
-                    AuditResult::Blocked,
-                    reason.clone(),
-                    None,
-                    intent.clone(),
-                    Some(tx_details.clone()),
-                )
-            };
-            let _ = state.logger.log(entry);
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ErrorResponse {
-                    error: reason,
-                    block_id: None,
-                }),
-            )
-                .into_response();
-        }
-    };
-
-    let result = match res {
-        Ok(r) => r,
-        Err(err) => {
-            let reason = format!("Simulation failed: {err}");
-            let entry = AuditEntry {
-                ..build_audit_entry(
-                    signature.clone(),
-                    Decision::Blocked(reason.clone()),
-                    AuditResult::Blocked,
-                    reason.clone(),
-                    None,
-                    intent.clone(),
-                    Some(tx_details.clone()),
-                )
-            };
-            let _ = state.logger.log(entry);
-            return (
-                StatusCode::BAD_GATEWAY,
-                Json(ErrorResponse {
-                    error: reason,
-                    block_id: None,
-                }),
-            )
-                .into_response();
-        }
-    };
-
-    let simulation_checks_enabled = {
-        let engine = state.policy_engine.read().await;
-        engine.simulation_checks_enabled()
-    };
-
-    if simulation_checks_enabled {
-        let max_balance_drain = {
-            let engine = state.policy_engine.read().await;
-            engine.max_balance_drain_lamports()
-        };
-
-        let mut checks: Vec<Box<dyn SimulationCheck>> = if let Some(limit) = max_balance_drain {
-            vec![
-                Box::new(NoErrorCheck),
-                Box::new(MaxUnitsCheck),
-                Box::new(policy::MaxBalanceDrainCheck { limit }),
-            ]
-        } else {
-            vec![Box::new(NoErrorCheck), Box::new(MaxUnitsCheck)]
-        };
-
-        let blockint_rules = state.policy_engine.read().await.blockint_rules().clone();
-        if blockint_rules.flash_loan_ratio_threshold.is_some() {
-            checks.push(Box::new(FlashLoanPatternCheck));
-        }
-        if let Some(max_bps) = blockint_rules.max_slippage_bps {
-            checks.push(Box::new(HighSlippageCheck {
-                max_slippage_bps: max_bps,
-            }));
-        }
-
-        for check in checks {
-            if let Err(err) = check.check(&result) {
-                let block_id = Uuid::new_v4().to_string();
-
-                let entry = AuditEntry {
-                    ..build_audit_entry(
-                        signature.clone(),
-                        Decision::PendingApproval(block_id.clone()),
-                        AuditResult::Blocked,
-                        err.clone(),
-                        Some(result.clone()),
-                        intent.clone(),
-                        Some(tx_details.clone()),
-                    )
-                };
-                let _ = state.logger.log(entry);
-
-                let mut pending_approvals = state.pending_approvals.write().await;
-                pending_approvals.insert(
-                    block_id.clone(),
-                    PendingApproval {
-                        transaction: tx,
-                        simulation_result: result.clone(),
-                        intent,
-                        created_at: current_timestamp(),
-                    },
-                );
-
-                return (
-                    StatusCode::FORBIDDEN,
-                    Json(ErrorResponse {
-                        error: err,
-                        block_id: Some(block_id),
-                    }),
-                )
-                    .into_response();
-            }
-        }
-    }
-
-    let entry = AuditEntry {
-        ..build_audit_entry(
-            signature.clone(),
-            Decision::Allowed,
-            AuditResult::Allowed,
-            "All policy and simulation checks passed".to_string(),
-            Some(result.clone()),
-            intent.clone(),
-            Some(tx_details),
-        )
-    };
-    let _ = state.logger.log(entry);
-
-    if state.on_chain.is_enabled() {
-        let on_chain = state.on_chain.clone();
-        let decision: u8 = 0;
-        let sim_hash: [u8; 32] = result.simulation_hash.unwrap_or([0u8; 32]);
-        let reasoning = "All policy and simulation checks passed".to_string();
-        tokio::spawn(async move {
-            if let Err(e) = on_chain
-                .log_audit(decision, sim_hash, &reasoning, None)
-                .await
-            {
-                eprintln!("[bastion] On-chain audit log failed: {e}");
-            } else {
-                eprintln!("[bastion] On-chain audit logged successfully");
-            }
-        });
-    }
-
-    Json(result).into_response()
-}
-
 async fn get_logs(
     State(state): State<AppState>,
     Query(query): Query<LogsQuery>,
@@ -1180,8 +757,7 @@ async fn override_block(
         }
     };
 
-    let tx_details = TransactionDetails::from_transaction(&pending.transaction);
-    let signature = tx_details.signature.clone();
+    let tx_details = None;
 
     match request.action {
         OverrideAction::Allow => {
@@ -1191,13 +767,13 @@ async fn override_block(
             );
             let entry = AuditEntry {
                 ..build_audit_entry(
-                    signature,
+                    None,
                     Decision::Allowed,
                     AuditResult::Allowed,
                     reason,
                     Some(pending.simulation_result.clone()),
                     pending.intent,
-                    Some(tx_details),
+                    tx_details,
                 )
             };
             let _ = state.logger.log(entry);
@@ -1207,13 +783,13 @@ async fn override_block(
             let reason = "Rejected by human override".to_string();
             let entry = AuditEntry {
                 ..build_audit_entry(
-                    signature,
+                    None,
                     Decision::Blocked(reason.clone()),
                     AuditResult::Blocked,
                     reason.clone(),
                     Some(pending.simulation_result),
                     pending.intent,
-                    Some(tx_details),
+                    tx_details,
                 )
             };
             let _ = state.logger.log(entry);
@@ -1245,14 +821,6 @@ async fn get_circuit_breaker_status(State(state): State<AppState>) -> Json<Circu
 
 async fn engage_circuit_breaker(State(state): State<AppState>) -> Json<CircuitBreakerStatus> {
     state.policy_engine.write().await.engage_circuit_breaker();
-    if state.on_chain.is_enabled() {
-        let on_chain = state.on_chain.clone();
-        tokio::spawn(async move {
-            if let Err(e) = on_chain.emergency_pause().await {
-                eprintln!("[bastion] On-chain pause failed: {e}");
-            }
-        });
-    }
     let _ = state.logger.log(AuditEntry {
         timestamp: current_timestamp(),
         transaction_id: None,
@@ -1274,14 +842,6 @@ async fn disengage_circuit_breaker(State(state): State<AppState>) -> Json<Circui
         .write()
         .await
         .disengage_circuit_breaker();
-    if state.on_chain.is_enabled() {
-        let on_chain = state.on_chain.clone();
-        tokio::spawn(async move {
-            if let Err(e) = on_chain.emergency_resume().await {
-                eprintln!("[bastion] On-chain resume failed: {e}");
-            }
-        });
-    }
     let _ = state.logger.log(AuditEntry {
         timestamp: current_timestamp(),
         transaction_id: None,
@@ -1603,13 +1163,13 @@ async fn register_agent_handler(
     State(state): State<AppState>,
     Json(req): Json<agents::RegisterAgentRequest>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    // Derive the Agent PDA from the DID
+    // Derive the agent key from the DID (`did:bastion:evm:{pubkey_hex}`).
     let parts: Vec<&str> = req.did.split(':').collect();
     if parts.len() < 4 || parts[0] != "did" || parts[1] != "bastion" {
         return Err((
             axum::http::StatusCode::BAD_REQUEST,
             Json(
-                serde_json::json!({"error": "Invalid DID format. Expected did:bastion:solana:{pda_base58}"}),
+                serde_json::json!({"error": "Invalid DID format. Expected did:bastion:evm:{pubkey_hex}"}),
             ),
         ));
     }
@@ -1617,27 +1177,10 @@ async fn register_agent_handler(
     let agent_pda = parts[3];
     let chain = parts[2];
 
-    // Verify on-chain PDA exists (if on-chain client is enabled)
-    let (mut capability_bitmask, mut reputation_score) = (0u64, 100u64);
-    if state.on_chain.is_enabled() && chain == "solana" {
-        match state.on_chain.verify_agent_pda(agent_pda).await {
-            Ok((exists, cap, rep)) => {
-                if !exists {
-                    return Err((
-                        axum::http::StatusCode::BAD_REQUEST,
-                        Json(serde_json::json!({
-                            "error": format!("Agent PDA {agent_pda} not found on-chain. Deploy the agent first.")
-                        })),
-                    ));
-                }
-                capability_bitmask = cap;
-                reputation_score = rep;
-            }
-            Err(e) => {
-                eprintln!("[bastion] PDA verification RPC error (proceeding with defaults): {e}");
-            }
-        }
-    }
+    // Off-chain agent registry (Sled). On-chain PDA verification was retired
+    // with the Solana pivot; new agents default to zero capability / neutral
+    // reputation until a follow-up EVM registry populates these fields.
+    let (capability_bitmask, reputation_score) = (0u64, 100u64);
 
     let name = format!("Agent-{}", &agent_pda[..8.min(agent_pda.len())]);
     let now = std::time::SystemTime::now()
@@ -1666,7 +1209,7 @@ async fn register_agent_handler(
                     "did": did,
                     "authority": req.authority_pubkey,
                     "chain": chain,
-                    "on_chain_verified": state.on_chain.is_enabled(),
+                    "on_chain_verified": false,
                     "timestamp": now,
                 })
                 .to_string(),
@@ -1675,7 +1218,7 @@ async fn register_agent_handler(
                 "status": "registered",
                 "did": did,
                 "agent_pda": agent_pda,
-                "on_chain_verified": state.on_chain.is_enabled(),
+                "on_chain_verified": false,
             })))
         }
         Err(e) => Err((
@@ -1726,8 +1269,8 @@ async fn post_agent_stake(
             Json(serde_json::json!({"error":"amount required"})),
         ));
     }
-    // For MVP: update in-memory store. Production: submit StakeLamports transaction via program_client
-    // agent.store.staked_lamports += amount handled by on-chain tx; sidecar mirrors after
+    // For MVP: update in-memory store. Production: submit a stake transaction
+    // through the EVM on-chain registry; the sidecar mirrors the result after.
     Ok(Json(serde_json::json!({
         "status": "stake_submitted",
         "did": did,
@@ -1918,26 +1461,6 @@ async fn get_agent_audit(
     })))
 }
 
-// ── Alchemy Token Balances Handler ──
-
-#[derive(serde::Deserialize)]
-struct TokenBalancesQuery {
-    address: String,
-}
-
-async fn get_token_balances(
-    State(state): State<AppState>,
-    Query(q): Query<TokenBalancesQuery>,
-) -> Result<Json<serde_json::Value>, StatusCode> {
-    let sim = state
-        .alchemy_sim
-        .as_ref()
-        .ok_or(StatusCode::SERVICE_UNAVAILABLE)?;
-    sim.fetch_token_balances(&q.address)
-        .map(Json)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
-}
-
 // ── SSE Event Stream Handler ──
 
 #[derive(serde::Serialize, serde::Deserialize, Clone)]
@@ -1983,15 +1506,11 @@ async fn sse_events_handler(
     )
 }
 
-#[allow(clippy::too_many_arguments)]
 pub fn build_app(
     policy: Policy,
-    simulator: Arc<dyn Simulate + Send + Sync>,
     logger: Arc<AuditLogger>,
-    on_chain: OnChainClient,
     grond_oracle: GrondOracle,
     evm_simulators: Arc<HashMap<String, Arc<EvmSimulator>>>,
-    alchemy_sim: Option<Arc<crate::simulation::AlchemySimulator>>,
     agent_store_path: &str,
 ) -> Router {
     let (event_tx, _) = broadcast::channel(256);
@@ -2027,22 +1546,6 @@ pub fn build_app(
         }
     });
 
-    let arcium_config = MxeConfig {
-        cluster_id: policy.arcium_cluster_id.clone(),
-        mxe_id: policy.arcium_mxe_id.clone(),
-        computation_timeout: policy.arcium_timeout_ms,
-        required_nodes: policy.arcium_required_nodes,
-    };
-    // Honor `arcium_enabled` (default false). With it disabled, the evaluator
-    // has no Arcium client, so `/health` reports `confidential_compute: false`
-    // and the Arcium gate never short-circuits local evaluation.
-    let arcium_evaluator = Arc::new(if policy.arcium_enabled {
-        ArcumPolicyEvaluator::with_oracle(NoopArciumClient, arcium_config, grond_oracle.clone())
-            .with_fallback(policy.arcium_fallback)
-    } else {
-        ArcumPolicyEvaluator::disabled(arcium_config)
-    });
-
     // Web2 API gateway firewall with a safe default rule set: block requests that
     // leak secrets in the body and strip credential-bearing headers. Callers can
     // supply richer rules via the Web2 SDK / OpenAPI import in future revisions.
@@ -2060,19 +1563,15 @@ pub fn build_app(
 
     let app_state = AppState {
         policy_engine: Arc::new(RwLock::new(PolicyEngine::new(policy))),
-        simulator,
         logger,
-        on_chain: Arc::new(on_chain),
         pending_approvals: Arc::new(RwLock::new(HashMap::new())),
         grond_oracle,
         evm_simulators,
-        alchemy_sim,
         event_tx,
         started_at: std::time::Instant::now(),
         did_cache: Arc::new(RwLock::new(HashMap::new())),
         agent_store,
         did_auth_state: did_auth_state.clone(),
-        arcium_evaluator,
         web2_engine,
         policy_stores: Arc::new(RwLock::new(Vec::new())),
         workflow_engine: workflow_routes::build_workflow_engine(agent_store_path),
@@ -2157,7 +1656,6 @@ pub fn build_app(
         .route("/circuit-breaker/status", get(get_circuit_breaker_status))
         .route("/agents", post(register_agent_handler))
         // State-changing evaluation + agent mutation endpoints are auth-protected.
-        .route("/simulate", post(simulate))
         .route("/api/v2/evaluate", post(evaluate_v2))
         .route("/api/v2/evaluate-web2", post(evaluate_web2))
         .route("/api/v2/simulate-evm", post(simulate_evm_handler))
@@ -2218,7 +1716,6 @@ pub fn build_app(
         )
         .route("/pending", get(get_pending))
         .route("/did/resolve/:did", get(resolve_did_handler))
-        .route("/token-balances", get(get_token_balances))
         // === Workflow routes ===
         .route(
             "/workflows",

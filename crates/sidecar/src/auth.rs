@@ -9,10 +9,7 @@ use axum::{
 use base64::Engine as _;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use solana_sdk::pubkey::Pubkey;
-use solana_sdk::signature::Signature;
 use std::collections::HashMap;
-use std::str::FromStr;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
@@ -101,7 +98,7 @@ pub struct AuthVerifyRequest {
 /// 1. Agent calls `POST /auth/nonce` with `{ "did": "..." }` → gets nonce
 /// 2. Agent signs the nonce with its Ed25519 authority key
 /// 3. Agent sends requests with headers:
-///    - `X-DID: did:bastion:solana:...`
+///    - `X-DID: did:bastion:evm:...`
 ///    - `X-DID-Nonce: <the-nonce>`
 ///    - `X-DID-Signature: <base64-encoded-signature>`
 ///
@@ -199,9 +196,9 @@ async fn verify_did_signature(did: &str, nonce: &str, sig_b64: &str, state: &Did
         None => return false,
     };
 
-    // 3. Parse the authority public key
-    let pubkey = match Pubkey::from_str(&agent.authority) {
-        Ok(pk) => pk,
+    // 3. Parse the authority public key (hex-encoded Ed25519 verifying key)
+    let verifying_key = match crate::agents::authority_verifying_key(&agent.authority) {
+        Ok(vk) => vk,
         Err(_) => return false,
     };
 
@@ -210,13 +207,15 @@ async fn verify_did_signature(did: &str, nonce: &str, sig_b64: &str, state: &Did
         Ok(b) => b,
         Err(_) => return false,
     };
-    let signature = match Signature::try_from(sig_bytes.as_slice()) {
+    let signature = match ed25519_dalek::Signature::from_slice(sig_bytes.as_slice()) {
         Ok(s) => s,
         Err(_) => return false,
     };
 
     // 5. Verify the signature against the nonce
-    signature.verify(pubkey.as_ref(), nonce.as_bytes())
+    verifying_key
+        .verify_strict(nonce.as_bytes(), &signature)
+        .is_ok()
 }
 
 #[cfg(test)]
@@ -226,16 +225,16 @@ mod tests {
     #[tokio::test]
     async fn nonce_lifecycle() {
         let store = NonceStore::new();
-        let nonce = store.generate("did:bastion:solana:test").await;
-        assert!(store.consume("did:bastion:solana:test", &nonce).await);
+        let nonce = store.generate("did:bastion:evm:test").await;
+        assert!(store.consume("did:bastion:evm:test", &nonce).await);
         // Second use should fail (one-time)
-        assert!(!store.consume("did:bastion:solana:test", &nonce).await);
+        assert!(!store.consume("did:bastion:evm:test", &nonce).await);
     }
 
     #[tokio::test]
     async fn nonce_expiry() {
         let store = NonceStore::new();
-        let did = "did:bastion:solana:test";
+        let did = "did:bastion:evm:test";
         {
             let mut nonces = store.nonces.write().await;
             nonces.insert(

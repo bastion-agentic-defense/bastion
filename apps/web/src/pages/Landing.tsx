@@ -302,10 +302,10 @@ export default function Landing() {
           * inventing one would be a lie, so the beat carries something true. */}
         <section className="py-12">
           <p className="band-kicker text-center">Runs on</p>
-          <div className="marquee" aria-label="Runs on: Solana, Ethereum, Base, Celo, zkSync, Robinhood. Arcium MPC (preview).">
+          <div className="marquee" aria-label="Runs on: Ethereum, Monad, Base, Celo, zkSync, Robinhood.">
             <div className="marquee-track marquee-track--reverse" aria-hidden="true">
               {Array.from({ length: 6 }).flatMap(() =>
-                ['Solana', 'Ethereum', 'Base', 'Celo', 'zkSync', 'Robinhood', 'Arcium (preview)'],
+                ['Ethereum', 'Monad', 'Base', 'Celo', 'zkSync', 'Robinhood'],
               ).map((chain, i) => (
                 <span key={i} className="inline-flex items-center gap-10">
                   <span
@@ -575,9 +575,9 @@ export default function Landing() {
                     border: '1px solid var(--card-border)',
                   }}
                 >{`wallet.send(usdcToken, {
-  amount: new BN(500_000_000),
-  recipient: "7xKX...",
-  chain: "solana"
+  value: 500000000n,   // 500 USDC (6 decimals)
+  to: "0x7a2f...",
+  chain: "ethereum"
 });
 
 // ⚠ Who checks sanctions?

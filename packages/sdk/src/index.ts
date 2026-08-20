@@ -1,12 +1,9 @@
-import * as anchor from "@coral-xyz/anchor";
-import { Connection, PublicKey, Signer, Transaction } from "@solana/web3.js";
-import idl from "./idl.json";
-import type {
-  AuditState,
-  AuditEntry,
-  Agent,
-  Policy,
-} from "./types";
+// Bastion SDK — EVM + HTTP client for the Bastion Programmable Trust Runtime.
+//
+// The SDK is EVM-only after the full-EVM pivot: the Solana Anchor program client
+// (`BastionClient`, `idl.json`) was removed. EVM contract access is via
+// `BastionEVMClient` (viem); policy evaluation/simulation/audit via the HTTP
+// `BastionSidecar`; durable execution via `BastionWorkflow`.
 
 // Recompute verification (trustless-ai compatible)
 export * as verify from "./verify";
@@ -31,12 +28,28 @@ export type {
 
 export { AGENT_CAPABILITIES, DECISION, BastionEventStream } from "./types";
 export type {
+  AgentCapability,
+  Decision,
+  SidecarConfig,
+  EvmTxParams,
+  EvmSimulateRequest,
+  EvmSimulateResponse,
+  SidecarAuditEntry,
+  LogsQuery,
+  LogsResponse,
+  SidecarPolicy,
+  HealthResponse,
+  OverrideRequest,
+  CircuitBreakerStatus,
   ScanResult,
   ScanFinding,
   ScanFindingKind,
   ScanResultsResponse,
+  SseEvent,
 } from "./types";
+
 export { BastionSidecar } from "./sidecar";
+
 export { Bastion } from "./execute";
 export type {
   BastionRuntimeConfig,
@@ -47,249 +60,34 @@ export type {
   Settlement,
 } from "./execute";
 
-export const BASTION_PROGRAM_ID = new PublicKey(idl.address);
+// EVM contract client (viem)
+export { BastionEVMClient } from "./evm";
+export type {
+  BastionEVMClientConfig,
+  BastionEVMContracts,
+  BastionPolicy,
+  BastionAuditEntry,
+} from "./evm";
 
-export const AUDIT_SEED = "bastion_audit";
-export const AGENT_SEED = "bastion_agent";
-export const POLICY_SEED = "bastion_policy";
+// ERC-8354 confidential verdict wrappers
+export {
+  commitPolicyAction,
+  verdictDigest,
+  verifyVerdict,
+  consumeVerdict,
+} from "./erc8354";
+export type {
+  PolicyAction,
+  Verdict,
+  VerdictAttestation,
+} from "./erc8354";
 
-export interface BastionConfig {
-  connection: Connection;
-  provider?: anchor.Provider;
-}
-
-// ── On-chain client ────────────────────────────────────────────────────────
-
-export class BastionClient {
-  private program: anchor.Program;
-  private connection: Connection;
-  // Anchor's AccountNamespace is typed against the IDL generic; bypass with a
-  // single cast here rather than scattering `as any` throughout the class.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private get acct(): any { return this.program.account; }
-
-  constructor(config: BastionConfig) {
-    this.connection = config.connection;
-
-    const provider =
-      config.provider ??
-      new anchor.AnchorProvider(
-        config.connection,
-        anchor.Wallet.local(),
-        anchor.AnchorProvider.defaultOptions()
-      );
-
-    this.program = new anchor.Program(idl as unknown as anchor.Idl, provider);
-  }
-
-  /**
-   * Initialize the global audit state.
-   * @param authority Fee payer / signer for the init transaction.
-   * @param admin The account that becomes the program authority (log_audit,
-   *   emergency_pause/resume). On mainnet this MUST be the governance multisig
-   *   vault. Defaults to `authority.publicKey`.
-   */
-  async initialize(authority: Signer, admin?: PublicKey): Promise<Transaction> {
-    const [auditState] = PublicKey.findProgramAddressSync(
-      [Buffer.from(AUDIT_SEED)],
-      this.program.programId
-    );
-    return this.program.methods
-      .initialize(admin ?? authority.publicKey)
-      .accounts({
-        auditState,
-        authority: authority.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-      })
-      .transaction();
-  }
-
-  async logAudit(
-    signer: Signer,
-    decision: number,
-    simulationResult: number[],
-    reasoning: string,
-    programId?: number[]
-  ): Promise<Transaction> {
-    const [auditState] = PublicKey.findProgramAddressSync(
-      [Buffer.from(AUDIT_SEED)],
-      this.program.programId
-    );
-
-    const state = await this.acct.auditState.fetch(auditState) as AuditState;
-    const leBytes = Buffer.alloc(8);
-    leBytes.writeBigUInt64LE(BigInt(state.totalAudits));
-
-    const [auditEntry] = PublicKey.findProgramAddressSync(
-      [Buffer.from(AUDIT_SEED), leBytes],
-      this.program.programId
-    );
-
-    const simulationResultArray = new Uint8Array(32);
-    simulationResult.forEach((v, i) => (simulationResultArray[i] = v));
-
-    return this.program.methods
-      .logAudit(
-        decision,
-        Array.from(simulationResultArray),
-        reasoning,
-        programId ? new Uint8Array(programId) : null
-      )
-      .accounts({
-        auditState,
-        auditEntry,
-        signer: signer.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-      })
-      .transaction();
-  }
-
-  async registerAgent(
-    signer: Signer,
-    name: string,
-    capabilityBitmask: number | bigint
-  ): Promise<Transaction> {
-    const [agent] = PublicKey.findProgramAddressSync(
-      [Buffer.from(AGENT_SEED), signer.publicKey.toBuffer()],
-      this.program.programId
-    );
-    return this.program.methods
-      .registerAgent(name, Number(capabilityBitmask))
-      .accounts({
-        agent,
-        signer: signer.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-      })
-      .transaction();
-  }
-
-  async updateAgentReputation(
-    signer: Signer,
-    agentAuthority: PublicKey,
-    delta: number
-  ): Promise<Transaction> {
-    const [agent] = PublicKey.findProgramAddressSync(
-      [Buffer.from(AGENT_SEED), agentAuthority.toBuffer()],
-      this.program.programId
-    );
-    return this.program.methods
-      .updateAgentReputation(delta)
-      .accounts({ agent, signer: signer.publicKey })
-      .transaction();
-  }
-
-  async setPolicy(
-    signer: Signer,
-    allowedPrograms: PublicKey[],
-    maxSolPerTx: number,
-    rateLimitPerMinute: number
-  ): Promise<Transaction> {
-    const [policy] = PublicKey.findProgramAddressSync(
-      [Buffer.from(POLICY_SEED)],
-      this.program.programId
-    );
-    const programArrays = allowedPrograms.map((p) => {
-      const arr = new Uint8Array(32);
-      p.toBuffer().copy(arr as unknown as Buffer);
-      return arr;
-    });
-    return this.program.methods
-      .setPolicy(programArrays, maxSolPerTx, rateLimitPerMinute)
-      .accounts({
-        policy,
-        signer: signer.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-      })
-      .transaction();
-  }
-
-  async emergencyPause(signer: Signer): Promise<Transaction> {
-    const [auditState] = PublicKey.findProgramAddressSync(
-      [Buffer.from(AUDIT_SEED)],
-      this.program.programId
-    );
-    return this.program.methods
-      .emergencyPause()
-      .accounts({ auditState, signer: signer.publicKey })
-      .transaction();
-  }
-
-  async emergencyResume(signer: Signer): Promise<Transaction> {
-    const [auditState] = PublicKey.findProgramAddressSync(
-      [Buffer.from(AUDIT_SEED)],
-      this.program.programId
-    );
-    return this.program.methods
-      .emergencyResume()
-      .accounts({ auditState, signer: signer.publicKey })
-      .transaction();
-  }
-
-  getAuditStateAddress(): PublicKey {
-    const [address] = PublicKey.findProgramAddressSync(
-      [Buffer.from(AUDIT_SEED)],
-      this.program.programId
-    );
-    return address;
-  }
-
-  getAgentAddress(authority: PublicKey): PublicKey {
-    const [address] = PublicKey.findProgramAddressSync(
-      [Buffer.from(AGENT_SEED), authority.toBuffer()],
-      this.program.programId
-    );
-    return address;
-  }
-
-  getAgentDID(authority: PublicKey): string {
-    return `did:bastion:solana:${this.getAgentAddress(authority).toBase58()}`;
-  }
-
-  getPolicyAddress(): PublicKey {
-    const [address] = PublicKey.findProgramAddressSync(
-      [Buffer.from(POLICY_SEED)],
-      this.program.programId
-    );
-    return address;
-  }
-
-  getAuditEntryAddress(index: number): PublicKey {
-    const buf = Buffer.alloc(8);
-    buf.writeBigUInt64LE(BigInt(index));
-    const [address] = PublicKey.findProgramAddressSync(
-      [Buffer.from(AUDIT_SEED), buf],
-      this.program.programId
-    );
-    return address;
-  }
-
-  async fetchAuditState(): Promise<AuditState> {
-    return this.acct.auditState.fetch(
-      this.getAuditStateAddress()
-    ) as Promise<AuditState>;
-  }
-
-  async fetchAgent(authority: PublicKey): Promise<Agent> {
-    return this.acct.agent.fetch(
-      this.getAgentAddress(authority)
-    ) as Promise<Agent>;
-  }
-
-  async fetchAllAgents(): Promise<Agent[]> {
-    return this.acct.agent.all() as Promise<Agent[]>;
-  }
-
-  async fetchPolicy(): Promise<Policy> {
-    return this.acct.policy.fetch(
-      this.getPolicyAddress()
-    ) as Promise<Policy>;
-  }
-
-  addEventListener<T>(eventName: string, callback: (event: T) => void): number {
-    return this.program.addEventListener(eventName, callback);
-  }
-
-  removeEventListener(listenerId: number): Promise<void> {
-    return this.program.removeEventListener(listenerId);
-  }
-}
+// ERC-8380 unclonable capability credential wrappers
+export {
+  computeNullifier,
+  computeCapabilityCommitment,
+  issueCapability,
+  executeCapability,
+  isConsumed,
+} from "./erc8380";
+export type { Capability, CapabilityInputs } from "./erc8380";

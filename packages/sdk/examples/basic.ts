@@ -1,86 +1,72 @@
-import { Connection, Keypair, PublicKey } from "@solana/web3.js";
+// Bastion SDK — EVM-only example.
+//
+// The full-EVM pivot removed the Solana Anchor client (`BastionClient`, PDAs,
+// `@solana/web3.js`). EVM contract access goes through `BastionEVMClient`
+// (viem); policy/simulation/audit go through the `BastionSidecar` HTTP client;
+// confidential verdicts and unclonable credentials use the ERC-8354/8380 wrappers.
+
 import {
-  BastionClient,
   BastionSidecar,
   Bastion,
-  AGENT_CAPABILITIES,
-  DECISION,
-} from "./src";
+  computeNullifier,
+  computeCapabilityCommitment,
+  commitPolicyAction,
+  verify,
+} from "../src";
 
-const DEMO_WALLET = Keypair.generate();
-const DEMO_PROGRAM_ID = new PublicKey("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4");
+const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
+const ZERO32 = ("0x" + "00".repeat(32)) as `0x${string}`;
 
 async function main() {
-  const connection = new Connection("https://api.devnet.solana.com");
-  
-  const client = new BastionClient({
-    connection,
-    provider: undefined,
-  });
+  console.log("=== Bastion SDK Demo (EVM) ===\n");
 
-  console.log("=== Bastion SDK Demo ===\n");
-
-  const auditStateAddr = client.getAuditStateAddress();
-  console.log("Audit State PDA:", auditStateAddr.toString());
-
-  const agentAddr = client.getAgentAddress(DEMO_WALLET.publicKey);
-  console.log("Agent PDA:", agentAddr.toString());
-
-  const policyAddr = client.getPolicyAddress();
-  console.log("Policy PDA:", policyAddr.toString());
-
-  console.log("\n=== Capability Bitmasks ===");
-  console.log("TRANSFER:", AGENT_CAPABILITIES.TRANSFER);
-  console.log("SWAP:", AGENT_CAPABILITIES.SWAP);
-  console.log("NFT_MINT:", AGENT_CAPABILITIES.NFT_MINT);
-  console.log("STAKE:", AGENT_CAPABILITIES.STAKE);
-
-  console.log("\n=== Decision Constants ===");
-  console.log("ALLOWED:", DECISION.ALLOWED);
-  console.log("BLOCKED:", DECISION.BLOCKED);
-  console.log("PENDING:", DECISION.PENDING);
-
-  console.log("\n=== Example: Build Initialize Transaction ===");
-  const initTx = await client.initialize(DEMO_WALLET);
-  console.log("Init transaction instructions:", initTx.instructions.length);
-
-  console.log("\n=== Example: Build Register Agent Transaction ===");
-  const registerTx = await client.registerAgent(
-    DEMO_WALLET,
-    "MyTradingBot",
-    AGENT_CAPABILITIES.TRANSFER | AGENT_CAPABILITIES.SWAP
-  );
-  console.log("Register transaction instructions:", registerTx.instructions.length);
-
-  console.log("\n=== Example: Build Set Policy Transaction ===");
-  const policyTx = await client.setPolicy(
-    DEMO_WALLET,
-    [DEMO_PROGRAM_ID],
-    5,
-    10
-  );
-  console.log("Policy transaction instructions:", policyTx.instructions.length);
-
-  console.log("\n=== Example: Build Emergency Pause Transaction ===");
-  const pauseTx = await client.emergencyPause(DEMO_WALLET);
-  console.log("Pause transaction instructions:", pauseTx.instructions.length);
-
-  console.log("\n=== Example: Unified execute() facade ===");
-  // The runtime facade composes policy + simulation + audit behind one call.
-  // Point it at a running sidecar to get a real Pass / Block / PendingHITL.
+  // 1. HTTP sidecar: EVM simulation + policy + audit.
   const sidecar = new BastionSidecar({
     baseUrl: "https://bastion-agentique.fly.dev",
   });
-  const bastion = new Bastion({ sidecar, client });
-  console.log(
-    "Constructed unified runtime. Example call (requires a live sidecar + a real\n" +
-      "base64 transaction):\n" +
-      '  await bastion.execute({ action: "swap", settlement: "solana",\n' +
-      '                          privacy: "public", transaction: <base64> });'
-  );
-  void bastion; // demo construction only; uncomment the call above with a real tx
+  const health = await sidecar.health().catch(() => null);
+  console.log("Sidecar health:", health ? health.status : "(unreachable)");
 
-  console.log("\n✅ SDK ready! Run 'npm run build' to build the SDK.");
+  // 2. Unified runtime facade — composes policy + simulation + audit.
+  const bastion = new Bastion({ sidecar });
+  console.log(
+    "Constructed unified runtime. Example call:\n" +
+      '  await bastion.execute({ action: "swap", settlement: "base",\n' +
+      '        privacy: "public", transaction: { from, to, value, data } });',
+  );
+
+  // 3. ERC-8380 unclonable capability credential (off-chain precompute).
+  const agentId = 42n;
+  const nullifier = computeNullifier({
+    agentId,
+    homeChainId: 1n,
+    homeDomainId: ZERO32,
+    capabilityIndex: 0n,
+  });
+  const capabilityCommitment = computeCapabilityCommitment({
+    nullifier,
+    actionCommitment: ZERO32,
+    executor: ZERO_ADDR,
+  });
+  console.log("ERC-8380 nullifier:", nullifier);
+  console.log("ERC-8380 capability commitment:", capabilityCommitment);
+
+  // 4. ERC-8354 confidential policy verdict commitment.
+  const actionCommitment = commitPolicyAction({
+    chainId: 1n,
+    domainId: ZERO32,
+    agentId,
+    target: ZERO_ADDR,
+    value: 0n,
+    callDataHash: ZERO32,
+    actionNonce: 0n,
+  });
+  console.log("ERC-8354 action commitment:", actionCommitment);
+
+  // 5. Recompute verification (trustless-ai compatible).
+  console.log("verify namespace:", Object.keys(verify));
+
+  console.log("\n✅ SDK ready! Run 'pnpm --filter @zkos-labs/bastion-sdk build'.");
 }
 
 main().catch(console.error);

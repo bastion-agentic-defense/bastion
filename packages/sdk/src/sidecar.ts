@@ -1,8 +1,6 @@
 import { BastionEventStream } from "./types";
 import type {
   SidecarConfig,
-  SimulateRequest,
-  SimulateResponse,
   LogsQuery,
   LogsResponse,
   SidecarPolicy,
@@ -67,16 +65,12 @@ export class BastionSidecar {
     return this.request<HealthResponse>("GET", "/health");
   }
 
-  simulate(req: SimulateRequest): Promise<SimulateResponse> {
-    return this.request<SimulateResponse>("POST", "/simulate", req);
-  }
-
   logs(query?: LogsQuery): Promise<LogsResponse> {
     return this.request<LogsResponse>("GET", "/logs", undefined, query as Record<string, string | number | undefined>);
   }
 
-  approve(req: OverrideRequest): Promise<SimulateResponse | { error: string }> {
-    return this.request("POST", "/override", req);
+  approve(req: OverrideRequest): Promise<{ error?: string; ok?: boolean }> {
+    return this.request<{ error?: string; ok?: boolean }>("POST", "/override", req);
   }
 
   getPolicy(): Promise<SidecarPolicy> {

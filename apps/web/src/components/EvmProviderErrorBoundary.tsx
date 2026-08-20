@@ -14,7 +14,7 @@ interface State {
  * This most commonly happens when multiple browser wallet extensions (MetaMask,
  * Phantom, Rabby, etc.) fight over window.ethereum, leaving it in a broken state.
  *
- * When caught, the Solana side of the app is unaffected and still fully functional.
+ * When caught, the rest of the app remains functional.
  * The user sees a non-fatal warning banner instead of a blank screen.
  *
  * Also catches the cascading viem error: "Cannot read properties of undefined
@@ -44,7 +44,7 @@ export class EvmProviderErrorBoundary extends Component<Props, State> {
           <EvmConflictBanner message={this.state.message} />
           {/* Render children WITHOUT any EVM providers.
               Hooks like useAccount will return { isConnected: false, address: undefined }.
-              Solana wallet continues working normally. */}
+              The rest of the app continues working normally. */}
           {this.props.children}
         </>
       );
@@ -85,13 +85,13 @@ function EvmConflictBanner({ message }: { message: string }) {
         {isExtensionConflict ? (
           <>
             <strong>Wallet extension conflict detected.</strong> Multiple browser extensions
-            are competing over <code>window.ethereum</code>. EVM (Celo) wallet connection
+            are competing over <code>window.ethereum</code>. EVM wallet connection
             is temporarily unavailable. To fix: disable one wallet extension and refresh,
-            or use WalletConnect. Solana wallet is unaffected.
+            or use WalletConnect.
           </>
         ) : (
           <>
-            <strong>EVM provider error.</strong> {message}. Solana wallet is unaffected.
+            <strong>EVM provider error.</strong> {message}. WalletConnect remains available.
           </>
         )}
       </span>

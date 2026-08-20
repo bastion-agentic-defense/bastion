@@ -1,32 +1,18 @@
 # cargo-audit configuration.
 #
-# These advisories are inherited transitively from the pinned Solana 1.18.26
-# SDK (required by Anchor 0.30.1) and cannot be patched without a Solana SDK
-# major-version bump, which is tracked as a hardening item in
-# docs/MAINNET_READINESS.md §5 and SECURITY.md "Known Issues".
+# After the full-EVM pivot, Solana/Arcium (and their transitive advisories:
+# curve25519-dalek 3.x, ed25519-dalek 1.x, quinn-proto, ring 0.16, rustls-webpki,
+# time 0.3) are no longer in the dependency graph. The only remaining pinned
+# advisories below come from the EVM sidecar's own transitive deps (sled →
+# crossbeam-epoch; reqwest/hyper → h2) and cannot be patched without a
+# semver-major bump of those dependencies.
 #
 # The allowlist is explicit and reviewed: any NEW advisory not listed here will
 # still fail `cargo audit` in CI.
 [advisories]
 ignore = [
-    # crossbeam-epoch 0.9.18 — invalid pointer deref (via solana-*)
+    # crossbeam-epoch 0.9.18 — invalid pointer deref (via sled)
     "RUSTSEC-2026-0204",
-    # curve25519-dalek 3.2.1 — timing variability (via solana-*)
-    "RUSTSEC-2024-0344",
-    # ed25519-dalek 1.0.1 — double pubkey signing oracle (via solana-*)
-    "RUSTSEC-2022-0093",
-    # h2 0.3.27 / 0.4.14 — unbounded empty DATA frames (via quinn → solana-*)
+    # h2 0.4.14 — unbounded empty DATA frames (via reqwest → hyper)
     "RUSTSEC-2026-0258",
-    # quinn-proto 0.10.6 — DoS (via solana-quic-client)
-    "RUSTSEC-2026-0037",
-    # quinn-proto 0.10.6 — remote memory exhaustion (via solana-quic-client)
-    "RUSTSEC-2026-0185",
-    # ring 0.16.20 — AES panic under overflow checks (via quinn → solana-*)
-    "RUSTSEC-2025-0009",
-    # rustls-webpki 0.101.7 — name-constraint / wildcard / CRL panics (via quinn)
-    "RUSTSEC-2026-0098",
-    "RUSTSEC-2026-0099",
-    "RUSTSEC-2026-0104",
-    # time 0.3.36 — DoS via stack exhaustion (via solana-*)
-    "RUSTSEC-2026-0009",
 ]

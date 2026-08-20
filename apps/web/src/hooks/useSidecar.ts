@@ -42,17 +42,11 @@ interface PolicyConfig {
   simulation_checks_enabled: boolean;
 }
 
-interface SimulationRequest {
-  transaction: string;
-  intent?: string;
-}
-
-interface SimulationResult {
-  passed: boolean;
+interface EvmSimulationResult {
+  allowed: boolean;
   decision: string;
-  reasoning: string;
-  simulation_logs: string[];
-  block_id?: string;
+  reason?: string;
+  logs: string[];
 }
 
 interface PendingApproval {
@@ -137,42 +131,39 @@ export function useSidecar() {
     [],
   );
 
-  const simulateTransaction = useCallback(
+  const simulateEvm = useCallback(
     async (
-      base64Tx: string,
+      tx: { from: string; to: string; value?: string; data?: string },
       intent?: string,
-    ): Promise<SimulationResult | null> => {
+      chain = 'base',
+    ): Promise<EvmSimulationResult | null> => {
       try {
-        const body: SimulationRequest = { transaction: base64Tx };
-        if (intent) body.intent = intent;
-        const res = await fetch(`${SIDECAR_URL}/simulate`, {
+        const res = await fetch(`${SIDECAR_URL}/api/v2/simulate-evm`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
+          body: JSON.stringify({ transaction: tx, intent, chain }),
         });
+        const data = await res.json();
         if (!res.ok) {
-          const err = await res.json();
           return {
-            passed: false,
-            decision: 'BLOCKED',
-            reasoning: err.error || 'Simulation request failed',
-            simulation_logs: [],
-            block_id: err.block_id,
+            allowed: false,
+            decision: 'blocked',
+            reason: data.error || 'Simulation request failed',
+            logs: [],
           };
         }
-        const data = await res.json();
         return {
-          passed: true,
-          decision: 'ALLOWED',
-          reasoning: 'Transaction passed all checks',
-          simulation_logs: data.checks_passed || [],
+          allowed: data.allowed,
+          decision: data.decision,
+          reason: data.reason,
+          logs: data.simulation_result?.logs ?? [],
         };
       } catch (e) {
         return {
-          passed: false,
-          decision: 'BLOCKED',
-          reasoning: `Network error: ${String(e)}`,
-          simulation_logs: [],
+          allowed: false,
+          decision: 'blocked',
+          reason: `Network error: ${String(e)}`,
+          logs: [],
         };
       }
     },
@@ -240,10 +231,10 @@ export function useSidecar() {
     fetchLogs,
     fetchPolicy,
     updatePolicy,
-    simulateTransaction,
+    simulateEvm,
     fetchPending,
     overrideBlock,
     fetchCircuitBreakerStatus,
     toggleCircuitBreaker,
-  }), [fetchHealth, fetchStats, fetchLogs, fetchPolicy, updatePolicy, simulateTransaction, fetchPending, overrideBlock, fetchCircuitBreakerStatus, toggleCircuitBreaker]);
+  }), [fetchHealth, fetchStats, fetchLogs, fetchPolicy, updatePolicy, simulateEvm, fetchPending, overrideBlock, fetchCircuitBreakerStatus, toggleCircuitBreaker]);
 }

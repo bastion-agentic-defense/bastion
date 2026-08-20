@@ -45,25 +45,6 @@ jobs:
       - run: cargo clippy -p bastion-sidecar -- -D warnings
       - run: cargo test -p bastion-sidecar
 
-  solana:
-    name: solana (build + anchor test)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: "crates/solana/programs/bastion-audit"
-      - name: Install Solana CLI
-        run: |
-          sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
-          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
-      - name: Install Anchor CLI
-        run: |
-          npm install -g @coral-xyz/anchor-cli@0.30.1
-      - run: cargo check -p bastion-audit
-      - run: cargo test -p bastion-audit --features devnet
-
   fmt:
     name: fmt
     runs-on: ubuntu-latest
@@ -121,7 +102,7 @@ jobs:
 
   # ── SDK ─────────────────────────────────────────────────────
   sdk:
-    name: sdk (build)
+    name: sdk (build + test)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -133,7 +114,8 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @zkos-labs/sdk build
+      - run: pnpm --filter @zkos-labs/bastion-sdk build
+      - run: pnpm --filter @zkos-labs/bastion-sdk test
 
   # ── Web2 SDK ────────────────────────────────────────────────
   web2-sdk:

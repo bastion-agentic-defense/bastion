@@ -23,12 +23,12 @@ const PLATFORMS: AgentPlatform[] = [
     description: 'Per-repo rule. Auto-loads on every session.',
     setup: 'Create .cursor/rules/bastion.mdc',
     code: `---
-description: Bastion Programmable Trust Runtime for multi-chain transactions
+description: Bastion Programmable Trust Runtime for EVM transactions
 alwaysApply: true
 ---
 Before signing any transaction, validate it through Bastion.
-Use @zkos-labs/sdk for agent registration and policy config.
-Import { BastionClient } from "@zkos-labs/sdk".`,
+Use @zkos-labs/bastion-sdk for agent registration and policy config.
+Import { BastionSidecar, BastionEVMClient } from "@zkos-labs/bastion-sdk".`,
   },
   {
     name: 'Codex',
@@ -36,14 +36,13 @@ Import { BastionClient } from "@zkos-labs/sdk".`,
     description: 'Per-repo pointer. Codex fetches on each task.',
     setup: 'Add to AGENTS.md',
     code: `# AGENTS.md
-Use @zkos-labs/sdk for multi-chain transaction security.
-Import { BastionClient, AGENT_CAPABILITIES }
-from "@zkos-labs/sdk".
+Use @zkos-labs/bastion-sdk for EVM transaction security.
+Import { BastionSidecar, BastionEVMClient }
+from "@zkos-labs/bastion-sdk".
 
 Before signing, pass the transaction through
-Bastion middleware at POST /simulate (Solana)
-or POST /api/v2/simulate-evm (EVM).
-Only sign if response is ALLOW.`,
+Bastion middleware at POST /api/v2/simulate-evm.
+Only sign if the decision is ALLOW.`,
   },
   {
     name: 'OpenClaw',

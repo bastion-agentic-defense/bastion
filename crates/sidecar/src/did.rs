@@ -53,7 +53,7 @@ pub struct DidResolutionMetadata {
     pub retrieved: String,
 }
 
-/// Build a DID document for a Solana agent from its on-chain PDA data.
+/// Build a DID document for a Bastion agent from its authority key.
 pub fn build_did_document(
     did_id: &str,
     agent_pda_base58: &str,
@@ -96,7 +96,7 @@ pub fn build_did_document(
     }
 }
 
-/// Resolve a `did:bastion:solana:*` identifier by looking up the AgentStore.
+/// Resolve a `did:bastion:evm:*` identifier by looking up the AgentStore.
 ///
 /// Only **registered** agents resolve to a document. Unknown DIDs return `None`
 /// (surfaced as a 404) rather than a fabricated stub - an unregistered agent must
@@ -114,7 +114,7 @@ pub async fn resolve_did(
 
     match chain {
         // Only registered agents resolve; unregistered DIDs are not found.
-        "solana" => agent_store.build_did_document(did),
+        "evm" => agent_store.build_did_document(did),
         _ => None,
     }
 }
