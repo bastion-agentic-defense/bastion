@@ -5,9 +5,7 @@ members = [
     "crates/policy-engine",
     "crates/workflow",
     "crates/sidecar",
-    "crates/solana/programs/bastion-audit",
     "crates/web2-firewall",
-    "crates/arcium",
 ]
 
 [workspace.package]

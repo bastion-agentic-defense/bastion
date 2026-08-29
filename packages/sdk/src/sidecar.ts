@@ -1,8 +1,6 @@
 import { BastionEventStream } from "./types";
 import type {
   SidecarConfig,
-  SimulateRequest,
-  SimulateResponse,
   LogsQuery,
   LogsResponse,
   SidecarPolicy,
@@ -11,6 +9,8 @@ import type {
   CircuitBreakerStatus,
   EvmSimulateRequest,
   EvmSimulateResponse,
+  ScanResult,
+  ScanResultsResponse,
 } from "./types";
 
 export class BastionSidecar {
@@ -65,16 +65,12 @@ export class BastionSidecar {
     return this.request<HealthResponse>("GET", "/health");
   }
 
-  simulate(req: SimulateRequest): Promise<SimulateResponse> {
-    return this.request<SimulateResponse>("POST", "/simulate", req);
-  }
-
   logs(query?: LogsQuery): Promise<LogsResponse> {
     return this.request<LogsResponse>("GET", "/logs", undefined, query as Record<string, string | number | undefined>);
   }
 
-  approve(req: OverrideRequest): Promise<SimulateResponse | { error: string }> {
-    return this.request("POST", "/override", req);
+  approve(req: OverrideRequest): Promise<{ error?: string; ok?: boolean }> {
+    return this.request<{ error?: string; ok?: boolean }>("POST", "/override", req);
   }
 
   getPolicy(): Promise<SidecarPolicy> {
@@ -95,6 +91,16 @@ export class BastionSidecar {
 
   disengageCircuitBreaker(): Promise<CircuitBreakerStatus> {
     return this.request<CircuitBreakerStatus>("POST", "/circuit-breaker/disengage");
+  }
+
+  /** Trigger an on-demand background trust scan. */
+  triggerScan(): Promise<ScanResult> {
+    return this.request<ScanResult>("POST", "/scans");
+  }
+
+  /** Fetch the most recent background trust scan result, if any. */
+  scanResults(): Promise<ScanResultsResponse> {
+    return this.request<ScanResultsResponse>("GET", "/scan/results");
   }
 
   simulateEvm(req: EvmSimulateRequest): Promise<EvmSimulateResponse> {

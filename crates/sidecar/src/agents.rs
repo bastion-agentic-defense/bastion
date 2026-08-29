@@ -1,7 +1,34 @@
 use crate::did;
 use base64::Engine as _;
+use ed25519_dalek::SigningKey;
 use serde::{Deserialize, Serialize};
-use solana_sdk::signature::{Keypair, Signer};
+
+/// Hex-encode bytes (EVM-native authority key encoding).
+pub(crate) fn encode_hex(bytes: &[u8]) -> String {
+    let mut s = String::with_capacity(bytes.len() * 2);
+    for b in bytes {
+        s.push_str(&format!("{b:02x}"));
+    }
+    s
+}
+
+/// Decode a hex string into bytes. Returns `None` on odd length or non-hex input.
+pub(crate) fn decode_hex(s: &str) -> Option<Vec<u8>> {
+    if !s.len().is_multiple_of(2) {
+        return None;
+    }
+    (0..s.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&s[i..i + 2], 16).ok())
+        .collect()
+}
+
+/// Parse a stored authority pubkey (hex) into an Ed25519 [`ed25519_dalek::VerifyingKey`].
+pub(crate) fn authority_verifying_key(authority: &str) -> Result<ed25519_dalek::VerifyingKey, ()> {
+    let bytes = decode_hex(authority).ok_or(())?;
+    let arr: [u8; 32] = bytes.as_slice().try_into().map_err(|_| ())?;
+    ed25519_dalek::VerifyingKey::from_bytes(&arr).map_err(|_| ())
+}
 
 /// A tracked agent registered with the sidecar.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -26,6 +53,10 @@ pub struct TrackedAgent {
     pub delegation_depth: Option<u8>,
     pub child_dids: Vec<String>,
     pub is_delegator: bool,
+    /// Unix timestamp (seconds) when a delegated agent's authority expires.
+    /// `None` means the delegation does not expire.
+    #[serde(default)]
+    pub delegation_expires_at: Option<i64>,
 
     // ── Connectivity ──
     pub sidecar_endpoint: Option<String>,
@@ -71,17 +102,19 @@ pub struct GeneratedDID {
     pub secret_key_base64: String,
 }
 
-/// Generate a new Ed25519 keypair and return a `did:bastion:solana:{pubkey}` identifier.
+/// Generate a new Ed25519 keypair and return a `did:bastion:evm:{pubkey_hex}` identifier.
 pub fn generate_did_keypair() -> GeneratedDID {
-    let keypair = Keypair::new();
-    let pubkey = keypair.pubkey().to_string();
-    let did = format!("did:bastion:solana:{pubkey}");
-    let secret_bytes = keypair.to_bytes();
-    let secret_key_base64 = base64::engine::general_purpose::STANDARD.encode(secret_bytes);
+    let signing_key = SigningKey::generate(&mut rand::rngs::OsRng);
+    let verifying_key = signing_key.verifying_key();
+    let pubkey_hex = encode_hex(&verifying_key.to_bytes());
+    // agent signing key; full secp256k1 EVM-address DID is a follow-up
+    let did = format!("did:bastion:evm:{pubkey_hex}");
+    let secret_bytes = signing_key.to_bytes();
+    let secret_key_base64 = base64::engine::general_purpose::STANDARD.encode(&secret_bytes[..]);
 
     GeneratedDID {
         did,
-        authority_pubkey: pubkey,
+        authority_pubkey: pubkey_hex,
         secret_key_base64,
     }
 }
@@ -134,6 +167,7 @@ impl AgentStore {
             delegation_depth: Some(0),
             child_dids: Vec::new(),
             is_delegator: false,
+            delegation_expires_at: None,
             device_type,
             firmware_version,
             last_known_location,

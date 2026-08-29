@@ -1,5 +1,8 @@
 # Arcium Sidecar Integration Spec
 
+> ⚠️ **RETIRED.** Arcium has been removed from Bastion (full-EVM pivot). Kept for
+> history — see [`docs/ARCHIVE.md`](ARCHIVE.md).
+
 ## Flow
 
 ```

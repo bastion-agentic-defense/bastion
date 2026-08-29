@@ -39,6 +39,9 @@ zksync = "${ZKSYNC_RPC_URL}"
 zksync_sepolia = "${ZKSYNC_SEPOLIA_RPC_URL}"
 robinhood = "${ROBINHOOD_RPC_URL}"
 robinhood_testnet = "${ROBINHOOD_TESTNET_RPC_URL}"
+# Monad is a standard EVM chain (no special tooling needed beyond its RPC endpoint).
+monad = "${MONAD_RPC_URL}"
+monad_testnet = "${MONAD_TESTNET_RPC_URL}"
 
 [etherscan]
 ethereum_sepolia = { key = "${ETHERSCAN_API_KEY}", chain = 11155111 }

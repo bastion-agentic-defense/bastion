@@ -1,4 +1,4 @@
-export type ChainId = 'solana' | 'evm';
+export type ChainId = 'evm';
 
 export interface ChainConfig {
   id: ChainId;
@@ -11,18 +11,9 @@ export interface ChainConfig {
 }
 
 export const CHAINS: Record<ChainId, ChainConfig> = {
-  solana: {
-    id: 'solana',
-    name: 'Solana',
-    shortName: 'SOL',
-    icon: '',
-    color: '#9945FF',
-    rpcUrl: 'https://api.devnet.solana.com',
-    explorerUrl: 'https://explorer.solana.com',
-  },
   evm: {
     id: 'evm',
-    name: 'EVM (Ethereum / Base / Celo / zkSync / Robinhood)',
+    name: 'EVM (Ethereum / Base / Celo / zkSync / Robinhood / Monad)',
     shortName: 'EVM',
     icon: '',
     color: '#627EEA',
@@ -33,4 +24,4 @@ export const CHAINS: Record<ChainId, ChainConfig> = {
 };
 
 export const CHAIN_LIST: ChainConfig[] = Object.values(CHAINS);
-export const DEFAULT_CHAIN: ChainId = 'solana';
+export const DEFAULT_CHAIN: ChainId = 'evm';

@@ -12,30 +12,30 @@ Agent Framework (LangGraph, CrewAI, ElizaOS, OpenAI Agents SDK)
    Policy + Identity + HITL + Simulation + Audit
         |
         v
-Ethereum | zkSync | Solana | Base | Celo | Arbitrum | Robinhood | Arcium
+Ethereum | Monad | zkSync | Base | Celo | Arbitrum | Robinhood
 ```
 
 Bastion does not build agents. Bastion does not orchestrate multi-agent workflows. Bastion answers one question: **can this action execute safely under the trust policies in place?**
 
 ## Current State
 
-The core is a working transaction firewall deployed on Solana devnet with EVM support. Agents submit intended actions, Bastion evaluates them against programmable policy (11 rule types), simulates them against live chain state, applies human-in-the-loop review when required, and writes a verifiable audit record on-chain.
+The core is a working transaction firewall on EVM (testnet). Agents submit intended actions, Bastion evaluates them against programmable policy (11 rule types), simulates them against live chain state, applies human-in-the-loop review when required, and writes a verifiable audit record on-chain. Solana and Arcium are retired (see `docs/ARCHIVE.md`).
 
 | Capability | Status |
 |-----------|--------|
 | Programmable policy engine (11 rules) | Shipped |
-| Transaction simulation (Solana + EVM) | Shipped |
+| Transaction simulation (EVM) | Shipped |
 | Human-in-the-loop approvals | Shipped |
-| Verifiable on-chain audit (Anchor PDA + EIP-712) | Shipped |
+| Verifiable on-chain audit (EIP-712) | Shipped |
 | ERC-8004 agent identity + delegation | Shipped |
 | MCP server (15 tools, 3 prompts) | Shipped |
 | Web2 API policy adapter | Shipped |
 | TypeScript SDK | Shipped |
-| Confidential ZK policy verdicts (CAPV) | Integrated |
+| Confidential ZK policy verdicts (ERC-8354, draft) | Integrated (experimental) |
+| Unclonable agent credentials (ERC-8380, draft) | Integrated (experimental) |
 | trustless-ai ERC stack (8004, 8263, 8281, 8299) | Integrated |
 | Durable workflow engine | Planned |
 | Cross-chain settlement router | Planned |
-| Arcium MXE confidential compute | Planned |
 
 ## License and Sustainability
 
@@ -48,10 +48,9 @@ crates/core/             Chain-agnostic policy engine, 11 rule types
 crates/policy-engine/    Kyverno-style TrustPolicy YAML, lifecycle, scanner
 crates/sidecar/          Axum HTTP server, REST API, simulation, audit
 crates/web2-firewall/    Web2 API proxy with provider adapters
-crates/solana/           Anchor on-chain audit program (devnet)
-evm/                     Solidity contracts (Foundry, 62 tests)
+evm/                     Solidity contracts (Foundry, incl. ERC-8354/8380)
 apps/web/                React dashboard (Vite, TailwindCSS)
-packages/sdk/            TypeScript SDK (@zkos-labs/sdk)
+packages/sdk/            TypeScript SDK (@zkos-labs/bastion-sdk)
 packages/web2-sdk/       Web2 adapter SDK (@zkos-labs/web2-sdk)
 packages/mcp-server/     MCP server (SSE transport)
 fv/                      Formal verification (TLA+ + Certora + property tests)
@@ -82,7 +81,7 @@ Following Vitalik's focused verification thesis: prove the trust-critical compon
 | 1 | Durable workflow engine. Multi-step agent actions with crash recovery and deterministic replay |
 | 2 | Cross-chain settlement router. Decompose TrustIntents into chain-specific execution plans |
 | 3 | Background scanner. Continuous trust scanning for expired approvals, policy drift, unsettled transactions |
-| 4 | Deploy to Solana mainnet. External security audit gating production deployment |
+| 4 | Deploy to EVM mainnet (Monad + existing chains). External security audit gating production deployment |
 
 ## Get Involved
 

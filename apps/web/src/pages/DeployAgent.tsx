@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { useBastionProgram } from '../hooks/useBastionProgram';
+import { useAccount } from 'wagmi';
 
 const TEMPLATES = [
   {
@@ -9,50 +8,45 @@ const TEMPLATES = [
     name: 'DeFi Agent',
     icon: '',
     color: '#22c55e',
-    desc: 'Swap and transfer with policy-gated limits. Jupiter + Raydium + Token Program.',
+    desc: 'Swap and transfer with policy-gated limits. Uniswap + ERC-20 + native token.',
     caps: 'TRANSFER + SWAP',
-    maxSolPerTx: 1,
+    maxNativePerTx: 0.1,
     rateLimit: 10,
-    stake: 5,
   },
   {
     id: 'trading',
     name: 'Trading Agent',
     icon: '',
     color: '#f59e0b',
-    desc: 'High-frequency trading with relaxed limits. Requires higher stake for 5x limit multiplier.',
+    desc: 'High-frequency trading with relaxed limits. Higher rate limit for active strategies.',
     caps: 'TRANSFER + SWAP',
-    maxSolPerTx: 2,
+    maxNativePerTx: 0.5,
     rateLimit: 50,
-    stake: 25,
   },
   {
     id: 'transfer',
     name: 'Transfer Agent',
     icon: '→',
     color: '#3b82f6',
-    desc: 'Simple SOL transfer agent. Tight policy, minimal risk.',
+    desc: 'Simple native token transfer agent. Tight policy, minimal risk.',
     caps: 'TRANSFER only',
-    maxSolPerTx: 0.1,
+    maxNativePerTx: 0.01,
     rateLimit: 5,
-    stake: 1,
   },
   {
     id: 'custom',
     name: 'Custom Agent',
     icon: '✦',
     color: '#a855f7',
-    desc: 'Fully customizable. Set your own capabilities, policy, and staking.',
+    desc: 'Fully customizable. Set your own capabilities, policy, and limits.',
     caps: 'Full control',
-    maxSolPerTx: 1,
+    maxNativePerTx: 0.1,
     rateLimit: 10,
-    stake: 10,
   },
 ];
 
 export default function DeployAgent() {
-  const { connected, publicKey } = useWallet();
-  const sol = useBastionProgram();
+  const { address, isConnected: connected } = useAccount();
   const navigate = useNavigate();
   const [selected, setSelected] = useState<string | null>(null);
   const [agentName, setAgentName] = useState('');
@@ -62,13 +56,11 @@ export default function DeployAgent() {
   const tpl = TEMPLATES.find(t => t.id === selected);
 
   async function handleDeploy() {
-    if (!tpl || !connected || !publicKey) return;
+    if (!tpl || !connected || !address) return;
     setDeploying(true);
     setResult(null);
     try {
-      // Register agent on Solana
-      const capsNum = tpl.id === 'defi' ? 3 : tpl.id === 'transfer' ? 1 : 3;
-      // Use SDK via POST /agents to sidecar for registration
+      // Register agent on the EVM via the sidecar (POST /agents).
       const res = await fetch(`${import.meta.env.VITE_SIDECAR_URL || 'https://bastion-agentique.fly.dev/'}/agents`, {
         method: 'POST',
         headers: {
@@ -76,8 +68,8 @@ export default function DeployAgent() {
           'X-Api-Key': import.meta.env.VITE_BASTION_API_KEY || '',
         },
         body: JSON.stringify({
-          did: `did:bastion:solana:${publicKey.toBase58()}`,
-          authority_pubkey: publicKey.toBase58(),
+          did: `did:bastion:evm:${address}`,
+          authority_pubkey: address,
           sidecar_endpoint: null,
           name: agentName || tpl.name,
         }),
@@ -105,7 +97,7 @@ export default function DeployAgent() {
       <main className="pt-32 px-6 pb-8 max-w-4xl mx-auto">
         <h1 className="font-serif text-2xl mb-2">Deploy an Agent</h1>
         <p className="font-sans text-xs text-zinc-500 mb-8">
-          Choose a pre-configured template. Bastion sets up the policy, capabilities, and staking - your agent is ready in seconds.
+          Choose a pre-configured template. Bastion sets up the policy and capabilities - your agent is ready in seconds.
         </p>
 
         {/* Template grid */}
@@ -130,16 +122,12 @@ export default function DeployAgent() {
               <p className="font-sans text-[11px] text-zinc-400 mb-3">{t.desc}</p>
               <div className="space-y-1 font-mono text-[10px] text-zinc-600">
                 <div className="flex justify-between">
-                  <span>Max SOL/tx</span>
-                  <span className="text-zinc-400">{t.maxSolPerTx}</span>
+                  <span>Max native/tx</span>
+                  <span className="text-zinc-400">{t.maxNativePerTx}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Rate limit</span>
                   <span className="text-zinc-400">{t.rateLimit}/min</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Rec. stake</span>
-                  <span className="text-zinc-400">{t.stake} SOL</span>
                 </div>
               </div>
             </button>
@@ -168,7 +156,7 @@ export default function DeployAgent() {
               </button>
             </div>
             {!connected && (
-              <p className="font-sans text-[10px] text-red-400">Connect your Solana wallet to deploy.</p>
+              <p className="font-sans text-[10px] text-red-400">Connect your EVM wallet to deploy.</p>
             )}
             {result && (
               <div
@@ -188,9 +176,9 @@ export default function DeployAgent() {
             Templates are stored as YAML in <code className="text-zinc-400">apps/web/public/agent-templates/</code>
           </p>
           <div className="space-y-1 font-mono text-[10px] text-zinc-600">
-            <div>• defi-agent.yml - DeFi operations (Jupiter + Raydium)</div>
+            <div>• defi-agent.yml - DeFi operations (Uniswap + ERC-20)</div>
             <div>• trading-agent.yml - High-frequency (relaxed limits)</div>
-            <div>• transfer-agent.yml - Simple SOL transfer (low risk)</div>
+            <div>• transfer-agent.yml - Simple native transfer (low risk)</div>
             <div>• custom-agent.yml - Full customization</div>
           </div>
         </div>

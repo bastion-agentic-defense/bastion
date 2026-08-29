@@ -9,152 +9,144 @@ interface ApiMethod {
 
 const METHODS: ApiMethod[] = [
   {
-    method: 'initialize',
-    signature: 'initialize(authority: Signer): Promise<Transaction>',
-    description: 'Initialize the on-chain audit state PDA. Call once when setting up Bastion for a new authority.',
-    example: `const initTx = await client.initialize(wallet);
-await connection.sendTransaction(initTx, [wallet]);`,
+    method: 'getEntryCount',
+    signature: 'getEntryCount(): Promise<bigint>',
+    description: 'Total number of audit entries recorded on-chain by the BastionAudit contract.',
+    example: `import { BastionEVMClient } from "@zkos-labs/bastion-sdk";
+
+const client = new BastionEVMClient({ publicClient, chain, contracts });
+const total = await client.getEntryCount();
+console.log(total);`,
   },
   {
-    method: 'registerAgent',
-    signature: 'registerAgent(signer, name, capabilities): Promise<Transaction>',
-    description: 'Register an AI agent on-chain with a name and capability bitmask. PDA derived from authority key.',
-    example: `const tx = await client.registerAgent(
-  wallet,
-  "MyTradingBot",
-  AGENT_CAPABILITIES.TRANSFER | AGENT_CAPABILITIES.SWAP
-);
-await connection.sendTransaction(tx, [wallet]);`,
+    method: 'readAuditEntry',
+    signature: 'readAuditEntry(entryId: Hex): Promise<BastionAuditEntry>',
+    description: 'Read a single EIP-712 signed audit entry by its bytes32 id.',
+    example: `const entry = await client.readAuditEntry(entryId);
+console.log(entry.agent, entry.target, entry.allowed);`,
   },
   {
-    method: 'setPolicy',
-    signature: 'setPolicy(signer, programs[], maxSol, rateLimit): Promise<Transaction>',
-    description: 'Configure the security policy. Set allowed programs, max native token per transaction, and rate limit.',
-    example: `const tx = await client.setPolicy(
-  wallet,
-  [jupiterProgram, tokenProgram],
-  1,  // max 1 SOL per tx
-  10  // rate limit: 10 tx/min
-);
-await connection.sendTransaction(tx, [wallet]);`,
+    method: 'readPolicy',
+    signature: 'readPolicy(agent: Address): Promise<BastionPolicy>',
+    description: 'Read the per-agent policy (limits, allowed targets/selectors, cooldown) from BastionPolicy.',
+    example: `const policy = await client.readPolicy(agentAddress);
+console.log(policy.maxValuePerTx, policy.allowedTargets);`,
   },
   {
-    method: 'logAudit',
-    signature: 'logAudit(signer, decision, simResult[], reason): Promise<Transaction>',
-    description: 'Log an audit decision on-chain. Called by the middleware after simulation and policy check.',
-    example: `const tx = await client.logAudit(
-  wallet,
-  DECISION.ALLOWED,
-  simHash,
-  "Transaction passed all checks"
-);
-await connection.sendTransaction(tx, [wallet]);`,
+    method: 'writePolicy',
+    signature: 'writePolicy(agent: Address, policy: BastionPolicy): Promise<Hex>',
+    description: 'Set the policy for an agent. Requires a wallet client (write).',
+    example: `const hash = await client.writePolicy(agentAddress, {
+  agent: agentAddress,
+  isActive: true,
+  maxValuePerTx: 1_000_000n,
+  maxGasPerTx: 0n,
+  dailyTxLimit: 100n,
+  cooldownSeconds: 0n,
+  allowedTargets: [targetAddress],
+  allowedSelectors: [],
+  extraData: "0x",
+});`,
   },
   {
-    method: 'emergencyPause',
-    signature: 'emergencyPause(signer): Promise<Transaction>',
-    description: 'Pause all transaction processing immediately. Circuit breaker for emergencies.',
-    example: `const tx = await client.emergencyPause(wallet);
-await connection.sendTransaction(tx, [wallet]);`,
-  },
-  {
-    method: 'emergencyResume',
-    signature: 'emergencyResume(signer): Promise<Transaction>',
-    description: 'Resume transaction processing after a pause. Restores normal operation.',
-    example: `const tx = await client.emergencyResume(wallet);
-await connection.sendTransaction(tx, [wallet]);`,
-  },
-  {
-    method: 'fetchAuditState',
-    signature: 'fetchAuditState(): Promise<AuditState>',
-    description: 'Fetch the current audit state including total audits, allowed count, blocked count, and paused status.',
-    example: `const state = await client.fetchAuditState();
-console.log(state.totalAudits, state.allowedCount);`,
-  },
-  {
-    method: 'fetchPolicy',
-    signature: 'fetchPolicy(): Promise<Policy>',
-    description: 'Fetch the current security policy configuration from on-chain.',
-    example: `const policy = await client.fetchPolicy();
-console.log(policy.allowedPrograms);`,
-  },
-  {
-    method: 'getAuditStateAddress',
-    signature: 'getAuditStateAddress(): PublicKey',
-    description: 'Derive the PDA for the audit state account. Useful for explorers and cross-contract calls.',
-    example: `const auditPda = client.getAuditStateAddress();`,
-  },
-  {
-    method: 'getAgentAddress',
-    signature: 'getAgentAddress(authority): PublicKey',
-    description: 'Derive the PDA for an agent account given its authority public key.',
-    example: `const agentPda = client.getAgentAddress(wallet.publicKey);`,
-  },
-  {
-    method: 'getPolicyAddress',
-    signature: 'getPolicyAddress(): PublicKey',
-    description: 'Derive the PDA for the policy account.',
-    example: `const policyPda = client.getPolicyAddress();`,
-  },
-  {
-    method: 'getAgentDID',
-    signature: 'getAgentDID(authority): string',
-    description: 'Derive the W3C DID identifier for an agent. Format: did:bastion:solana:{agent_pda_base58}.',
-    example: `const did = client.getAgentDID(wallet.publicKey);`,
-  },
-  {
-    method: 'fetchAllAgents',
-    signature: 'fetchAllAgents(): Promise<Agent[]>',
-    description: 'Fetch all registered agents from the on-chain program via getProgramAccounts.',
-    example: `const agents = await client.fetchAllAgents();
-agents.forEach(a => console.log(a.name));`,
-  },
-  {
-    method: 'delegateAgent',
-    signature: 'delegateAgent(parentSigner, childSigner, name, capabilities, expiry?): Promise<Transaction>',
-    description: 'Spawn a sub-agent under a parent agent. Child inherits a subset of parent capabilities. Max depth 3.',
-    example: `const tx = await client.delegateAgent(
-  parentWallet,
-  childWallet,
-  "MarketBot",
-  AGENT_CAPABILITIES.TRANSFER,
-  Math.floor(Date.now() / 1000) + 86400
-);
-await connection.sendTransaction(tx, [parentWallet, childWallet]);`,
-  },
-  {
-    method: 'revokeDelegation',
-    signature: 'revokeDelegation(parentSigner, childAuthority): Promise<Transaction>',
-    description: 'Revoke a sub-agent delegation. Only the parent agent can revoke.',
-    example: `const tx = await client.revokeDelegation(
-  parentWallet,
-  childAuthority
-);
-await connection.sendTransaction(tx, [parentWallet]);`,
-  },
-  {
-    method: 'fetchAgentTree',
-    signature: 'fetchAgentTree(authority): Promise<AgentTreeData>',
-    description: 'Fetch the full delegation tree for an agent, including all nested children.',
-    example: `const tree = await client.fetchAgentTree(
-  wallet.publicKey
-);
-console.log(tree.children.length, 'sub-agents');`,
-  },
-  {
-    method: 'getAuditEntryAddress',
-    signature: 'getAuditEntryAddress(index): PublicKey',
-    description: 'Derive the PDA for an audit entry by its sequential index.',
-    example: `const entryPda = client.getAuditEntryAddress(0);`,
-  },
-  {
-    method: 'addEventListener',
-    signature: 'addEventListener<T>(event, callback): number',
-    description: 'Subscribe to on-chain events emitted by the Bastion program.',
-    example: `const id = client.addEventListener(
-  "AgentRegistered",
-  (event) => console.log(event.name)
+    method: 'validate',
+    signature: 'validate(agent, target, value, callData): Promise<{ allowed: boolean; reason: Hex }>',
+    description: 'Evaluate a transaction against the per-agent policy (view call to checkTransaction).',
+    example: `const { allowed, reason } = await client.validate(
+  agentAddress,
+  targetAddress,
+  100000n,
+  callData,
 );`,
+  },
+  {
+    method: 'isPaused',
+    signature: 'isPaused(): Promise<boolean>',
+    description: 'Whether the ERC-7579 firewall validator is currently paused.',
+    example: `const paused = await client.isPaused();`,
+  },
+  {
+    method: 'pause',
+    signature: 'pause(): Promise<Hex>',
+    description: 'Pause the firewall validator. Circuit breaker for emergencies. Requires a wallet client.',
+    example: `const hash = await client.pause();`,
+  },
+  {
+    method: 'unpause',
+    signature: 'unpause(): Promise<Hex>',
+    description: 'Resume the firewall validator after a pause. Requires a wallet client.',
+    example: `const hash = await client.unpause();`,
+  },
+  {
+    method: 'simulateEvm',
+    signature: 'simulateEvm(req: EvmSimulateRequest): Promise<EvmSimulateResponse>',
+    description: 'Run an EVM transaction through the sidecar policy engine before signing.',
+    example: `import { BastionSidecar } from "@zkos-labs/bastion-sdk";
+
+const sidecar = new BastionSidecar({ baseUrl: SIDECAR_URL });
+const result = await sidecar.simulateEvm({
+  transaction,
+  intent: "swap 1 ETH for USDC",
+  chain: "ethereum",
+});
+console.log(result.decision, result.risk_score);`,
+  },
+  {
+    method: 'getPolicy',
+    signature: 'getPolicy(): Promise<SidecarPolicy>',
+    description: 'Fetch the current sidecar policy (rate limits, allowlists, caps).',
+    example: `const policy = await sidecar.getPolicy();`,
+  },
+  {
+    method: 'updatePolicy',
+    signature: 'updatePolicy(policy: Partial<SidecarPolicy>): Promise<SidecarPolicy>',
+    description: 'Update the sidecar policy (max native per tx, rate limit, allowed programs).',
+    example: `await sidecar.updatePolicy({
+  max_sol_per_tx: 1,
+  rate_limit_per_minute: 120,
+  allowed_programs: ["0x..."],
+});`,
+  },
+  {
+    method: 'engageCircuitBreaker',
+    signature: 'engageCircuitBreaker(): Promise<CircuitBreakerStatus>',
+    description: 'Pause the protocol. Fail-closed breaker for emergencies.',
+    example: `await sidecar.engageCircuitBreaker();`,
+  },
+  {
+    method: 'disengageCircuitBreaker',
+    signature: 'disengageCircuitBreaker(): Promise<CircuitBreakerStatus>',
+    description: 'Resume the protocol after a pause.',
+    example: `await sidecar.disengageCircuitBreaker();`,
+  },
+  {
+    method: 'approve',
+    signature: 'approve(req: OverrideRequest): Promise<SimulateResponse | { error: string }>',
+    description: 'Human-in-the-loop override: ALLOW or REJECT a blocked transaction.',
+    example: `await sidecar.approve({ block_id, action: "ALLOW" });`,
+  },
+  {
+    method: 'verifyVerdict',
+    signature: 'verifyVerdict(verdict: Verdict, attestation: VerdictAttestation): Promise<boolean>',
+    description: 'ERC-8354: verify a confidential verdict signature against the agent key.',
+    example: `import { verifyVerdict } from "@zkos-labs/bastion-sdk";
+
+const ok = await verifyVerdict(verdict, attestation);`,
+  },
+  {
+    method: 'computeCapabilityCommitment',
+    signature: 'computeCapabilityCommitment(inputs: CapabilityInputs): Hex',
+    description: 'ERC-8380: derive the unclonable capability commitment for an agent credential.',
+    example: `import { computeCapabilityCommitment } from "@zkos-labs/bastion-sdk";
+
+const commitment = computeCapabilityCommitment({
+  agentId,
+  homeChainId,
+  homeDomainId,
+  capabilityIndex,
+  actionCommitment,
+  executor,
+});`,
   },
 ];
 
@@ -260,7 +252,6 @@ export default function ApiReference() {
             { method: 'POST', path: '/did/generate', desc: 'Generate Ed25519 keypair + DID' },
             { method: 'POST', path: '/auth/nonce', desc: 'Get challenge nonce for DID auth' },
             { method: 'POST', path: '/auth/verify', desc: 'Verify DID signature' },
-            { method: 'POST', path: '/simulate', desc: 'Validate transaction' },
             { method: 'POST', path: '/override', desc: 'HITL override' },
             { method: 'GET', path: '/logs', desc: 'Paginated audit logs' },
             { method: 'POST', path: '/agents', desc: 'Register agent (auth)' },
@@ -293,7 +284,7 @@ export default function ApiReference() {
       </div>
 
       {/* SDK Methods */}
-      <p className="font-sans text-xs font-medium mb-3" style={{ color: 'var(--accent)' }}>TypeScript SDK (@zkos-labs/sdk)</p>
+      <p className="font-sans text-xs font-medium mb-3" style={{ color: 'var(--accent)' }}>TypeScript SDK (@zkos-labs/bastion-sdk)</p>
 
       <div className="space-y-2">
         {METHODS.map((m) => (

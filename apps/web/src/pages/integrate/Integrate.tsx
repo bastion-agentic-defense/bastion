@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useAccount } from 'wagmi';
 import { Navbar } from '../../components/Navbar';
 import InstallSection from './InstallSection';
 import ReputationSection from './ReputationSection';
@@ -11,10 +11,8 @@ import PersistentSetup from './PersistentSetup';
 import ApiReference from './ApiReference';
 import LiveTest from './LiveTest';
 
-const CHAIN = 'solana' as const;
-
 export default function Integrate() {
-  const { connected: solConnected } = useWallet();
+  const { isConnected: solConnected } = useAccount();
   const navigate = useNavigate();
 
   return (

@@ -1,11 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { useAccount } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useChain } from '../context/ChainContext';
-import { useBastionProgram, type AuditEntryData, type PolicyData, type StatsData } from '../hooks/useBastionProgram';
+import { useBastionEVM, type AuditEntryData, type PolicyData, type StatsData } from '../hooks/useBastionEVM';
 import { useSidecar } from '../hooks/useSidecar';
 import { useAgents, type TrackedAgent } from '../hooks/useAgents';
 import AgentFloor from '../components/AgentFloor';
@@ -13,6 +9,11 @@ import EvmStatusPanel from '../components/EvmStatusPanel';
 import { useAgentEvents } from '../hooks/useAgentEvents';
 
 const DECISION_COLORS: Record<string, string> = { ALLOWED: '#22c55e', BLOCKED: '#ef4444', PENDING: '#f59e0b' };
+
+function shortAddr(a?: string): string {
+  if (!a) return 'not set';
+  return `${a.slice(0, 6)}…${a.slice(-4)}`;
+}
 
 function Gauge({ value, max, label, unit, colorScale }: { value: number; max: number; label: string; unit: string; colorScale?: [number, string][] }) {
   const pct = Math.min(value / max, 1);
@@ -119,13 +120,10 @@ function StatWidget({ label, value, color, sub }: { label: string; value: number
 }
 
 export default function Dashboard() {
-  const { chain } = useChain();
   const navigate = useNavigate();
-  const { connected: solConnected } = useWallet();
-  const { isConnected: evmConnected } = useAccount();
-  const connected = chain === 'solana' ? solConnected : evmConnected;
+  const evm = useBastionEVM();
+  const connected = evm.isConnected;
 
-  const sol = useBastionProgram();
   const sidecar = useSidecar();
   const { events: sseEvents, connected: sseConnected } = useAgentEvents();
   const { agents: trackedAgents, fetchAgents: fetchSidecarAgents } = useAgents();
@@ -158,19 +156,18 @@ export default function Dashboard() {
     }
     setLoadingAgents(true);
     try {
-      const [stats, agents, audits] = await Promise.all([
-        sol.fetchStats(),
-        sol.fetchAgents(),
-        sol.fetchAllAudits(15), // Reduced: 15 instead of 50 for network view
+      const [stats, audits] = await Promise.all([
+        evm.fetchStats(),
+        evm.fetchAuditEntries(15), // Reduced: 15 instead of 50 for network view
       ]);
       if (stats) { setStats(stats); setHistory((h) => [...h.slice(-29), stats.total]); }
-      if (agents) { setOnChainAgents(agents); networkLastFetch.current = now; }
       if (audits) { setOnChainAudits(audits); setLogs(audits); }
+      networkLastFetch.current = now;
     } finally {
       setLoadingAgents(false);
       setLoading(false);
     }
-  }, [sol]); // Removed onChainAgents - was creating infinite loop
+  }, [evm]);
 
   const loadSidecarData = useCallback(async () => {
     setLoading(true);
@@ -186,23 +183,21 @@ export default function Dashboard() {
       fetchSidecarAgents();
       if (s) { setStats(s); setHistory((h) => [...h.slice(-29), s.total]); }
       if (l) setLogs(l.entries.map((e) => ({ id: String(e.id), timestamp: e.timestamp, decision: e.result === 'ALLOWED' ? 'ALLOWED' : 'BLOCKED', account: e.transaction_details?.signature ?? '', intent: e.intent ?? 'No description', reason: e.reasoning })));
-      if (pol) { setPolicy(pol as any); setPolicyForm({ maxSolPerTx: (pol as any).max_sol_per_tx ?? 1, rateLimitPerMinute: (pol as any).rate_limit_per_minute ?? 120, allowedProgramsText: (pol as any).allowed_programs?.join('\n') ?? '' }); }
+      if (pol) { setPolicy(pol as any); setPolicyForm({ maxNativePerTx: (pol as any).max_sol_per_tx ?? 1, rateLimitPerMinute: (pol as any).rate_limit_per_minute ?? 120, allowedProgramsText: (pol as any).allowed_programs?.join('\n') ?? '' }); }
       if (pend) setPendingApprovals(pend);
     }
     setLoading(false);
-  }, [sidecar]); // Removed fetchSidecarAgents - identity changes every render
+  }, [sidecar, fetchSidecarAgents]);
 
   const loadData = useCallback(async () => {
     if (dataSource === 'network') {
       await loadNetworkData();
     } else {
       await loadSidecarData();
-      if (sol?.program) {
-        const paused = await sol.fetchPaused();
-        if (paused !== null) setIsPaused(paused);
-      }
+      const paused = await evm.fetchPaused();
+      if (paused !== null) setIsPaused(paused);
     }
-  }, [dataSource]); // Only re-evaluate when dataSource changes - loadNetworkData/loadSidecarData are stable via useCallback
+  }, [dataSource, evm, loadNetworkData, loadSidecarData]);
 
   useEffect(() => {
     loadData();
@@ -212,24 +207,22 @@ export default function Dashboard() {
   }, [loadData, dataSource]);
 
   const handlePause = useCallback(async () => {
-    if (chain !== 'solana') return;
-    if (!connected) { alert('Connect your Solana wallet to manage the circuit breaker.'); return; }
+    if (!connected) { alert('Connect your wallet to manage the circuit breaker.'); return; }
     setTxPending(true);
-    const sig = isPaused ? await sol.emergencyResume() : await sol.emergencyPause();
+    const sig = isPaused ? await evm.emergencyResume() : await evm.emergencyPause();
     if (sig) { setIsPaused(!isPaused); setTimeout(loadData, 2000); }
     setTxPending(false);
-  }, [isPaused, sol, loadData, chain, connected]);
+  }, [isPaused, evm, loadData, connected]);
 
   const handleSavePolicy = useCallback(async () => {
-    if (chain !== 'solana') return;
-    if (!connected) { alert('Connect your Solana wallet to update the policy.'); return; }
+    if (!connected) { alert('Connect your wallet to update the policy.'); return; }
     setTxPending(true);
     const programs = policyForm.allowedProgramsText.split('\n').map((p) => p.trim()).filter((p) => p.length > 0);
-    await sidecar.updatePolicy({ max_sol_per_tx: policyForm.maxSolPerTx, max_balance_drain_lamports: null, rate_limit_per_minute: policyForm.rateLimitPerMinute, allowed_programs: programs, blocked_addresses: [], simulation_checks_enabled: true });
-    try { await sol.updatePolicy(programs, policyForm.maxSolPerTx, policyForm.rateLimitPerMinute); } catch { /* ok */ }
-    setPolicy({ maxSolPerTx: policyForm.maxSolPerTx, rateLimit: policyForm.rateLimitPerMinute, allowedPrograms: programs });
+    await sidecar.updatePolicy({ max_sol_per_tx: policyForm.maxNativePerTx, max_balance_drain_lamports: null, rate_limit_per_minute: policyForm.rateLimitPerMinute, allowed_programs: programs, blocked_addresses: [], simulation_checks_enabled: true });
+    try { await evm.updatePolicy(programs, policyForm.maxNativePerTx, policyForm.rateLimitPerMinute); } catch { /* ok */ }
+    setPolicy({ maxSolPerTx: policyForm.maxNativePerTx, rateLimit: policyForm.rateLimitPerMinute, allowedPrograms: programs });
     setEditingPolicy(false); setTxPending(false); setTimeout(loadData, 2000);
-  }, [policyForm, sol, sidecar, loadData, chain]);
+  }, [policyForm, evm, sidecar, loadData, connected]);
 
   const handleOverride = useCallback(async (blockId: string, action: 'ALLOW' | 'REJECT') => {
     setTxPending(true);
@@ -300,13 +293,13 @@ export default function Dashboard() {
           </button>
           <span className="px-2 py-0.5 rounded-full text-[10px] font-sans font-semibold border" style={isPaused ? { background: 'rgba(239,68,68,0.1)', color: '#ef4444', borderColor: 'rgba(239,68,68,0.2)' } : { background: 'rgba(34,197,94,0.1)', color: '#22c55e', borderColor: 'rgba(34,197,94,0.2)' }}>{isPaused ? 'PAUSED' : 'LIVE'}</span>
           <span className="font-sans text-[10px] text-zinc-600">30s</span>
-          {chain === 'solana' ? <WalletMultiButton /> : <div className="[&_button]:!rounded-full [&_button]:!text-xs"><ConnectButton showBalance={false} accountStatus="address" chainStatus="none" /></div>}
+          <div className="[&_button]:!rounded-full [&_button]:!text-xs"><ConnectButton showBalance={false} accountStatus="address" chainStatus="none" /></div>
         </div>
       </nav>
 
       <main className="pt-32 px-4 pb-8">
-        {/* EVM (Ethereum Sepolia) live status - read-only, shown in EVM mode */}
-        {chain === 'evm' && <EvmStatusPanel />}
+        {/* EVM (Ethereum Sepolia) live status - read-only */}
+        <EvmStatusPanel />
 
         {/* Row 1: Gauges */}
         <div className="grid grid-cols-5 gap-3 mb-4 max-w-7xl mx-auto">
@@ -319,7 +312,7 @@ export default function Dashboard() {
           </div>
           <StatWidget label="Allowed" value={stats.allowed} color="#22c55e" />
           <StatWidget label="Blocked" value={stats.blocked} color="#ef4444" />
-          <StatWidget label="Total Staked" value={`${trackedAgents.reduce((s, a) => s + (a.staked_lamports || 0), 0).toLocaleString()} ${chain === 'solana' ? 'SOL' : 'ETH'}`} color="#f59e0b" />
+          <StatWidget label="Total Staked" value={`${trackedAgents.reduce((s, a) => s + (a.staked_lamports || 0), 0).toLocaleString()} ETH`} color="#f59e0b" />
         </div>
 
         {/* Pending approvals */}
@@ -383,14 +376,9 @@ export default function Dashboard() {
           <div className="rounded-xl p-4 flex flex-col items-center" style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.06)' }}>
             <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500 mb-2">Source Chain</p>
             <DonutChart size={100} segments={trackedAgents.length > 0 ? (() => {
-              const sol = trackedAgents.filter(a => a.did.includes(':solana:')).length;
-              const evm = trackedAgents.filter(a => a.did.includes(':base:') || a.did.includes(':celo:')).length;
-              const seg: {label:string;value:number;color:string}[] = [
-                sol > 0 ? { label: 'Solana', value: sol, color: '#9945FF' } : null,
-                evm > 0 ? { label: 'EVM (Base/Celo)', value: evm, color: '#3b82f6' } : null,
-              ].filter(Boolean) as {label:string;value:number;color:string}[];
-              return seg.length > 0 ? seg : [{ label: 'Solana', value: stats.total, color: '#9945FF' }];
-            })() : [{ label: 'Solana', value: stats.total, color: '#9945FF' }]} />
+              const evmCount = trackedAgents.filter(a => a.did.includes(':base:') || a.did.includes(':celo:') || a.did.includes(':eth:') || a.did.includes(':zksync:') || a.did.includes(':robinhood:') || a.did.includes(':monad:')).length;
+              return [{ label: 'EVM', value: evmCount > 0 ? evmCount : stats.total, color: '#3b82f6' }];
+            })() : [{ label: 'EVM', value: stats.total, color: '#3b82f6' }]} />
           </div>
         </div>
 
@@ -444,17 +432,17 @@ export default function Dashboard() {
                   <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500 mb-2">Architecture</p>
                   <div className="space-y-2 font-mono text-[10px] text-zinc-400">
                     <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full shrink-0" style={{background:'#22c55e'}}/> Sidecar API <span className="text-zinc-600">:3000</span></div>
-                    <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full shrink-0" style={{background:'#3b82f6'}}/> {chain === 'solana' ? 'Solana' : 'EVM'} On-Chain <span className="text-zinc-600">{chain === 'solana' ? 'devnet' : 'testnet'}</span></div>
+                    <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full shrink-0" style={{background:'#3b82f6'}}/> EVM On-Chain <span className="text-zinc-600">testnet</span></div>
                     <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full shrink-0" style={{background:'#a855f7'}}/> Agent Registry <span className="text-zinc-600">{trackedAgents.length} agents</span></div>
                     <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full shrink-0" style={{background:'#f59e0b'}}/> DID Resolution <span className="text-zinc-600">/did</span></div>
                   </div>
                 </div>
                 <div>
-                  <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500 mb-2">Program</p>
+                  <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500 mb-2">Contracts</p>
                   <div className="space-y-2 font-mono text-[10px] text-zinc-400">
-                    <div>ID: <span className="text-zinc-500">A29V5MUV...n9D</span></div>
-                    <div>Network: <span className="text-zinc-500">devnet</span></div>
-                    <div>Audit Entries: <span className="text-zinc-500">{stats.total}</span></div>
+                    <div>Audit: <span className="text-zinc-500">{shortAddr(import.meta.env.VITE_BASTION_AUDIT_ADDRESS)}</span></div>
+                    <div>Policy: <span className="text-zinc-500">{shortAddr(import.meta.env.VITE_BASTION_POLICY_ADDRESS)}</span></div>
+                    <div>Firewall: <span className="text-zinc-500">{shortAddr(import.meta.env.VITE_BASTION_FIREWALL_ADDRESS)}</span></div>
                     <div>Refresh: <span className="text-zinc-500">30s</span></div>
                   </div>
                 </div>
@@ -520,7 +508,7 @@ export default function Dashboard() {
 
         {/* Footer */}
         <footer className="max-w-7xl mx-auto pt-6 border-t border-white/[0.06] text-center">
-          <p className="font-sans text-[10px] text-zinc-600">Built by ZKOS Labs. Bastion v0.3.0. Apache 2.0. Auto-refresh: 30s. Multi-chain: <span className="text-purple-500">Solana</span> + <span style={{ color: '#627EEA' }}>Ethereum</span> <span className="text-zinc-700">+ Base + Celo + zkSync + Robinhood</span> + <span className="text-emerald-400">Arcium</span>.</p>
+          <p className="font-sans text-[10px] text-zinc-600">Built by ZKOS Labs. Bastion v0.3.0. Apache 2.0. Auto-refresh: 30s. Multi-chain: <span style={{ color: '#627EEA' }}>Ethereum</span> <span className="text-zinc-700">+ Base + Celo + zkSync + Robinhood + Monad</span>.</p>
         </footer>
       </main>
     </div>

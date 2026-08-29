@@ -7,7 +7,7 @@ const res = await fetch("${SIDECAR}/did/generate", {
   method: "POST",
 });
 const { did, authority_pubkey, secret_key_base64 } = await res.json();
-// did: "did:bastion:solana:AbCd..."
+// did: "did:bastion:evm:AbCd..."
 // Store secret_key_base64 securely - shown once
 
 // ── Step 2: Register your agent ─────────────────────
@@ -42,21 +42,27 @@ const policyRes = await fetch("${SIDECAR}/policy/full", {
     "X-DID-Signature": signature,
   },
   body: JSON.stringify({
-    max_sol_per_tx: 1_000_000_000, // 1 SOL
-    allowed_programs: [
-      "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4",
-    ],
+    rate_limit_per_minute: 10,
+    blocked_addresses: ["0x000000000000000000000000000000000000dEaD"],
   }),
 });
 
-// ── Step 5: Simulate a transaction ──────────────────
-const simRes = await fetch("${SIDECAR}/simulate", {
+// ── Step 5: Simulate an EVM transaction ─────────────
+const simRes = await fetch("${SIDECAR}/api/v2/simulate-evm", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ transaction: txBase64 }),
+  body: JSON.stringify({
+    chain: "base",
+    transaction: {
+      from: "0xYOUR_AGENT",
+      to: "0xTARGET",
+      value: "0x0",
+      data: "0x",
+    },
+  }),
 });
 const result = await simRes.json();
-console.log(result.decision); // "Pass" | "Block" | "PendingHITL"`;
+console.log(result.decision); // "pass" | "block" | "pending_hitl"`;
 
 export default function QuickStartSection() {
   const [copied, setCopied] = useState(false);

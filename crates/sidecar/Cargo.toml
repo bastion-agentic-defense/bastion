@@ -12,13 +12,12 @@ futures = "0.3"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 toml = "0.8"
-solana-sdk = "1.18"
-solana-client = "1.18"
 anyhow = "1"
 thiserror = "1"
 reqwest = { version = "0.12", features = ["blocking", "json", "stream"] }
 base64 = "0.22"
-bincode = "1"
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+rand = "0.8"
 dotenv = "0.15"
 sled = "0.34"
 uuid = { version = "1.20.0", features = ["v4"] }
@@ -27,7 +26,6 @@ sha2 = "0.10"
 bastion-core = { path = "../core" }
 bastion-policy-engine = { path = "../policy-engine" }
 bastion-workflow = { path = "../workflow" }
-bastion-arcium = { path = "../arcium" }
 bastion-web2-firewall = { path = "../web2-firewall" }
 chrono = { version = "0.4", features = ["serde"] }
 async-trait = "0.1"

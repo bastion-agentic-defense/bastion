@@ -1,11 +1,4 @@
-import { useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
-import { SolflareWalletAdapter } from '@solana/wallet-adapter-solflare';
-import { BackpackWalletAdapter } from '@solana/wallet-adapter-backpack';
-import '@solana/wallet-adapter-react-ui/styles.css';
 import { WagmiProvider } from 'wagmi';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -15,7 +8,6 @@ import { ThemeProvider } from './context/ThemeContext';
 import { ChainProvider } from './context/ChainContext';
 import { RouteErrorBoundary } from './components/RouteErrorBoundary';
 import { SmoothScroll } from './components/SmoothScroll';
-import { CHAINS } from './lib/chains';
 import { config } from './lib/evmConfig';
 import Landing from './pages/Landing';
 import Docs from './pages/Docs';
@@ -43,34 +35,6 @@ function AppRoutes() {
   );
 }
 
-/**
- * Solana wallet context.
- *
- * Every page that reads `useWallet()` / `useConnection()` - Integrate, Dashboard,
- * AgentList, DeployAgent and the `useBastionProgram` hook - throws on render if
- * these providers are absent, which blanks the entire route. They are mounted at
- * the root so no route can regress that way again.
- */
-function SolanaProviders({ children }: { children: React.ReactNode }) {
-  const endpoint = CHAINS.solana.rpcUrl;
-  const wallets = useMemo(
-    () => [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
-      new BackpackWalletAdapter(),
-    ],
-    [],
-  );
-
-  return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>{children}</WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
-  );
-}
-
 export function App() {
   return (
     <WagmiProvider config={config}>
@@ -78,15 +42,13 @@ export function App() {
         <RainbowKitProvider>
           <ThemeProvider>
             <ChainProvider>
-              <SolanaProviders>
-                <BrowserRouter>
-                  <SmoothScroll>
-                    <RouteErrorBoundary>
-                      <AppRoutes />
-                    </RouteErrorBoundary>
-                  </SmoothScroll>
-                </BrowserRouter>
-              </SolanaProviders>
+              <BrowserRouter>
+                <SmoothScroll>
+                  <RouteErrorBoundary>
+                    <AppRoutes />
+                  </RouteErrorBoundary>
+                </SmoothScroll>
+              </BrowserRouter>
             </ChainProvider>
           </ThemeProvider>
         </RainbowKitProvider>

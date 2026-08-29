@@ -51,6 +51,20 @@ impl<C: ArciumClient, R: TrustSignalProvider> ArcumPolicyEvaluator<C, R> {
         self
     }
 
+    /// Create an evaluator with Arcium disabled.
+    ///
+    /// `arcium` is `None`, so `evaluate` always runs local evaluation and
+    /// `confidential_active` returns `false`. Used when the sidecar config has
+    /// `arcium_enabled = false` (the default).
+    pub fn disabled(config: MxeConfig) -> Self {
+        Self {
+            local: PolicyEvaluator::new(),
+            arcium: None,
+            config,
+            fallback: true,
+        }
+    }
+
     /// Whether genuine confidential computation is active.
     ///
     /// True only when an Arcium client is configured *and* it performs real MPC.

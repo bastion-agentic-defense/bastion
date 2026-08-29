@@ -76,19 +76,34 @@ const robinhood = defineChain({
   },
 });
 
+const monad = defineChain({
+  id: 10_143,
+  name: 'Monad Testnet',
+  nativeCurrency: { name: 'Monad', symbol: 'MON', decimals: 18 },
+  rpcUrls: {
+    default: {
+      http: [import.meta.env.VITE_MONAD_RPC_URL || 'https://testnet-rpc.monad.xyz'],
+    },
+  },
+  blockExplorers: {
+    default: { name: 'Monad Explorer', url: 'https://testnet.monadexplorer.com' },
+  },
+});
+
 export const config = getDefaultConfig({
   appName: 'Bastion',
   projectId:
     import.meta.env.VITE_WALLETCONNECT_PROJECT_ID ||
     // Placeholder - replace with your project ID from https://cloud.walletconnect.com
     '00000000000000000000000000000000',
-  chains: [sepolia, base, celo, zksync, robinhood],
+  chains: [sepolia, base, celo, zksync, robinhood, monad],
   transports: {
     [sepolia.id]: http(sepolia.rpcUrls.default.http[0]),
     [base.id]: http(base.rpcUrls.default.http[0]),
     [celo.id]: http(celo.rpcUrls.default.http[0]),
     [zksync.id]: http(zksync.rpcUrls.default.http[0]),
     [robinhood.id]: http(robinhood.rpcUrls.default.http[0]),
+    [monad.id]: http(monad.rpcUrls.default.http[0]),
   },
   ssr: false,
 });

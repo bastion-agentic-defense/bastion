@@ -1,5 +1,10 @@
 # Bastion - Solana Mainnet Readiness
 
+> ⚠️ **RETIRED.** Bastion has pivoted to full-EVM; the Solana program and sidecar
+> integration described here are **archived** (see [`docs/ARCHIVE.md`](ARCHIVE.md)).
+> This checklist is kept for history only — do not execute it. See
+> [`docs/EVM_READINESS.md`](EVM_READINESS.md) for the active EVM mainnet checklist.
+
 > Living checklist for taking the `bastion-audit` Anchor program and its off-chain
 > sidecar to **Solana mainnet-beta with real value**. Nothing in this document
 > authorizes real-value traffic before the external audit sign-off (§7).
@@ -88,7 +93,7 @@ cargo test -p bastion-audit
 | Item | Status | Notes |
 |---|---|---|
 | `[programs.mainnet]` block in `Anchor.toml` | ✅ | Placeholder ID present; replace with generated mainnet ID. |
-| Verifiable build | ⬜ | `anchor build --verifiable` (or `solana-verify`) so the audit firm reproduces the binary hash. |
+| Verifiable build | 🟡 | `anchor build --verifiable` (or `solana-verify`) so the audit firm reproduces the binary hash. **Unblocked:** the program crate is now edition 2021 so Anchor 0.30.1 can parse its manifest (previously `edition = "2024"` broke `anchor build`/`deploy`/`test`). Produce the hash once the surface is frozen (§7). |
 | Deploy | ⬜ | `anchor deploy --provider.cluster mainnet-beta` from a funded deployer (~2.5 SOL buffer). |
 | Initialize atomically post-deploy | ⬜ | Call `initialize(admin = <Squads vault>)` in the same operational step (closes the front-run window with the interim control). |
 | Transfer upgrade authority to the Squads vault | ⬜ | `solana program set-upgrade-authority <PROGRAM_ID> --new-upgrade-authority <VAULT>`; verify with `solana program show <PROGRAM_ID>`. |
@@ -108,7 +113,7 @@ cargo test -p bastion-audit
 | RPC cutover devnet → paid mainnet provider | ⬜ | `fly.toml` `SOLANA_RPC_URL` / `HELIUS_RPC_URL` still point at devnet; switch to a paid mainnet RPC. |
 | Secrets via Fly.io (Helius/Alchemy/Grond keys, signer keypair) | ⬜ | Remove from env files; document rotation. |
 | Deploy host rename (`bastion-agentique.fly.dev` → zkOS-Labs host/domain) | ⬜ | **Deferred.** The org rebrand (bastion-agentique → zkos-labs) intentionally kept the live Fly app name `bastion-agentique` and host `bastion-agentique.fly.dev` to avoid a DNS/infra migration. Revisit before mainnet: rename the Fly app or attach a custom domain, then update SDK/web defaults and `.well-known/*`. |
-| `cargo audit` / `cargo deny` in CI + triage RUSTSEC items | 🟡 | Advisories tracked in `SECURITY.md` (inherited from Solana SDK). Add the CI gate with an allowlist for the known transitive advisories. |
+| `cargo audit` / `cargo deny` in CI + triage RUSTSEC items | ✅ | `cargo audit` runs in CI (`.github/workflows/ci.yml` `audit` job); 11 known Solana-SDK advisories allowlisted in `.cargo/audit.toml` and tracked in `SECURITY.md`. Any new advisory fails CI. Remaining: bump Solana SDK to clear the allowlist. |
 
 ---
 
@@ -123,7 +128,18 @@ empty signature) - `crates/arcium/src/client.rs`. **Do not ship a no-op as
 - **(b)** Block go-live of the confidential claim on a real MXE client + Arcis circuit
   (`crates/arcium/src/circuits/policy_evaluator.rs` is currently a stub).
 
-Status: ⬜ decision pending.
+Status: ✅ **Decision (a) — "preview / not enforcing".**
+
+The runtime enforces this honestly:
+
+- `arcium_enabled` defaults to `false` and now actually gates the wiring in
+  `crates/sidecar/src/lib.rs` (with it off, the evaluator is
+  `ArcumPolicyEvaluator::disabled(..)` with `arcium: None`).
+- `/health` reports `confidential_compute: false`.
+- The SDK refuses `execute({ privacy: "confidential" })` unless the runtime reports
+  genuine MPC compute (`packages/sdk/src/execute.ts`).
+- Option (b) — a real MXE client + Arcis circuits — is tracked as Epic B in
+  `docs/ROADMAP.md` and stays behind the external-audit hard gate.
 
 ---
 

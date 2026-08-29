@@ -1,5 +1,8 @@
 # Bastion + Arcium Integration
 
+> ⚠️ **RETIRED.** Arcium has been removed from Bastion (full-EVM pivot). Kept for
+> history — see [`docs/ARCHIVE.md`](ARCHIVE.md).
+
 > Confidential computation for AI agent policy evaluation on Solana.
 
 ## Overview

@@ -1,0 +1,18 @@
+# cargo-audit configuration.
+#
+# After the full-EVM pivot, Solana/Arcium (and their transitive advisories:
+# curve25519-dalek 3.x, ed25519-dalek 1.x, quinn-proto, ring 0.16, rustls-webpki,
+# time 0.3) are no longer in the dependency graph. The only remaining pinned
+# advisories below come from the EVM sidecar's own transitive deps (sled →
+# crossbeam-epoch; reqwest/hyper → h2) and cannot be patched without a
+# semver-major bump of those dependencies.
+#
+# The allowlist is explicit and reviewed: any NEW advisory not listed here will
+# still fail `cargo audit` in CI.
+[advisories]
+ignore = [
+    # crossbeam-epoch 0.9.18 — invalid pointer deref (via sled)
+    "RUSTSEC-2026-0204",
+    # h2 0.4.14 — unbounded empty DATA frames (via reqwest → hyper)
+    "RUSTSEC-2026-0258",
+]

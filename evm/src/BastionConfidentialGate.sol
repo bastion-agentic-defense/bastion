@@ -2,9 +2,9 @@
 pragma solidity ^0.8.28;
 // @notice: UNDER ACTIVE DEVELOPMENT - Not production-ready.
 
-import {IConfidentialPolicyVerdict, Verdict} from "@capv/IConfidentialPolicyVerdict.sol";
-import {PolicyAction, PolicyActionLib} from "@capv/PolicyAction.sol";
-import {IBastionPolicy} from "./interfaces/IBastionPolicy.sol";
+import { IConfidentialPolicyVerdict, Verdict } from "@capv/IConfidentialPolicyVerdict.sol";
+import { PolicyAction, PolicyActionLib } from "@capv/PolicyAction.sol";
+import { IBastionPolicy } from "./interfaces/IBastionPolicy.sol";
 
 /// @title BastionConfidentialGate
 /// @notice Composable gate that combines confidential ZK policy verdicts (CAPV)
@@ -35,15 +35,9 @@ contract BastionConfidentialGate {
     error ActionCommitmentMismatch(bytes32 expected, bytes32 actual);
 
     event ConfidentialVerdictConsumed(
-        bytes32 indexed nullifier,
-        uint256 indexed agentId,
-        bytes32 policyRoot
+        bytes32 indexed nullifier, uint indexed agentId, bytes32 policyRoot
     );
-    event BastionPolicyPassed(
-        address indexed agent,
-        address indexed target,
-        bytes4 selector
-    );
+    event BastionPolicyPassed(address indexed agent, address indexed target, bytes4 selector);
 
     constructor(
         IConfidentialPolicyVerdict _capv,
@@ -68,21 +62,18 @@ contract BastionConfidentialGate {
         address agent,
         address target,
         bytes calldata data,
-        uint256 actionNonce
-    )
-        external
-        payable
-    {
+        uint actionNonce
+    ) external payable {
         // ── Layer 1: Confidential ZK verdict ──────────────────────────
         bytes32 commitment = PolicyAction({
-            chainId: block.chainid,
-            domainId: domainId,
-            agentId: v.agentId,
-            target: target,
-            value: msg.value,
-            callDataHash: keccak256(data),
-            actionNonce: actionNonce
-        }).commit();
+                chainId: block.chainid,
+                domainId: domainId,
+                agentId: v.agentId,
+                target: target,
+                value: msg.value,
+                callDataHash: keccak256(data),
+                actionNonce: actionNonce
+            }).commit();
 
         if (commitment != v.actionCommitment) {
             revert ActionCommitmentMismatch(v.actionCommitment, commitment);
@@ -92,9 +83,8 @@ contract BastionConfidentialGate {
         emit ConfidentialVerdictConsumed(v.nullifier, v.agentId, v.policyRoot);
 
         // ── Layer 2: Public Bastion policy ────────────────────────────
-        (bool allowed, bytes memory reason) = bastionPolicy.checkTransaction(
-            agent, target, msg.value, data
-        );
+        (bool allowed, bytes memory reason) =
+            bastionPolicy.checkTransaction(agent, target, msg.value, data);
 
         if (!allowed) {
             revert BastionPolicyBlocked(reason);
@@ -102,7 +92,7 @@ contract BastionConfidentialGate {
         emit BastionPolicyPassed(agent, target, bytes4(data));
 
         // ── Execute ───────────────────────────────────────────────────
-        (bool ok,) = target.call{value: msg.value}(data);
+        (bool ok,) = target.call{ value: msg.value }(data);
         require(ok, "execution failed");
     }
 
@@ -116,27 +106,21 @@ contract BastionConfidentialGate {
         address agent,
         address target,
         bytes calldata data,
-        uint256 actionNonce
-    )
-        external
-        view
-        returns (bool confidentialOk, bool publicOk, bytes memory publicReason)
-    {
+        uint actionNonce
+    ) external view returns (bool confidentialOk, bool publicOk, bytes memory publicReason) {
         bytes32 commitment = PolicyAction({
-            chainId: block.chainid,
-            domainId: domainId,
-            agentId: v.agentId,
-            target: target,
-            value: 0,
-            callDataHash: keccak256(data),
-            actionNonce: actionNonce
-        }).commit();
+                chainId: block.chainid,
+                domainId: domainId,
+                agentId: v.agentId,
+                target: target,
+                value: 0,
+                callDataHash: keccak256(data),
+                actionNonce: actionNonce
+            }).commit();
 
         if (commitment != v.actionCommitment) return (false, false, "action commitment mismatch");
 
         confidentialOk = capvGuard.verify(v, proof);
-        (publicOk, publicReason) = bastionPolicy.checkTransaction(
-            agent, target, 0, data
-        );
+        (publicOk, publicReason) = bastionPolicy.checkTransaction(agent, target, 0, data);
     }
 }

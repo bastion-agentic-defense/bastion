@@ -25,9 +25,9 @@ export function createToolDefinitions(server: McpServer) {
 
 server.tool(
   "bastion_simulate_transaction",
-  "Run a Solana transaction through the Bastion firewall. Returns Pass/Block/PendingHITL with decision reasoning, simulation logs, and blockint rule violations.",
+  "Run an EVM transaction through the Bastion firewall. Returns Pass/Block/PendingHITL with decision reasoning, simulation logs, and blockint rule violations.",
   {
-    transaction: z.string().describe("Base64-encoded Solana transaction"),
+    transaction: z.string().describe("EVM transaction payload (hex-encoded)"),
     intent: z.string().optional().describe("What the transaction is trying to do (for audit trail)"),
   },
   async ({ transaction, intent }) => ({
@@ -39,7 +39,7 @@ server.tool(
   "bastion_ingest_event",
   "Ingest a universal SIEM event into Bastion. Accepts any security event from cloud, syslog, API logs, or blockchain sources. The event is normalized, policy-checked, and routed to the correlation engine.",
   {
-    source: z.string().describe("Source system (e.g. aws-cloudtrail, syslog, github-webhook, solana-rpc)"),
+    source: z.string().describe("Source system (e.g. aws-cloudtrail, syslog, github-webhook, evm-rpc)"),
     classification: z.enum(["authentication","authorization","transaction","configuration","network","audit"]).describe("Event classification"),
     description: z.string().optional().describe("Human-readable event description"),
     principal: z.string().optional().describe("Who initiated the event (user, agent, address)"),
@@ -58,7 +58,7 @@ server.tool(
 
 server.tool(
   "bastion_get_policy",
-  "Retrieve the current Bastion firewall policy: allowed programs, SOL caps, rate limits, blocked addresses, blockint security rules, and simulation settings.",
+  "Retrieve the current Bastion firewall policy: allowed programs, native token caps, rate limits, blocked addresses, blockint security rules, and simulation settings.",
   {},
   async () => ({
     content: [{ type: "text", text: JSON.stringify(await sidecar("/policy"), null, 2) }],
@@ -67,13 +67,13 @@ server.tool(
 
 server.tool(
   "bastion_update_policy",
-  "Update the Bastion firewall policy. Configure SOL caps, rate limits, allowed programs, blocked addresses, and toggle blockint security checks (flash loan detection, high slippage, mint/freeze authority, risk-labeled addresses).",
+  "Update the Bastion firewall policy. Configure native token caps, rate limits, allowed programs, blocked addresses, and toggle blockint security checks (flash loan detection, high slippage, mint/freeze authority, risk-labeled addresses).",
   {
-    max_sol_per_tx: z.number().optional().describe("Maximum SOL allowed per transaction"),
+    max_sol_per_tx: z.number().optional().describe("Maximum native token allowed per transaction"),
     rate_limit_per_minute: z.number().optional().describe("Maximum transactions per minute per agent"),
-    allowed_programs: z.array(z.string()).optional().describe("List of allowed Solana program IDs"),
+    allowed_programs: z.array(z.string()).optional().describe("List of allowed program/target addresses"),
     blocked_addresses: z.array(z.string()).optional().describe("List of blocked wallet addresses"),
-    simulation_checks_enabled: z.boolean().optional().describe("Enable or disable Helius simulation"),
+    simulation_checks_enabled: z.boolean().optional().describe("Enable or disable EVM simulation"),
     blockint_flash_loan_check: z.boolean().optional().describe("Detect flash loan attack patterns"),
     blockint_high_slippage_check: z.boolean().optional().describe("Detect high slippage trades"),
     blockint_mint_authority_blocked: z.boolean().optional().describe("Block mint authority changes"),
@@ -215,9 +215,9 @@ server.tool(
 
 server.tool(
   "bastion_resolve_did",
-  "Resolve a W3C DID identifier to its DID Document. Supports did:bastion:solana: (Solana PDA-based) identifiers.",
+  "Resolve a W3C DID identifier to its DID Document. Supports did:bastion:evm: (EVM address-based) identifiers.",
   {
-    did: z.string().describe("Full DID identifier, e.g. did:bastion:solana:BaSZuLcwj...Cb"),
+    did: z.string().describe("Full DID identifier, e.g. did:bastion:evm:0x1234...abcd"),
   },
   async ({ did }) => ({
     content: [{ type: "text", text: JSON.stringify(await sidecar(`/did/resolve/${did}`), null, 2) }],
@@ -239,9 +239,9 @@ server.tool(
 
 server.tool(
   "bastion_get_token_balances",
-  "Fetch all SPL token balances for a Solana wallet address using Alchemy Enhanced API. Returns token mint, amount, decimals, and USD value if available.",
+  "Fetch all ERC-20 token balances for an EVM wallet address using Alchemy Enhanced API. Returns token contract, amount, decimals, and USD value if available.",
   {
-    address: z.string().describe("Solana wallet address to check token balances for"),
+    address: z.string().describe("EVM wallet address to check token balances for"),
   },
   async ({ address }) => ({
     content: [{ type: "text", text: JSON.stringify(await sidecar(`/token-balances?address=${encodeURIComponent(address)}`), null, 2) }],
@@ -256,8 +256,8 @@ server.tool(
   "bastion_register_robot",
   "Register a physical robot (drone, rover, AGV) as a Bastion agent. Creates a DID with device-type metadata, firmware version, and GPS location.",
   {
-    did: z.string().describe("The DID identifier (e.g. did:bastion:solana:{pda})"),
-    authority_pubkey: z.string().describe("Solana public key of the robot's authority wallet"),
+    did: z.string().describe("The DID identifier (e.g. did:bastion:evm:{address})"),
+    authority_pubkey: z.string().describe("EVM address of the robot's authority wallet"),
     device_type: z.enum(["drone","rover","industrial_arm","agv","marine","custom"]).optional().describe("Physical device type"),
     firmware_version: z.string().optional().describe("Current firmware version (e.g. v1.4.2)"),
     location: z.tuple([z.number(), z.number()]).optional().describe("GPS coordinates as [latitude, longitude]"),
@@ -293,14 +293,14 @@ server.tool(
 
 server.prompt(
   "bastion_verify_transaction",
-  "Verify a Solana transaction before signing. Run it through Bastion's firewall to check for policy violations, balance drain, simulation errors, and blockint security risks.",
+  "Verify an EVM transaction before signing. Run it through Bastion's firewall to check for policy violations, balance drain, simulation errors, and blockint security risks.",
   {
-    transaction: z.string().describe("Base64-encoded Solana transaction to verify"),
+    transaction: z.string().describe("EVM transaction payload to verify"),
   },
   ({ transaction }) => ({
     messages: [{
       role: "user",
-      content: { type: "text", text: `Verify this Solana transaction through Bastion before I sign it.\n\nTransaction: ${transaction}\n\nUse bastion_simulate_transaction. Report:\n- Decision (ALLOWED/BLOCKED/PENDING)\n- Which policy rules triggered (if blocked)\n- Simulation logs and balance changes\n- Blockint rule violations (flash loan, slippage, authority changes)\n- Recommendation: should I sign this?` },
+      content: { type: "text", text: `Verify this EVM transaction through Bastion before I sign it.\n\nTransaction: ${transaction}\n\nUse bastion_simulate_transaction. Report:\n- Decision (ALLOWED/BLOCKED/PENDING)\n- Which policy rules triggered (if blocked)\n- Simulation logs and balance changes\n- Blockint rule violations (flash loan, slippage, authority changes)\n- Recommendation: should I sign this?` },
     }],
   }),
 );

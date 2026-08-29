@@ -35,7 +35,7 @@ Stack: Solidity 0.8.28, Foundry, OpenZeppelin + Solady, `via_ir`. Contracts:
 | Tests locking B1–B4 + B12 | ✅ | `test/BastionFirewallEnforce.t.sol` (validate/enforce split, decode bound, policy cap) + `test_Audit_RecordRevertsForNonFirewall`. |
 | Branch coverage target | ⬜ | `forge coverage`; set a threshold and gate CI. |
 | Invariant / fuzz tests | ⬜ | Policy limits, rate windows, audit append-only, firewall install/uninstall. |
-| Gas snapshots in CI | ⬜ | `forge snapshot`; check `.gas-snapshot` in. |
+| Gas snapshots in CI | ✅ | `forge snapshot --check` runs in the CI `evm` job; `.gas-snapshot` committed. |
 | Extend CI | 🟡 | `evm/.github/workflows/test.yml` + root `ci.yml` `evm` job run build/test; add coverage + snapshot gates. |
 
 ---
@@ -58,7 +58,7 @@ Stack: Solidity 0.8.28, Foundry, OpenZeppelin + Solady, `via_ir`. Contracts:
 |---|---|---|
 | Generalize simulator beyond Celo | ✅ | `EvmSimulator` (`crates/sidecar/src/simulation_evm.rs`) is now chain-agnostic; the handler routes by the request's `chain` to a per-chain simulator keyed in `AppState.evm_simulators`, each enabled by its own RPC env var (`ETH_RPC_URL` / `BASE_RPC_URL` / `CELO_RPC_URL` / `ETH_SEPOLIA_RPC_URL`). An unconfigured chain returns **503** naming the missing var rather than silently using Celo. |
 | Real state-change prediction | ⬜ | Add `debug_traceCall` / state-override where the RPC supports it, not just balance delta. |
-| Populate frontend EVM RPC config | ⬜ | `apps/web/src/lib/chains.ts` EVM entry has empty `rpcUrl`/`explorer`. |
+| Populate frontend EVM RPC config | ✅ | `apps/web/src/lib/chains.ts` EVM entry defaults to ETH Sepolia (`VITE_EVM_RPC_URL` / `VITE_EVM_EXPLORER_URL` overridable). |
 | `/api/v2/simulate-evm` auth | ✅ | Now behind the sidecar auth layer (see `docs/MAINNET_READINESS.md` §5). |
 
 ---

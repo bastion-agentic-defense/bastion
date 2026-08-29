@@ -1,8 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAgents, type TrackedAgent } from '../hooks/useAgents';
-import { useBastionProgram } from '../hooks/useBastionProgram';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useAccount } from 'wagmi';
 
 type Filter = 'all' | 'parents' | 'children' | 'swaps' | 'transfers' | 'stakers';
 
@@ -80,7 +79,7 @@ function AgentCard({ agent }: { agent: any }) {
         </div>
         <span className="text-zinc-500">{agent.reputation_score}/100</span>
         {agent.staked_lamports > 0 && (
-          <span className="text-amber-400">{agent.staked_lamports.toLocaleString()} SOL</span>
+          <span className="text-amber-400">{agent.staked_lamports.toLocaleString()} ETH</span>
         )}
       </div>
 
@@ -101,42 +100,15 @@ function AgentCard({ agent }: { agent: any }) {
 
 export default function AgentList() {
   const { agents: trackedAgents, fetchAgents, loading: sidecarLoading } = useAgents();
-  const sol = useBastionProgram();
-  const { connected } = useWallet();
+  const { isConnected: connected } = useAccount();
   const [filter, setFilter] = useState<Filter>('all');
-  const [onChainAgents, setOnChainAgents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(true);
-    sol.fetchAgents().then(agents => {
-      setOnChainAgents(agents || []);
-      setLoading(false);
-    });
-    fetchAgents(); // Try sidecar too for hybrid data
-  }, [sol, fetchAgents]);
-
-  // Merge on-chain + sidecar agents, preferring on-chain
-  const allAgents = useCallback(() => {
-    const seen = new Set<string>();
-    const merged: any[] = [];
-    // On-chain first (network view)
-    for (const a of onChainAgents) {
-      if (!seen.has(a.authority)) {
-        seen.add(a.authority);
-        merged.push({ ...a, onChain: true, did: a.did || `did:bastion:solana:${a.pda}` });
-      }
-    }
-    // Sidecar overlay (adds staking + delegation fields)
-    for (const a of trackedAgents) {
-      if (!seen.has(a.authority)) {
-        seen.add(a.authority);
-        merged.push({ ...a, onChain: false });
-      }
-    }
-    return merged;
-  }, [onChainAgents, trackedAgents]);
+    fetchAgents().finally(() => setLoading(false));
+  }, [fetchAgents]);
 
   const filtered = useCallback(() => {
     switch (filter) {
@@ -160,7 +132,7 @@ export default function AgentList() {
         <Link to="/dashboard" className="font-serif text-lg tracking-tight no-underline text-white">Bastion<span className="text-[8px] align-super ml-px">&reg;</span></Link>
         <div className="flex items-center gap-3">
           <span className="font-sans text-[10px] text-zinc-500">
-            {allAgents().length} agents ({parentCount} parents, {childCount} children)
+            {trackedAgents.length} agents ({parentCount} parents, {childCount} children)
           </span>
           {connected && (
             <Link to="/integrate" className="font-sans text-xs text-blue-400 hover:underline">Register New Agent</Link>

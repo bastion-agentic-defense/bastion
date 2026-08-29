@@ -112,13 +112,7 @@ contract BastionAudit is IBastionAudit, IOnChainProof, EIP712, Ownable {
 
         // ERC-8263 AnchorProof: makes this audit entry recompute-able
         // by trustless-ai/agent-sdk. agentIdScheme 0x01 = ERC-8004 REGISTRY.
-        emit AnchorProof(
-            0x01,
-            bytes32(uint256(uint160(agent))),
-            _id,
-            msg.sender,
-            reason
-        );
+        emit AnchorProof(0x01, bytes32(uint(uint160(agent))), _id, msg.sender, reason);
 
         return _id;
     }

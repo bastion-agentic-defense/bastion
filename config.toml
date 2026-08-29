@@ -1,8 +1,8 @@
+# Per-transaction value cap (in whole units). The field name is retained for
+# back-compat but is now chain-agnostic: it feeds the policy drift scanner,
+# not a Solana outflow computation.
 max_sol_per_tx = 1
 rate_limit_per_minute = 120
 allowed_programs = []
 blocked_addresses = []
 simulation_checks_enabled = true
-helius_rpc_url = "https://devnet.helius-rpc.com/"
-alchemy_api_key = ""
-alchemy_rpc_url = "https://solana-devnet.g.alchemy.com/v2/"

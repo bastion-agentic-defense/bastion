@@ -2,7 +2,7 @@
 
 > **The Programmable Trust Runtime for Autonomous Systems.**
 
-[![npm](https://img.shields.io/npm/v/@zkos-labs/sdk?label=sdk)](https://www.npmjs.com/package/@zkos-labs/sdk)
+[![npm](https://img.shields.io/npm/v/@zkos-labs/bastion-sdk?label=bastion-sdk)](https://www.npmjs.com/package/@zkos-labs/bastion-sdk)
 [![npm](https://img.shields.io/npm/v/@zkos-labs/web2-sdk?label=web2-sdk)](https://www.npmjs.com/package/@zkos-labs/web2-sdk)
 
 > ⚠️ **Alpha Software** - APIs and runtime behavior may change before the first stable release.
@@ -66,7 +66,8 @@ Developers who self-host Bastion retain full functionality without any platform 
 | MCP server | 🟡 |
 | Dashboard & monitoring | 🟡 |
 | Durable workflow execution | 🚧 design phase - see [Epic A](docs/IMPLEMENTATION_PLAN.md#phase-1-durable-workflow-engine--epic-a-1700-loc-2-3-weeks) |
-| Confidential computation (Arcium) | 🚧 stubbed - noop client, behind audit gate |
+| Confidential policy verdicts (ERC-8354) | 🚧 draft — see [`docs/ERCS.md`](docs/ERCS.md) |
+| Unclonable agent credentials (ERC-8380) | 🚧 draft — see [`docs/ERCS.md`](docs/ERCS.md) |
 | Secrets management (Vault) | 🚧 planned - see [Epic E](docs/IMPLEMENTATION_PLAN.md#phase-3-secrets-management--epic-e-500-loc-1-week) |
 | General-purpose policy (OPA) | 🚧 planned - see [Epic F](docs/IMPLEMENTATION_PLAN.md#phase-2-general-purpose-policy--epic-f-600-loc-1-week) |
 
@@ -88,7 +89,8 @@ Bastion orchestrates - it does not replace - the Ethereum ecosystem's trust prim
 | EigenLayer | Shared trust | Runtime coordination using cryptoeconomic trust |
 | Pact Network | Payment refunds | Auto-insured outbound API calls for agent payments |
 | trustless-ai / agent-ercs | ERC-8004, ERC-8263, ERC-8281, ERC-8299 | Standard agent identity, anchor proofs, OCP/WYRIWE provenance - recompute-able |
-| CAPV (ZK verdicts) | Confidential agent policy verdicts | ZK proofs that a committed (secret) policy allows an action - Noir + UltraHonk |
+| ERC-8354 (draft) | Confidential agent policy verdicts | ZK proof that a committed (secret) policy allows an action — `IConfidentialPolicyVerdict` |
+| ERC-8380 (draft) | Unclonable agent execution credentials | Single-use ZK-nullifier capability so a cloned agent can't replay a credential |
 
 See [`docs/COMPETITIVE_LANDSCAPE.md`](docs/COMPETITIVE_LANDSCAPE.md) for the full competitive analysis.
 
@@ -108,14 +110,14 @@ Identity Runtime            🟡  ERC-8004, ERC-8126, DID/VC
 Policy Runtime              ✅  OPA + Runtime Rules
 Wallet Runtime              🚧  ERC-4337, EIP-7702, ERC-7579
 Durable Workflow Engine     🚧
-Privacy Runtime             🚧  Arcium MXE
-ZK-Verified Execution       🚧  Starknet (STARK proofs, native AA)
+Confidential Verdicts       🚧  ERC-8354 (draft)
+Unclonable Credentials      🚧  ERC-8380 (draft)
 Trust Ledger                ✅  EAS, Sign Protocol
-Execution Planner           🟡  Solana, EVM, Arcium, Starknet
+Execution Planner           🟡  EVM (Monad, Sepolia, Base, Celo, zkSync, Robinhood)
 Settlement Router           🚧  Ethereum, Pact Network
 ─────────────────────────────────────────
     │
-Solana · Starknet · Arcium · Ethereum · Midnight · Pact Network
+Ethereum · Monad · Base · Celo · zkSync · Robinhood · Pact Network
 ```
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the complete capability architecture with Bastion's proprietary runtime layer, composable infrastructure mapping, and data flow diagrams.
@@ -128,13 +130,14 @@ Different execution environments serve different purposes.
 
 | Capability                    | Network  | Status |
 | ----------------------------- | -------- | ------ |
-| Durable workflow coordination | Solana   | ✅ on-chain audit program (devnet) |
-| ZK-verified execution (native AA) | Starknet | 🚧 planned - Ethereum ZK-rollup, STARK proofs, Cairo VM, every account is a smart account |
-| Confidential computation      | Arcium   | 🚧 integration stubbed (no-op MPC client today) |
-| Trust anchoring & settlement  | Ethereum | 🟡 per-chain sim wired (`settlement:"ethereum"`); contracts written & tested; testnet-only, mainnet 🚧 behind audit gate |
-| Privacy-preserving execution  | Midnight | 🚧 planned |
-| Provenance & attestations     | Sigil    | 🚧 planned |
+| On-chain policy + audit       | EVM (Monad, Sepolia, Base, Celo, zkSync, Robinhood) | 🟡 contracts written & tested; testnet-only, mainnet 🚧 behind audit gate |
+| Confidential policy verdicts  | EVM      | 🚧 ERC-8354 (draft) — see [`docs/ERCS.md`](docs/ERCS.md) |
+| Unclonable agent credentials  | EVM      | 🚧 ERC-8380 (draft) — see [`docs/ERCS.md`](docs/ERCS.md) |
+| Trust anchoring & settlement  | Ethereum | 🟡 per-chain sim wired (`settlement:"ethereum" | "base" | "celo" | "zksync" | "robinhood" | "monad"`) |
 | Payment guarantees            | Pact Network | 🚧 planned - on-chain refunds for x402 agent payments |
+
+> **Retired:** Solana and Arcium are archived (see [`docs/ARCHIVE.md`](docs/ARCHIVE.md)).
+> Bastion is now full-EVM.
 
 Applications interact with Bastion-not individual blockchains.
 
@@ -199,7 +202,7 @@ pnpm --filter bastion-dashboard dev
 SDK:
 
 ```bash
-npm install @zkos-labs/sdk
+npm install @zkos-labs/bastion-sdk viem
 ```
 
 ---
@@ -210,50 +213,50 @@ npm install @zkos-labs/sdk
 register an agent identity:
 
 ```typescript
-import { BastionClient, BastionSidecar } from "@zkos-labs/sdk";
+import { BastionSidecar, BastionEVMClient } from "@zkos-labs/bastion-sdk";
 
 const sidecar = new BastionSidecar({ baseUrl: "https://bastion-agentique.fly.dev" });
 
-// Simulate + policy-check an agent transaction (returns Pass / Block / PendingHITL)
-const decision = await sidecar.simulate({ transaction, intent: "swap" });
+// Simulate + policy-check an EVM transaction (returns Pass / Block / PendingHITL)
+const decision = await sidecar.simulateEvm({ chain: "base", to, data, value, from });
 
-// Register an agent identity on-chain
-const client = new BastionClient({ connection });
-const tx = await client.registerAgent({ /* ... */ });
+// Read/write on-chain policy + audit via viem
+const evm = new BastionEVMClient({ publicClient, walletClient, chain });
+const count = await evm.getEntryCount();
 ```
 
 **Unified runtime facade (🟡 shipped in the SDK, thin composition)** - a single `execute()` call
 where developers declare trust guarantees instead of choosing infrastructure:
 
 ```typescript
-import { Bastion, BastionSidecar, BastionClient } from "@zkos-labs/sdk";
+import { Bastion, BastionSidecar } from "@zkos-labs/bastion-sdk";
 
-const bastion = new Bastion({ sidecar, client });
+const bastion = new Bastion({ sidecar });
 
 const result = await bastion.execute({
   action: "swap",
-  privacy: "public",       // "confidential" is refused unless real Arcium MPC is active
-  settlement: "ethereum",  // "solana" | "ethereum" | "base" | "celo"
-  transaction,             // base64 Solana tx, or EVM tx params
+  settlement: "ethereum",  // "ethereum" | "base" | "celo" | "zksync" | "robinhood" | "monad"
+  transaction,             // EVM tx params
 });
 // result.decision → "pass" | "block" | "pending_hitl"
 ```
 
-`execute()` composes the existing firewall primitives (policy evaluation, per-chain simulation,
-audit) behind one call - it adds no new backend. The cross-chain settlement **router/planner** is
-still minimal (chain selection + simulation); true execution planning remains 🚧.
+`execute()` composes the existing firewall primitives (policy evaluation, per-chain EVM
+simulation, audit) behind one call - it adds no new backend. The cross-chain settlement
+**router/planner** is still minimal (chain selection + simulation); true execution planning
+remains 🚧.
 
 ---
 
 ## Roadmap
 
-* ✅ Programmable policy engine + transaction firewall (Solana + EVM simulation)
-* ✅ Verifiable trust ledger (on-chain audit program, devnet)
+* ✅ Programmable policy engine + transaction firewall (EVM simulation)
+* ✅ Verifiable trust ledger (EIP-712 on-chain audit)
 * 🟡 Agent identity, delegation & multi-chain planning
 * 🟡 Web2 API policy gateway (rate / budget / cost / time rules enforced, wired into the sidecar) + MCP integration
 * 🟡 Unified `execute()` runtime facade (shipped in the SDK; settlement planner still minimal)
 * 🚧 Durable workflow runtime
-* 🚧 Confidential execution with Arcium (real MXE, replacing the no-op client)
+* 🚧 Confidential policy verdicts (ERC-8354, draft) + unclonable agent credentials (ERC-8380, draft)
 * 🚧 Ethereum trust anchoring & settlement router (post-audit)
 * 🚧 Zero-knowledge policy enforcement · decentralized identity · trust marketplace
 

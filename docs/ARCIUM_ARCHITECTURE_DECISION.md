@@ -1,5 +1,9 @@
 # ADR: Arcium Integration Architecture
 
+> ⚠️ **RETIRED.** Arcium has been removed from Bastion (full-EVM pivot). This ADR is
+> kept for history only — see [`docs/ARCHIVE.md`](ARCHIVE.md) and [`docs/ERCS.md`](ERCS.md)
+> for the ERC-8354 confidential-verdict replacement.
+
 ## Status: Proposed
 
 ## Context

@@ -1,19 +1,12 @@
 import { useState } from 'react';
 import { useSidecar } from '../../hooks/useSidecar';
 
-async function checkSolanaHealth(): Promise<{ ok: boolean; detail: string }> {
-  const res = await fetch('https://api.devnet.solana.com/health', { method: 'GET' });
-  if (!res.ok) return { ok: false, detail: `HTTP ${res.status}` };
-  const text = await res.text();
-  if (text.trim() === 'ok') return { ok: true, detail: 'ok' };
-  return { ok: false, detail: text.trim() };
-}
-
 export default function LiveTest() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
   const [message, setMessage] = useState('');
   const [simTx, setSimTx] = useState('');
   const [simIntent, setSimIntent] = useState('');
+  const [simChain, setSimChain] = useState('base');
   const [simStatus, setSimStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
   const [simResult, setSimResult] = useState<{
     passed: boolean;
@@ -28,17 +21,17 @@ export default function LiveTest() {
     setStatus('loading');
     setMessage('');
     try {
-      const { ok, detail } = await checkSolanaHealth();
+      const ok = await sidecar.fetchHealth();
       if (ok) {
         setStatus('ok');
-        setMessage(`Connected to Solana devnet. RPC is healthy. (${detail})`);
+        setMessage('Bastion sidecar is reachable and healthy.');
       } else {
         setStatus('error');
-        setMessage(`RPC check failed: ${detail}`);
+        setMessage('Sidecar health check failed (non-2xx response).');
       }
     } catch (err) {
       setStatus('error');
-      setMessage('Could not reach Solana devnet. Check your network.');
+      setMessage('Could not reach the Bastion sidecar. Check your network.');
       console.error('[Bastion] LiveTest error:', err);
     }
   }
@@ -47,9 +40,33 @@ export default function LiveTest() {
     setSimStatus('loading');
     setSimResult(null);
     try {
-      const result = await sidecar.simulateTransaction(
-        simTx.trim(),
+      let tx: { from: string; to: string; value?: string; data?: string };
+      try {
+        tx = JSON.parse(simTx.trim());
+      } catch {
+        setSimStatus('error');
+        setSimResult({
+          passed: false,
+          decision: 'ERROR',
+          reasoning: 'Invalid JSON. Expected { "from": "0x..", "to": "0x..", "value": "0x0", "data": "0x" }',
+          logs: [],
+        });
+        return;
+      }
+      if (!tx.from || !tx.to) {
+        setSimStatus('error');
+        setSimResult({
+          passed: false,
+          decision: 'ERROR',
+          reasoning: 'Missing required fields "from" and "to".',
+          logs: [],
+        });
+        return;
+      }
+      const result = await sidecar.simulateEvm(
+        tx,
         simIntent.trim() || undefined,
+        simChain.trim() || 'base',
       );
       if (!result) {
         setSimStatus('error');
@@ -61,12 +78,12 @@ export default function LiveTest() {
         });
         return;
       }
-      setSimStatus(result.passed ? 'ok' : 'error');
+      setSimStatus(result.allowed ? 'ok' : 'error');
       setSimResult({
-        passed: result.passed,
+        passed: result.allowed,
         decision: result.decision,
-        reasoning: result.reasoning,
-        logs: result.simulation_logs ?? [],
+        reasoning: result.reason ?? (result.allowed ? 'Transaction passed all checks' : 'Transaction blocked'),
+        logs: result.logs ?? [],
       });
     } catch (err) {
       setSimStatus('error');
@@ -97,10 +114,10 @@ export default function LiveTest() {
         style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
       >
         <h4 className="font-sans text-base font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-          Solana RPC Connection
+          Bastion Sidecar Connection
         </h4>
         <p className="font-sans text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-          Verify your connection to Solana devnet before integrating.
+          Verify your connection to the Bastion sidecar before integrating.
         </p>
         <button
           onClick={handleTest}
@@ -126,14 +143,14 @@ export default function LiveTest() {
           Simulate Transaction
         </h4>
         <p className="font-sans text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-          Paste a base64-encoded Solana transaction and run it through the Bastion sidecar firewall.
+          Paste an EVM transaction (JSON) and run it through the Bastion sidecar firewall.
         </p>
 
         <div className="space-y-3 mb-4">
           <textarea
             value={simTx}
             onChange={(e) => setSimTx(e.target.value)}
-            placeholder="Paste base64-encoded transaction here..."
+            placeholder='{ "from": "0x..", "to": "0x..", "value": "0x0", "data": "0x" }'
             rows={3}
             className="w-full p-3 rounded-lg font-mono text-sm resize-y"
             style={{
@@ -143,9 +160,20 @@ export default function LiveTest() {
             }}
           />
           <input
+            value={simChain}
+            onChange={(e) => setSimChain(e.target.value)}
+            placeholder="Chain (e.g. base, celo, ethereum, monad)"
+            className="w-full p-3 rounded-lg font-mono text-sm"
+            style={{
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-primary)',
+            }}
+          />
+          <input
             value={simIntent}
             onChange={(e) => setSimIntent(e.target.value)}
-            placeholder="Intent (optional, e.g. 'swap 0.1 SOL for USDC')"
+            placeholder="Intent (optional, e.g. 'swap 0.1 ETH for USDC')"
             className="w-full p-3 rounded-lg font-mono text-sm"
             style={{
               background: 'var(--bg-subtle)',

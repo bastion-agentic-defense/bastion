@@ -1,7 +1,10 @@
 [package]
 name = "bastion-audit"
 version = "0.2.0"
-edition = "2024"
+# Anchor 0.30.1's manifest parser only understands editions up to 2021; keeping
+# the on-chain crate on 2024 breaks `anchor build` / `anchor deploy` / `anchor test`
+# with "data did not match any variant of untagged enum Inheritable".
+edition = "2021"
 description = "On-chain trust ledger for the Bastion Trust Runtime"
 
 [lib]

@@ -1,4 +1,3 @@
-use anyhow::Result;
 use axum::{
     body::{Body, to_bytes},
     http::{Request, StatusCode},
@@ -7,61 +6,19 @@ use std::sync::Arc;
 use tempfile::TempDir;
 use tower::ServiceExt;
 
-use bastion_sidecar::{
-    build_app,
-    grond_oracle::GrondOracle,
-    logger::AuditLogger,
-    policy::Policy,
-    program_client::OnChainClient,
-    simulation::{ReturnData, Simulate, SimulationResult},
-};
-
-#[derive(Clone)]
-struct MockSimulator {
-    result: SimulationResult,
-}
-
-impl Simulate for MockSimulator {
-    fn simulate_transaction(
-        &self,
-        _tx: &solana_sdk::transaction::Transaction,
-    ) -> Result<SimulationResult> {
-        Ok(self.result.clone())
-    }
-}
-
-fn mock_result() -> SimulationResult {
-    SimulationResult {
-        logs: vec!["simulated transaction".to_string()],
-        units_consumed: Some(42_000),
-        return_data: Some(ReturnData {
-            data: "AQID".to_string(),
-            encoding: "base64".to_string(),
-            program_id: solana_sdk::system_program::id().to_string(),
-        }),
-        error: None,
-        balance_changes: std::collections::HashMap::new(),
-        simulation_hash: None,
-    }
-}
+use bastion_sidecar::{build_app, grond_oracle::GrondOracle, logger::AuditLogger, policy::Policy};
 
 fn test_app() -> (axum::Router, TempDir) {
     let tmp_dir = tempfile::tempdir().expect("temp dir");
     let db_path = tmp_dir.path().join("audit.sled");
     let logger = Arc::new(AuditLogger::new(db_path.to_str().expect("db path")).expect("logger"));
-    let simulator: Arc<dyn Simulate + Send + Sync> = Arc::new(MockSimulator {
-        result: mock_result(),
-    });
     let agent_store_path = tmp_dir.path().join("agents.sled");
     (
         build_app(
             Policy::default(),
-            simulator,
             logger,
-            OnChainClient::disabled(),
             GrondOracle::disabled(),
             Arc::new(std::collections::HashMap::new()),
-            None,
             agent_store_path.to_str().expect("agent store path"),
         ),
         tmp_dir,

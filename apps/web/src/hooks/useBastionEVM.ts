@@ -1,6 +1,17 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useAccount, useWriteContract, usePublicClient } from 'wagmi';
-import { parseAbi, decodeEventLog, type Log } from 'viem';
+import { decodeEventLog, type Abi, type Log } from 'viem';
+
+// Committed contract ABIs (apps/web/src/abi/*.ts) — single source of truth for
+// the deployed contracts. These are the actual forge build outputs, so the
+// function/event names and signatures below match the on-chain bytecode.
+import AuditAbiJson from '../abi/BastionAudit';
+import PolicyAbiJson from '../abi/BastionPolicy';
+import FirewallAbiJson from '../abi/BastionFirewall';
+
+const AuditAbi = AuditAbiJson as Abi;
+const PolicyAbi = PolicyAbiJson as Abi;
+const FirewallAbi = FirewallAbiJson as Abi;
 
 const CONTRACT_ADDRESSES = {
   audit: import.meta.env.VITE_BASTION_AUDIT_ADDRESS as string,
@@ -10,23 +21,42 @@ const CONTRACT_ADDRESSES = {
   erc8004: import.meta.env.VITE_BASTION_ERC8004_ADDRESS as string,
 };
 
-const AuditAbi = parseAbi([
-  'function entryCount() external view returns (uint256)',
-  'function getEntry(uint256 entryId) external view returns ((address agent, address target, bytes4 selector, uint256 value, uint256 gasUsed, bool allowed, string reason, uint256 timestamp))',
-  'function getAgentEntries(address agent, uint256 offset, uint256 limit) external view returns (uint256[] memory, uint256)',
-  'event AuditRecorded(uint256 indexed entryId, address indexed agent, address target, bytes4 selector, uint256 value, uint256 gasUsed, bool allowed, string reason, uint256 timestamp)',
-]);
+// BastionAudit.AuditRecorded(bytes32 indexed entryId, address indexed agent,
+// address indexed target, bytes4 selector, bool allowed, uint256 timestamp).
+const AuditRecordedEvent = {
+  type: 'event',
+  name: 'AuditRecorded',
+  inputs: [
+    { indexed: true, name: 'entryId', type: 'bytes32' },
+    { indexed: true, name: 'agent', type: 'address' },
+    { indexed: true, name: 'target', type: 'address' },
+    { name: 'selector', type: 'bytes4' },
+    { name: 'allowed', type: 'bool' },
+    { name: 'timestamp', type: 'uint256' },
+  ],
+} as const;
 
-const PolicyAbi = parseAbi([
-  'function getPolicy(address agent) external view returns ((bytes4[] allowedSelectors, uint256 maxValue, uint256 dailyTxLimit, uint256 cooldownSeconds))',
-  'function setPolicy(address agent, bytes4[] allowedSelectors, uint256 maxValue, uint256 dailyTxLimit, uint256 cooldownSeconds) external',
-]);
+type AuditRecordedArgs = {
+  entryId?: `0x${string}`;
+  agent?: `0x${string}`;
+  target?: `0x${string}`;
+  selector?: `0x${string}`;
+  allowed?: boolean;
+  timestamp?: bigint;
+};
 
-const FirewallAbi = parseAbi([
-  'function paused() external view returns (bool)',
-  'function pause() external',
-  'function unpause() external',
-]);
+// IBastionPolicy.Policy struct (matches the ABI + on-chain layout).
+type PolicyStruct = {
+  agent: `0x${string}`;
+  isActive: boolean;
+  maxValuePerTx: bigint;
+  maxGasPerTx: bigint;
+  dailyTxLimit: bigint;
+  cooldownSeconds: bigint;
+  allowedTargets: readonly `0x${string}`[];
+  allowedSelectors: readonly `0x${string}`[];
+  extraData: `0x${string}`;
+};
 
 export interface AuditEntryData {
   id: string;
@@ -49,6 +79,15 @@ export interface StatsData {
   blocked: number;
 }
 
+function decodeAuditRecorded(log: Log): AuditRecordedArgs | null {
+  try {
+    const decoded = decodeEventLog({ abi: AuditAbi, data: log.data, topics: log.topics });
+    return (decoded.args ?? {}) as AuditRecordedArgs;
+  } catch {
+    return null;
+  }
+}
+
 export function useBastionEVM() {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
@@ -59,53 +98,30 @@ export function useBastionEVM() {
   const fetchStats = useCallback(async (): Promise<StatsData | null> => {
     if (!isConnected || !publicClient || !addresses.audit) return null;
     try {
-      const total = await publicClient.readContract({
+      const total = (await publicClient.readContract({
         address: addresses.audit as `0x${string}`,
         abi: AuditAbi,
-        functionName: 'entryCount',
-      }) as bigint;
+        functionName: 'getEntryCount',
+      })) as bigint;
 
-      const fromBlock = await publicClient.getBlockNumber() - 10000n;
+      const fromBlock = (await publicClient.getBlockNumber()) - 10000n;
       const logs = await publicClient.getLogs({
         address: addresses.audit as `0x${string}`,
-        event: {
-          type: 'event',
-          name: 'AuditRecorded',
-          inputs: [
-            { indexed: true, name: 'entryId', type: 'uint256' },
-            { indexed: true, name: 'agent', type: 'address' },
-            { name: 'target', type: 'address' },
-            { name: 'selector', type: 'bytes4' },
-            { name: 'value', type: 'uint256' },
-            { name: 'gasUsed', type: 'uint256' },
-            { name: 'allowed', type: 'bool' },
-            { name: 'reason', type: 'string' },
-            { name: 'timestamp', type: 'uint256' },
-          ],
-        },
+        event: AuditRecordedEvent,
         fromBlock,
-        toBlock: 'latest' as any,
+        toBlock: 'latest',
       });
 
       let allowed = 0;
       let blocked = 0;
       for (const log of logs) {
-        const decoded = decodeEventLog({
-          abi: AuditAbi,
-          data: log.data,
-          topics: log.topics,
-        }) as unknown as { eventName: string; args: { allowed: boolean } };
-        if (decoded.eventName === 'AuditRecorded') {
-          if (decoded.args.allowed) allowed++;
-          else blocked++;
-        }
+        const args = decodeAuditRecorded(log);
+        if (!args) continue;
+        if (args.allowed) allowed++;
+        else blocked++;
       }
 
-      return {
-        total: Number(total),
-        allowed,
-        blocked,
-      };
+      return { total: Number(total), allowed, blocked };
     } catch (e) {
       console.error('fetchStats EVM error:', e);
       return null;
@@ -115,11 +131,11 @@ export function useBastionEVM() {
   const fetchPaused = useCallback(async (): Promise<boolean | null> => {
     if (!isConnected || !publicClient || !addresses.firewall) return null;
     try {
-      const paused = await publicClient.readContract({
+      const paused = (await publicClient.readContract({
         address: addresses.firewall as `0x${string}`,
         abi: FirewallAbi,
         functionName: 'paused',
-      }) as boolean;
+      })) as boolean;
       return paused;
     } catch (e) {
       console.error('fetchPaused EVM error:', e);
@@ -131,56 +147,28 @@ export function useBastionEVM() {
     async (limit = 50): Promise<AuditEntryData[]> => {
       if (!isConnected || !publicClient || !addresses.audit) return [];
       try {
-        const fromBlock = await publicClient.getBlockNumber() - 10000n;
+        const fromBlock = (await publicClient.getBlockNumber()) - 10000n;
         const allLogs = await publicClient.getLogs({
           address: addresses.audit as `0x${string}`,
-          event: {
-            type: 'event',
-            name: 'AuditRecorded',
-            inputs: [
-              { indexed: true, name: 'entryId', type: 'uint256' },
-              { indexed: true, name: 'agent', type: 'address' },
-              { name: 'target', type: 'address' },
-              { name: 'selector', type: 'bytes4' },
-              { name: 'value', type: 'uint256' },
-              { name: 'gasUsed', type: 'uint256' },
-              { name: 'allowed', type: 'bool' },
-              { name: 'reason', type: 'string' },
-              { name: 'timestamp', type: 'uint256' },
-            ],
-          },
+          event: AuditRecordedEvent,
           fromBlock,
-          toBlock: 'latest' as any,
+          toBlock: 'latest',
         });
 
-        const entries: AuditEntryData[] = allLogs.slice(-limit).reverse().map((log: Log) => {
-          const decoded = decodeEventLog({
-            abi: AuditAbi,
-            data: log.data,
-            topics: log.topics,
-          }) as unknown as {
-            eventName: string;
-            args: {
-              entryId: bigint;
-              agent: string;
-              target: string;
-              selector: string;
-              value: bigint;
-              gasUsed: bigint;
-              allowed: boolean;
-              reason: string;
-              timestamp: bigint;
+        const entries: AuditEntryData[] = allLogs
+          .slice(-limit)
+          .reverse()
+          .map((log) => {
+            const args = decodeAuditRecorded(log) ?? {};
+            return {
+              id: args.entryId ?? log.transactionHash ?? log.logIndex?.toString() ?? '',
+              timestamp: Number(args.timestamp ?? 0n),
+              decision: args.allowed ? 'ALLOWED' : 'BLOCKED',
+              account: args.agent ?? '',
+              intent: `${args.target ?? ''}.${args.selector ?? ''}`,
+              reason: args.allowed ? 'Policy passed' : 'Blocked by policy',
             };
-          };
-          return {
-            id: decoded.args.entryId.toString(),
-            timestamp: Number(decoded.args.timestamp),
-            decision: decoded.args.allowed ? 'ALLOWED' : 'BLOCKED',
-            account: decoded.args.agent,
-            intent: decoded.args.reason || 'No description',
-            reason: decoded.args.allowed ? 'Policy passed' : decoded.args.reason || 'Policy violation',
-          };
-        });
+          });
 
         return entries;
       } catch (e) {
@@ -194,17 +182,17 @@ export function useBastionEVM() {
   const fetchPolicy = useCallback(async (): Promise<PolicyData | null> => {
     if (!isConnected || !publicClient || !addresses.policy || !address) return null;
     try {
-      const policy = await publicClient.readContract({
+      const policy = (await publicClient.readContract({
         address: addresses.policy as `0x${string}`,
         abi: PolicyAbi,
         functionName: 'getPolicy',
         args: [address],
-      }) as [readonly `0x${string}`[], bigint, bigint, bigint];
+      })) as unknown as PolicyStruct;
 
       return {
-        maxSolPerTx: Number(policy[1]),
-        rateLimit: Number(policy[2]),
-        allowedPrograms: policy[0].map((s: `0x${string}`) => s),
+        maxSolPerTx: Number(policy.maxValuePerTx),
+        rateLimit: Number(policy.dailyTxLimit),
+        allowedPrograms: policy.allowedSelectors.map((s) => String(s)),
       };
     } catch (e) {
       console.error('fetchPolicy EVM error:', e);
@@ -249,19 +237,24 @@ export function useBastionEVM() {
       dailyTxLimit: number,
       cooldownSeconds: number = 0,
     ): Promise<string | null> => {
-      if (!isConnected || !addresses.policy) return null;
+      if (!isConnected || !addresses.policy || !address) return null;
       try {
+        const policy: PolicyStruct = {
+          agent: address,
+          isActive: true,
+          maxValuePerTx: BigInt(maxValue),
+          maxGasPerTx: 0n,
+          dailyTxLimit: BigInt(dailyTxLimit),
+          cooldownSeconds: BigInt(cooldownSeconds),
+          allowedTargets: [],
+          allowedSelectors: allowedSelectors.map((s) => s as `0x${string}`),
+          extraData: '0x',
+        };
         const hash = await writeContractAsync({
           address: addresses.policy as `0x${string}`,
           abi: PolicyAbi,
           functionName: 'setPolicy',
-          args: [
-            address,
-            allowedSelectors.map((s) => s as `0x${string}`),
-            BigInt(maxValue),
-            dailyTxLimit,
-            cooldownSeconds,
-          ],
+          args: [address, policy],
         });
         return hash;
       } catch (e) {
@@ -272,7 +265,7 @@ export function useBastionEVM() {
     [isConnected, writeContractAsync, addresses.policy, address],
   );
 
-  return {
+  return useMemo(() => ({
     fetchStats,
     fetchPaused,
     fetchAuditEntries,
@@ -282,5 +275,5 @@ export function useBastionEVM() {
     updatePolicy,
     isConnected,
     address,
-  };
+  }), [fetchStats, fetchPaused, fetchAuditEntries, fetchPolicy, emergencyPause, emergencyResume, updatePolicy, isConnected, address]);
 }

@@ -303,6 +303,30 @@ pub struct ScanResult {
     pub expired_delegations: u64,
     pub policy_drifts: u64,
     pub unsettled_transactions: u64,
+    /// The specific violations found, newest scan only.
+    #[serde(default)]
+    pub findings: Vec<ScanFinding>,
+}
+
+/// The category of violation a scan finding reports.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ScanFindingKind {
+    ExpiredApproval,
+    ExpiredDelegation,
+    PolicyDrift,
+    UnsettledTransaction,
+}
+
+/// A single violation observed by the background scanner.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ScanFinding {
+    pub kind: ScanFindingKind,
+    /// Identifier of the offending object: approval id, agent DID, policy
+    /// name, or plan id.
+    pub id: String,
+    /// Human-readable explanation of the violation.
+    pub detail: String,
 }
 
 impl TrustPolicy {

@@ -10,7 +10,7 @@ export default function ReputationSection() {
       </h3>
 
       <p className="font-sans text-sm mb-6 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-        Every agent has an on-chain reputation score that accrues over time. Higher reputation unlocks trust-gated marketplaces, agent scoring, and portable identity across the multi-chain ecosystem. Staking has been removed in favor of reputation as the universal chain-agnostic primitive.
+        Every agent has an on-chain reputation score that accrues over time. Higher reputation unlocks trust-gated marketplaces, agent scoring, and portable identity across the EVM ecosystem. Staking has been removed in favor of reputation as the universal chain-agnostic primitive.
       </p>
 
       <div className="space-y-4">
@@ -51,19 +51,20 @@ export default function ReputationSection() {
             <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>agent-reputation.ts</span>
           </div>
           <pre className="p-4 font-mono text-xs overflow-x-auto" style={{ color: 'var(--text-primary)' }}>
-{`import { BastionClient } from "@zkos-labs/sdk";
+{`import { BastionEVMClient } from "@zkos-labs/bastion-sdk";
 
-const client = new BastionClient({ connection });
+const client = new BastionEVMClient({ publicClient, chain, contracts });
 
-// Register with capabilities
-await client.registerAgent(wallet, "MyBot", AGENT_CAPABILITIES.TRANSFER);
+// Register through the sidecar with your EVM DID
+// POST /agents { did, authority_pubkey, name }
 
-// Fetch your reputation
-const agent = await client.fetchAgent(wallet.publicKey);
-console.log(\`Reputation: \${agent.reputationScore}\`);
+// Read an agent's on-chain policy
+const policy = await client.readPolicy(agentAddress);
+console.log(\`Daily limit: \${policy.dailyTxLimit}\`);
 
-// Update reputation (authority only)
-await client.updateAgentReputation(wallet, agentAuthority, 10);`}
+// Reputation accrues from ALLOWED audit entries on-chain
+const total = await client.getEntryCount();
+console.log(\`Audit entries: \${total}\`);`}
           </pre>
         </div>
       </div>
