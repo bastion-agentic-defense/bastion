@@ -11,11 +11,11 @@ concurrency:
 
 jobs:
   publish:
-    name: Publish ${{ matrix.package }}
+    name: Publish ${{ github.ref_name }}
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        package: [sdk, web2-sdk, mcp-server]
+    permissions:
+      contents: read
+      id-token: write   # required for npm provenance
 
     steps:
       - uses: actions/checkout@v4
@@ -32,10 +32,36 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Tag is "<package-name>@<version>" (e.g. "@zkos-labs/bastion-sdk@1.1.0").
+      # Derive the package to publish from the tag itself, rather than a
+      # static matrix -- otherwise pushing one package's tag also fans out
+      # to publish every other package in the workspace on every tag push.
+      - name: Resolve package from tag
+        id: pkg
+        run: |
+          tag="${{ github.ref_name }}"
+          pkg_name="${tag%@*}"
+          version="${tag##*@}"
+          echo "name=$pkg_name" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Verify package.json version matches tag
+        run: |
+          dir=$(pnpm -r exec node -e "if (require('./package.json').name === '${{ steps.pkg.outputs.name }}') console.log(process.cwd())" | head -1)
+          if [ -z "$dir" ]; then
+            echo "::error::No workspace package named ${{ steps.pkg.outputs.name }}"
+            exit 1
+          fi
+          actual=$(node -e "console.log(require('$dir/package.json').version)")
+          if [ "$actual" != "${{ steps.pkg.outputs.version }}" ]; then
+            echo "::error::Tag version ${{ steps.pkg.outputs.version }} does not match package.json version $actual"
+            exit 1
+          fi
+
       - name: Build
-        run: pnpm --filter @zkos-labs/${{ matrix.package }} build
+        run: pnpm --filter "${{ steps.pkg.outputs.name }}" build
 
       - name: Publish
-        run: pnpm --filter @zkos-labs/${{ matrix.package }} publish --no-git-checks
+        run: pnpm --filter "${{ steps.pkg.outputs.name }}" publish --no-git-checks --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
