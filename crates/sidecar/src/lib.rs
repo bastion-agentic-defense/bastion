@@ -1017,7 +1017,14 @@ async fn simulate_evm_handler(
     let agent_id = req.agent_id.clone();
     let intent = req.intent.clone();
 
-    let simulation_result = match sim.simulate_evm_tx(&req.transaction) {
+    // simulate_evm_tx uses a blocking reqwest client; calling it directly from
+    // this async handler panics ("cannot drop a runtime in a context where
+    // blocking is not allowed"). Run it on the blocking thread pool instead.
+    let tx = req.transaction.clone();
+    let simulation_result = match tokio::task::spawn_blocking(move || sim.simulate_evm_tx(&tx))
+        .await
+        .expect("EVM simulation task panicked")
+    {
         Ok(r) => r,
         Err(err) => {
             let entry = AuditEntry {

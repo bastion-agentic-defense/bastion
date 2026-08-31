@@ -57,18 +57,31 @@ async fn main() {
     // Per-chain EVM simulators, keyed by normalized lowercase chain name. Each is
     // enabled by its own RPC env var; absent chains yield a 503 on request rather
     // than silently routing to a different network.
-    let mut evm_simulators: HashMap<String, Arc<EvmSimulator>> = HashMap::new();
-    for (chain, env_var) in bastion_sidecar::simulation_evm::EVM_CHAIN_ENV_VARS {
-        if let Ok(url) = env::var(env_var)
-            && !url.is_empty()
-        {
-            eprintln!("[bastion] EVM simulator enabled for {chain}: {url}");
-            evm_simulators.insert(
-                (*chain).to_string(),
-                Arc::new(EvmSimulator::for_chain(*chain, url)),
-            );
-        }
-    }
+    //
+    // EvmSimulator wraps a `reqwest::blocking::Client`, which internally spins up
+    // its own single-thread tokio runtime. Constructing more than one of those
+    // directly on a `#[tokio::main]` worker thread panics ("cannot drop a runtime
+    // in a context where blocking is not allowed") once a second client is built
+    // while the first is still alive. Building them all inside `spawn_blocking`
+    // runs the construction on the blocking thread pool instead, which is safe.
+    let evm_simulators: HashMap<String, Arc<EvmSimulator>> =
+        tokio::task::spawn_blocking(|| {
+            let mut sims: HashMap<String, Arc<EvmSimulator>> = HashMap::new();
+            for (chain, env_var) in bastion_sidecar::simulation_evm::EVM_CHAIN_ENV_VARS {
+                if let Ok(url) = env::var(env_var)
+                    && !url.is_empty()
+                {
+                    eprintln!("[bastion] EVM simulator enabled for {chain}: {url}");
+                    sims.insert(
+                        (*chain).to_string(),
+                        Arc::new(EvmSimulator::for_chain(*chain, url)),
+                    );
+                }
+            }
+            sims
+        })
+        .await
+        .expect("build EVM simulators");
     if evm_simulators.is_empty() {
         eprintln!(
             "[bastion] No EVM simulators configured (set ETH_RPC_URL / BASE_RPC_URL / CELO_RPC_URL / ZKSYNC_RPC_URL / ROBINHOOD_RPC_URL / ETH_SEPOLIA_RPC_URL to enable)"

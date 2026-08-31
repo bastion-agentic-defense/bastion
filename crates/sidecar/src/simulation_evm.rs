@@ -302,7 +302,11 @@ impl bastion_core::adapter::TrustAdapter for EvmSimulator {
             max_priority_fee_per_gas: None,
             nonce: None,
         };
-        let result = EvmSimulate::simulate_evm_tx(self, &evm_tx)
+        // simulate_evm_tx uses a blocking reqwest client; calling it directly from
+        // this async fn panics ("cannot drop a runtime in a context where blocking
+        // is not allowed"). block_in_place keeps the borrow of `self` but tells the
+        // (multi-threaded) tokio scheduler it's safe to block this worker thread.
+        let result = tokio::task::block_in_place(|| EvmSimulate::simulate_evm_tx(self, &evm_tx))
             .map_err(|e| bastion_core::TrustAdapterError::SimulationFailed(e.to_string()))?;
         Ok(bastion_core::adapter::SimulationOutcome {
             balance_changes: result.balance_changes.iter().map(|(k, v)| (k.clone(), *v)).collect(),
