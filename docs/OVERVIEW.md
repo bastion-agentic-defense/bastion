@@ -5,7 +5,7 @@
 
 ## Programmable Trust Runtime
 
-[![npm](https://img.shields.io/npm/v/@zkos-labs/bastion-sdk?label=sdk)](https://www.npmjs.com/package/@zkos-labs/bastion-sdk)
+[![npm](https://img.shields.io/npm/v/@zkos-labs/bastion-agentique?label=sdk)](https://www.npmjs.com/package/@zkos-labs/bastion-agentique)
 [![npm](https://img.shields.io/npm/v/@zkos-labs/bastion-web2?label=web2-sdk)](https://www.npmjs.com/package/@zkos-labs/bastion-web2)
 
 > Bastion is in alpha testing. Use with caution in production environments.
@@ -175,7 +175,7 @@ pnpm test
 ```
 
 ```typescript
-import { BastionClient, AGENT_CAPABILITIES } from "@zkos-labs/bastion-sdk";
+import { BastionClient, AGENT_CAPABILITIES } from "@zkos-labs/bastion-agentique";
 
 const client = new BastionClient({
   connection: new Connection("https://api.devnet.solana.com")
@@ -320,16 +320,16 @@ pnpm --filter bastion-dashboard dev
 
 ## SDK
 
-### @zkos-labs/bastion-sdk, Solana + EVM Chain Firewall
+### @zkos-labs/bastion-agentique, Solana + EVM Chain Firewall
 
-TypeScript SDK for on-chain agent security. [npm → @zkos-labs/bastion-sdk](https://www.npmjs.com/package/@zkos-labs/bastion-sdk)
+TypeScript SDK for on-chain agent security. [npm → @zkos-labs/bastion-agentique](https://www.npmjs.com/package/@zkos-labs/bastion-agentique)
 
 ```bash
-npm install @zkos-labs/bastion-sdk
+npm install @zkos-labs/bastion-agentique
 ```
 
 ```typescript
-import { BastionClient, BastionSidecar, AGENT_CAPABILITIES } from "@zkos-labs/bastion-sdk";
+import { BastionClient, BastionSidecar, AGENT_CAPABILITIES } from "@zkos-labs/bastion-agentique";
 
 // On-chain client
 const client = new BastionClient({
@@ -418,7 +418,7 @@ See [`evm/README.md`](evm/README.md) for deployment details.
 | Web2 Firewall | Rust (bastion-web2-firewall), OpenAPI parser |
 | MCP Server | TypeScript, @modelcontextprotocol/sdk, SSE |
 | Payments | USDT/USDC (optional paid backend calls) |
-| SDK | TypeScript (@zkos-labs/bastion-sdk) |
+| SDK | TypeScript (@zkos-labs/bastion-agentique) |
 | Web2 SDK | TypeScript (@zkos-labs/bastion-web2) |
 | Dashboard | React, Vite, TailwindCSS |
 | Agent Skills | 48 blockint/Web2 skills (.agents/skills/) |

@@ -27,8 +27,8 @@ description: Bastion Programmable Trust Runtime for EVM transactions
 alwaysApply: true
 ---
 Before signing any transaction, validate it through Bastion.
-Use @zkos-labs/bastion-sdk for agent registration and policy config.
-Import { BastionSidecar, BastionEVMClient } from "@zkos-labs/bastion-sdk".`,
+Use @zkos-labs/bastion-agentique for agent registration and policy config.
+Import { BastionSidecar, BastionEVMClient } from "@zkos-labs/bastion-agentique".`,
   },
   {
     name: 'Codex',
@@ -36,9 +36,9 @@ Import { BastionSidecar, BastionEVMClient } from "@zkos-labs/bastion-sdk".`,
     description: 'Per-repo pointer. Codex fetches on each task.',
     setup: 'Add to AGENTS.md',
     code: `# AGENTS.md
-Use @zkos-labs/bastion-sdk for EVM transaction security.
+Use @zkos-labs/bastion-agentique for EVM transaction security.
 Import { BastionSidecar, BastionEVMClient }
-from "@zkos-labs/bastion-sdk".
+from "@zkos-labs/bastion-agentique".
 
 Before signing, pass the transaction through
 Bastion middleware at POST /api/v2/simulate-evm.

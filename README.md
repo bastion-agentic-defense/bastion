@@ -2,7 +2,7 @@
 
 > **The Programmable Trust Runtime for Autonomous Systems.**
 
-[![npm](https://img.shields.io/npm/v/@zkos-labs/bastion-sdk?label=bastion-sdk)](https://www.npmjs.com/package/@zkos-labs/bastion-sdk)
+[![npm](https://img.shields.io/npm/v/@zkos-labs/bastion-agentique?label=bastion-sdk)](https://www.npmjs.com/package/@zkos-labs/bastion-agentique)
 [![npm](https://img.shields.io/npm/v/@zkos-labs/bastion-web2?label=web2-sdk)](https://www.npmjs.com/package/@zkos-labs/bastion-web2)
 
 > ⚠️ **Alpha Software** - APIs and runtime behavior may change before the first stable release.
@@ -204,7 +204,7 @@ pnpm --filter bastion-dashboard dev
 SDK:
 
 ```bash
-npm install @zkos-labs/bastion-sdk viem
+npm install @zkos-labs/bastion-agentique viem
 ```
 
 ---
@@ -215,7 +215,7 @@ npm install @zkos-labs/bastion-sdk viem
 register an agent identity:
 
 ```typescript
-import { BastionSidecar, BastionEVMClient } from "@zkos-labs/bastion-sdk";
+import { BastionSidecar, BastionEVMClient } from "@zkos-labs/bastion-agentique";
 
 const sidecar = new BastionSidecar({ baseUrl: "https://bastion-agentique.fly.dev" });
 
@@ -231,7 +231,7 @@ const count = await evm.getEntryCount();
 where developers declare trust guarantees instead of choosing infrastructure:
 
 ```typescript
-import { Bastion, BastionSidecar } from "@zkos-labs/bastion-sdk";
+import { Bastion, BastionSidecar } from "@zkos-labs/bastion-agentique";
 
 const bastion = new Bastion({ sidecar });
 

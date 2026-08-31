@@ -2,6 +2,13 @@
 
 Web2 adapter for the Bastion Programmable Trust Runtime. Policy-enforced API calls for autonomous systems.
 
+Companion package to [`@zkos-labs/bastion-agentique`](https://www.npmjs.com/package/@zkos-labs/bastion-agentique)
+(formerly `@zkos-labs/bastion-sdk`), the runtime's multichain on-chain SDK
+(EVM + Solana settlement). Use this package to extend the same policy
+engine — allowlists, budgets, rate limits, PII/secrets/prompt-injection
+detection — to an agent's *off-chain* HTTP calls to providers like OpenAI,
+Stripe, GitHub, Slack, and AWS.
+
 ## Installation
 
 ```bash

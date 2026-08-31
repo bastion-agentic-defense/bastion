@@ -31,9 +31,9 @@ export default function AgentWizard({ chain }: Props) {
 
   const capabilityBitmask = CAPABILITIES.reduce((mask, c) => capabilities & c.bit ? mask | c.bit : mask, 0);
 
-  const installCmd = 'pnpm add @zkos-labs/bastion-sdk viem wagmi';
+  const installCmd = 'pnpm add @zkos-labs/bastion-agentique viem wagmi';
 
-  const registerCode = `import { BastionEVMClient } from "@zkos-labs/bastion-sdk";
+  const registerCode = `import { BastionEVMClient } from "@zkos-labs/bastion-agentique";
 
 // EVM agent registration via the Bastion contracts.
 const client = new BastionEVMClient({ publicClient, walletClient });

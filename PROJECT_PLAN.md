@@ -51,7 +51,7 @@ crates/sidecar/          Axum HTTP server, REST API, simulation, audit
 crates/web2-firewall/    Web2 API proxy with provider adapters
 evm/                     Solidity contracts (Foundry, incl. ERC-8354/8380)
 apps/web/                React dashboard (Vite, TailwindCSS)
-packages/sdk/            TypeScript SDK (@zkos-labs/bastion-sdk)
+packages/sdk/            TypeScript SDK (@zkos-labs/bastion-agentique)
 packages/web2-sdk/       Web2 adapter SDK (@zkos-labs/bastion-web2)
 packages/mcp-server/     MCP server (SSE transport)
 fv/                      Formal verification (TLA+ + Certora + property tests)

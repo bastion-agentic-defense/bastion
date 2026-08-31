@@ -32,7 +32,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Tag is "<package-name>@<version>" (e.g. "@zkos-labs/bastion-sdk@1.1.0").
+      # Tag is "<package-name>@<version>" (e.g. "@zkos-labs/bastion-agentique@1.1.0").
       # Derive the package to publish from the tag itself, rather than a
       # static matrix -- otherwise pushing one package's tag also fans out
       # to publish every other package in the workspace on every tag push.

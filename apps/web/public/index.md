@@ -44,5 +44,5 @@ cargo run --release
 
 - **GitHub**: https://github.com/zkos-labs/bastion
 - **Docs**: https://github.com/zkos-labs/bastion#readme
-- **SDK**: https://www.npmjs.com/package/@zkos-labs/bastion-sdk
+- **SDK**: https://www.npmjs.com/package/@zkos-labs/bastion-agentique
 - **Grond OSINT**: https://github.com/zkos-labs/Grond

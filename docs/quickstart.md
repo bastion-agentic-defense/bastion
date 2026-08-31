@@ -22,7 +22,7 @@ The flow has four moving parts:
 ## 1. Install
 
 ```bash
-npm install @zkos-labs/bastion-sdk
+npm install @zkos-labs/bastion-agentique
 ```
 
 For Web2 egress control - inspecting outbound API calls rather than chain
@@ -38,7 +38,7 @@ The hosted alpha sidecar is fine for evaluation. For anything real, run your own
 see Self-hosting below.
 
 ```ts
-import { Bastion } from '@zkos-labs/bastion-sdk';
+import { Bastion } from '@zkos-labs/bastion-agentique';
 
 const bastion = new Bastion({
   url: process.env.BASTION_URL ?? 'https://bastion-agentique.fly.dev',

@@ -35,7 +35,7 @@ guard contract verifies locally.
 
 Bastion contracts: `evm/src/erc8354/BastionConfidentialVerdict.sol`,
 `BastionPolicyDomainRegistry.sol`, `BastionGuardedExecutor.sol`.
-SDK: `@zkos-labs/bastion-sdk` → `erc8354` module.
+SDK: `@zkos-labs/bastion-agentique` → `erc8354` module.
 Proving is **off-chain** (Noir/barretenberg, see the spec's `assets/erc-8354/circuits`);
 verification is **on-chain**.
 
@@ -57,7 +57,7 @@ agent (same salt → same nullifier) is rejected.
   (a nullifier in the preimage would fork per chain and allow one spend per chain).
 
 Bastion contracts: `evm/src/erc8380/BastionUnclonableCredentialGuard.sol`,
-`DomainRegistry.sol`. SDK: `@zkos-labs/bastion-sdk` → `erc8380` module.
+`DomainRegistry.sol`. SDK: `@zkos-labs/bastion-agentique` → `erc8380` module.
 
 ### Known open questions (from the drafts, stated not hidden)
 

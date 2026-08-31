@@ -182,7 +182,7 @@ GitHub Actions runs on every push and PR (see `.github/workflows/ci.yml`):
 - Rust: `cargo fmt --check`, `cargo clippy`, `cargo test` (core, sidecar, web2-firewall, solana)
 - EVM: `forge build`, `forge test -vvv`
 - Dashboard: `pnpm install`, `pnpm --filter bastion-dashboard build`
-- SDK: `pnpm install`, `pnpm --filter @zkos-labs/bastion-sdk build`
+- SDK: `pnpm install`, `pnpm --filter @zkos-labs/bastion-agentique build`
 
 ## Security
 

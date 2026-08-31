@@ -66,7 +66,7 @@ async function main() {
   // 5. Recompute verification (trustless-ai compatible).
   console.log("verify namespace:", Object.keys(verify));
 
-  console.log("\n✅ SDK ready! Run 'pnpm --filter @zkos-labs/bastion-sdk build'.");
+  console.log("\n✅ SDK ready! Run 'pnpm --filter @zkos-labs/bastion-agentique build'.");
 }
 
 main().catch(console.error);

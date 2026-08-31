@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
-const EVM_INSTALL = `npm install @zkos-labs/bastion-sdk viem wagmi`;
+const EVM_INSTALL = `npm install @zkos-labs/bastion-agentique viem wagmi`;
 const EVM_DEPS = `# or
-pnpm add @zkos-labs/bastion-sdk viem wagmi
+pnpm add @zkos-labs/bastion-agentique viem wagmi
 # or
-yarn add @zkos-labs/bastion-sdk viem wagmi`;
+yarn add @zkos-labs/bastion-agentique viem wagmi`;
 
 const WEB2_INSTALL = `npm install @zkos-labs/web2-sdk`;
 const WEB2_DEPS = `# or

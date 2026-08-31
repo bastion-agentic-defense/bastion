@@ -302,10 +302,10 @@ export default function Landing() {
           * inventing one would be a lie, so the beat carries something true. */}
         <section className="py-12">
           <p className="band-kicker text-center">Runs on</p>
-          <div className="marquee" aria-label="Runs on: Ethereum, Monad, Base, Celo, zkSync, Robinhood.">
+          <div className="marquee" aria-label="Runs on: Ethereum, Monad, Base, Celo, zkSync, Robinhood, Polygon, Arbitrum, Solana.">
             <div className="marquee-track marquee-track--reverse" aria-hidden="true">
               {Array.from({ length: 6 }).flatMap(() =>
-                ['Ethereum', 'Monad', 'Base', 'Celo', 'zkSync', 'Robinhood', 'Solana'],
+                ['Ethereum', 'Monad', 'Base', 'Celo', 'zkSync', 'Robinhood', 'Polygon', 'Arbitrum', 'Solana'],
               ).map((chain, i) => (
                 <span key={i} className="inline-flex items-center gap-10">
                   <span

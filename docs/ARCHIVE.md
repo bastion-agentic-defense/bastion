@@ -52,7 +52,7 @@ third-party MPC service required.
 
 | What | Where | Why retired |
 |------|-------|-------------|
-| `BastionClient` (Anchor) | was `packages/sdk/src/index.ts` | SDK is now `@zkos-labs/bastion-sdk`, EVM + HTTP |
+| `BastionClient` (Anchor) | was `packages/sdk/src/index.ts` | SDK is now `@zkos-labs/bastion-agentique`, EVM + HTTP |
 | Anchor IDL | was `packages/sdk/src/idl.json`, `apps/web/src/idl.json` | removed |
 | Solana wallet stack (wallet-adapter) | was `apps/web/src/App.tsx` | dashboard is EVM-only (RainbowKit/wagmi) |
 | Solana DID auth (Ed25519 via solana_sdk) | was `crates/sidecar/src/auth.rs`, `agents.rs` | replaced with ed25519-dalek; DID prefix is now `did:bastion:evm:` |

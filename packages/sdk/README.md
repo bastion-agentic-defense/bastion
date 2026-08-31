@@ -1,27 +1,49 @@
-# Bastion SDK
+# Bastion Agentique SDK
 
-EVM + HTTP TypeScript SDK for the Bastion Programmable Trust Runtime. Identity, policy, execution, and observability for autonomous systems.
+Multichain TypeScript SDK for the Bastion Programmable Trust Runtime — identity,
+policy, simulation, execution, and observability for autonomous systems, across
+EVM chains and Solana.
 
-> **Package moved:** this package was previously published as `@zkos-labs/sdk`
-> (and, before that, `@bastion-agentique/sdk`). Following Bastion's full-EVM
-> pivot it now ships as **`@zkos-labs/bastion-sdk`**. The Solana Anchor program
-> client (`BastionClient`) is gone — update your imports to the EVM/HTTP surface
-> below.
+> **Package history:** this package was previously published as
+> `@zkos-labs/bastion-sdk`, and before that `@zkos-labs/sdk` (and, before
+> that, `@bastion-agentique/sdk`). It now ships as
+> **`@zkos-labs/bastion-agentique`**. The old Solana Anchor program client
+> (`BastionClient`) is gone — this SDK talks to chains through the Bastion
+> sidecar's HTTP API (`BastionSidecar`) and, for EVM, directly via `viem`
+> (`BastionEVMClient`).
+
+## What's new
+
+- **Multichain settlement**: EVM (Ethereum, Base, Celo, zkSync, Robinhood,
+  Monad, Polygon, Arbitrum) *and* Solana, through the same `Bastion.execute()`
+  call and the sidecar's `simulateEvm` / `simulateSolana` endpoints.
+- **ERC-8354** confidential policy verdict wrappers (`commitPolicyAction`,
+  `verdictDigest`, `verifyVerdict`, `consumeVerdict`).
+- **ERC-8380** unclonable capability credential wrappers (`computeNullifier`,
+  `computeCapabilityCommitment`, `issueCapability`, `executeCapability`,
+  `isConsumed`).
+- **`BastionWorkflow`**: durable, resumable multi-step execution
+  (`executeIntent`, `plan`, `compensate`, `signal`, `replay`, `start`,
+  `state`, `list`).
 
 ## Installation
 
 ```bash
-npm install @zkos-labs/bastion-sdk viem
-pnpm add @zkos-labs/bastion-sdk viem
-yarn add @zkos-labs/bastion-sdk viem
+npm install @zkos-labs/bastion-agentique viem
+pnpm add @zkos-labs/bastion-agentique viem
+yarn add @zkos-labs/bastion-agentique viem
 ```
+
+`viem` is a peer dependency, only required if you use `BastionEVMClient`
+directly. The HTTP-only surface (`BastionSidecar`, `Bastion`, `BastionWorkflow`,
+the ERC-8354/8380 wrappers) has no on-chain client dependency.
 
 ## Quick Start
 
-### HTTP (sidecar) — simulate, policy, audit
+### HTTP (sidecar) — simulate, policy, audit, multichain
 
 ```typescript
-import { BastionSidecar, Bastion } from "@zkos-labs/bastion-sdk";
+import { BastionSidecar, Bastion } from "@zkos-labs/bastion-agentique";
 
 const sidecar = new BastionSidecar({
   baseUrl: "https://bastion-agentique.fly.dev/",
@@ -30,9 +52,9 @@ const sidecar = new BastionSidecar({
 
 // One-line trust decision for an EVM transaction.
 const bastion = new Bastion({ sidecar });
-const result = await bastion.execute({
+const evmResult = await bastion.execute({
   action: "swap",
-  settlement: "base",
+  settlement: "base", // ethereum | base | celo | zksync | robinhood | monad | polygon | arbitrum | solana
   transaction: {
     from: "0x...",
     to: "0x...",
@@ -41,7 +63,15 @@ const result = await bastion.execute({
   },
   agentId: "agent-001",
 });
-console.log(result.decision); // "pass" | "block" | "pending_hitl"
+console.log(evmResult.decision); // "pass" | "block" | "pending_hitl"
+
+// Same call shape for Solana settlement.
+const solResult = await bastion.execute({
+  action: "transfer",
+  settlement: "solana",
+  solanaTx: { to: "11111111111111111111111111111111", amount: 1_000_000 },
+  agentId: "agent-001",
+});
 ```
 
 ### EVM contracts — read/write (viem)
@@ -50,7 +80,7 @@ console.log(result.decision); // "pass" | "block" | "pending_hitl"
 import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { base } from "viem/chains";
-import { BastionEVMClient } from "@zkos-labs/bastion-sdk";
+import { BastionEVMClient } from "@zkos-labs/bastion-agentique";
 
 const publicClient = createPublicClient({ chain: base, transport: http() });
 const walletClient = createWalletClient({
@@ -94,7 +124,7 @@ const txHash = await client.writePolicy("0xAgent...", {
 ### ERC-8354 (draft) — confidential verdicts
 
 ```typescript
-import { commitPolicyAction, verdictDigest, verifyVerdict } from "@zkos-labs/bastion-sdk";
+import { commitPolicyAction, verdictDigest, verifyVerdict } from "@zkos-labs/bastion-agentique";
 
 const commitment = commitPolicyAction({
   chainId: 8453n,
@@ -110,7 +140,7 @@ const commitment = commitPolicyAction({
 ### ERC-8380 (draft) — capability credentials
 
 ```typescript
-import { issueCapability, isConsumed } from "@zkos-labs/bastion-sdk";
+import { issueCapability, isConsumed } from "@zkos-labs/bastion-agentique";
 
 const capability = issueCapability({
   agentId: 7n,
@@ -129,19 +159,22 @@ const capability = issueCapability({
 
 | Method | Description |
 |--------|-------------|
-| `simulate(req)` | Run a transaction through the firewall (`POST /simulate`) |
+| `health()` | Sidecar health check (`GET /health`) |
 | `simulateEvm(req)` | Run an EVM tx through the firewall (`POST /api/v2/simulate-evm`) |
+| `simulateSolana(req)` | Run a Solana operation through the firewall (`POST /api/v2/simulate-solana`) |
 | `logs(query?)` | Fetch audit log entries (`GET /logs`) |
-| `getPolicy()` / `updatePolicy()` | Read/update the sidecar policy |
+| `getPolicy()` / `updatePolicy(policy)` | Read/update the sidecar policy |
 | `approve(req)` | Human-in-the-loop override (`POST /override`) |
-| `circuitBreakerStatus()` | Circuit breaker state |
+| `circuitBreakerStatus()` | Read circuit breaker state |
+| `engageCircuitBreaker()` / `disengageCircuitBreaker()` | Trip/reset the circuit breaker |
 | `triggerScan()` / `scanResults()` | Background trust scans |
 | `events()` | SSE event stream |
 
 ### `Bastion` (runtime facade)
 
-`execute(req)` composes privacy enforcement → EVM simulation/policy evaluation →
-verification. Settlement networks: `ethereum | base | celo | zksync | robinhood | monad`.
+`execute(req)` composes privacy enforcement → EVM/Solana simulation/policy
+evaluation → verification. Settlement networks:
+`ethereum | base | celo | zksync | robinhood | monad | polygon | arbitrum | solana`.
 
 ### `BastionWorkflow` (durable execution)
 

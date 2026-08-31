@@ -74,7 +74,7 @@ const identity = new IdentityRegistryClient({ rpcUrl, address: registryAddress }
 const { agentId } = await identity.register("ipfs://Qm...");
 
 // 2. Simulate + policy-check via Bastion (programmable trust)
-import { BastionSidecar } from "@zkos-labs/bastion-sdk";
+import { BastionSidecar } from "@zkos-labs/bastion-agentique";
 const sidecar = new BastionSidecar({ baseUrl: "https://bastion-agentique.fly.dev" });
 const decision = await sidecar.simulate({ transaction, intent: "swap 1 SOL to USDC" });
 
@@ -82,7 +82,7 @@ const decision = await sidecar.simulate({ transaction, intent: "swap 1 SOL to US
 //    The audit ID can be recomputed offline using verify.recomputeObservationDigest().
 
 // 4. Recompute verification (trustless-ai philosophy)
-import { verify } from "@zkos-labs/bastion-sdk";
+import { verify } from "@zkos-labs/bastion-agentique";
 const result = verify.verifyAuditRecord({
   rawInput: JSON.stringify(transaction),
   decision: "Pass",
@@ -99,7 +99,7 @@ Every Bastion audit record carries:
 - **`observation_digest`** (ERC-8281 OCP): sha256 of "Decision:payload_hash"
 - **`wyriwe_hash`** (ERC-8299 WYRIWE): triple-hash binding raw input → sanitized input
 
-Both are recompute-able from public inputs. The `@zkos-labs/bastion-sdk` `verify` module provides pure functions that reproduce these hashes without any network access - implementing trustless-ai's "Don't trust. Recompute." guarantee for the policy layer.
+Both are recompute-able from public inputs. The `@zkos-labs/bastion-agentique` `verify` module provides pure functions that reproduce these hashes without any network access - implementing trustless-ai's "Don't trust. Recompute." guarantee for the policy layer.
 
 ## When to Use Bastion
 

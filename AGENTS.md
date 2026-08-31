@@ -21,7 +21,7 @@
 | **Rust Web2 Firewall** | bastion-web2-firewall, http, url, reqwest | 0.1.0 |
 | **EVM Contracts** | Solidity 0.8.28, Foundry, OpenZeppelin, Solady | - |
 | **Dashboard** | React 18, Vite 5, TailwindCSS 3.4, TypeScript 5 | 0.2.0 |
-| **SDK** | TypeScript 5, viem 2, chain-agnostic HTTP (`@zkos-labs/bastion-sdk`) | 1.0.0 |
+| **SDK** | TypeScript 5, viem 2, chain-agnostic HTTP (`@zkos-labs/bastion-agentique`) | 1.0.0 |
 | **Web2 SDK** | TypeScript 5, BastionWeb2Client | 0.1.0 |
 | **EVM Wallet** | wagmi 2.12, viem 2.21, RainbowKit 2.2, TanStack Query 5 | - |
 | **Ethereum Standards** | ERC-8004, ERC-7579, ERC-4337, ERC-8126, EIP-7702, x402, EAS, Sign Protocol, Pact Network, ERC-8354 (draft), ERC-8380 (draft) | composed |
@@ -44,7 +44,7 @@ bastion/
 │   │   ├── abi/               ← EVM contract ABIs (JSON, on main branch)
 │   │   └── lib/               ← chains.ts, evmConfig.ts (EVM chains incl. Monad)
 │   └── dist/                  ← Built output (Netlify/Vercel publish dir)
-├── packages/sdk/              ← @zkos-labs/bastion-sdk (TypeScript, EVM + HTTP)
+├── packages/sdk/              ← @zkos-labs/bastion-agentique (TypeScript, EVM + HTTP)
 │   └── src/
 │       ├── index.ts           ← BastionEVMClient + HTTP exports
 │       ├── evm.ts             ← viem EVM contract client
@@ -132,7 +132,7 @@ settlement (`POST /api/v2/simulate-solana`) — a lightweight RPC-based
 | **All JS** | `pnpm build` | Recursive across workspaces |
 | **Dashboard** | `pnpm --filter bastion-dashboard build` | Vite production build → `apps/web/dist/` |
 | **Dashboard dev** | `pnpm --filter bastion-dashboard dev` | Vite dev server on port 3000 |
-| **SDK** | `pnpm --filter @zkos-labs/bastion-sdk build` | `tsc` → `packages/sdk/dist/` |
+| **SDK** | `pnpm --filter @zkos-labs/bastion-agentique build` | `tsc` → `packages/sdk/dist/` |
 | **All Rust** | `cargo build` | From workspace root |
 | **Rust release** | `cargo build --release` | Optimized binary in `target/release/` |
 | **Rust check** | `cargo check` | Fast type-check only |
@@ -209,7 +209,7 @@ Agent Operator (policy config, HITL review)
 
 4. **`apps/web/`**, React dashboard with EVM (RainbowKit/wagmi) wallet connection across Sepolia/Base/Celo/zkSync/Robinhood/Monad/Polygon/Arbitrum. Its live-simulate playground also supports Solana via the sidecar's RPC-based adapter (no Solana wallet connection yet — see below).
 
-5. **`packages/sdk/`**, TypeScript SDK (`@zkos-labs/bastion-sdk`) — viem EVM contract client + chain-agnostic HTTP layer (EVM + Solana settlement) + ERC-8354/8380 wrappers.
+5. **`packages/sdk/`**, TypeScript SDK (`@zkos-labs/bastion-agentique`) — viem EVM contract client + chain-agnostic HTTP layer (EVM + Solana settlement) + ERC-8354/8380 wrappers.
 
 > **Archived:** the legacy Solana on-chain Anchor audit program
 > (`crates/solana/programs/bastion-audit`) and the Arcium MPC stub
@@ -357,7 +357,7 @@ Triggers on push/PR to `main` (ignoring `.md` and `docs/`).
 | `fmt` | `cargo fmt --all -- --check` |
 | `evm` | Checkout submodules, `forge build`, `forge test -vvv` |
 | `web` | `pnpm install`, `pnpm --filter bastion-dashboard build` |
-| `sdk` | `pnpm install`, `pnpm --filter @zkos-labs/bastion-sdk build` + test |
+| `sdk` | `pnpm install`, `pnpm --filter @zkos-labs/bastion-agentique build` + test |
 | `web2-sdk` | `pnpm install`, `pnpm --filter @zkos-labs/bastion-web2 build` |
 | `mcp-server` | `pnpm install`, `pnpm --filter @zkos-labs/mcp-server build` |
 
@@ -431,7 +431,7 @@ cd evm && forge build && forge test -vvv && forge fmt --check
 pnpm --filter bastion-dashboard build
 
 # SDK
-pnpm --filter @zkos-labs/bastion-sdk build && pnpm --filter @zkos-labs/bastion-sdk test
+pnpm --filter @zkos-labs/bastion-agentique build && pnpm --filter @zkos-labs/bastion-agentique test
 ```
 
 ### PR Process

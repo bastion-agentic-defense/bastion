@@ -12,7 +12,7 @@ const METHODS: ApiMethod[] = [
     method: 'getEntryCount',
     signature: 'getEntryCount(): Promise<bigint>',
     description: 'Total number of audit entries recorded on-chain by the BastionAudit contract.',
-    example: `import { BastionEVMClient } from "@zkos-labs/bastion-sdk";
+    example: `import { BastionEVMClient } from "@zkos-labs/bastion-agentique";
 
 const client = new BastionEVMClient({ publicClient, chain, contracts });
 const total = await client.getEntryCount();
@@ -81,7 +81,7 @@ console.log(policy.maxValuePerTx, policy.allowedTargets);`,
     method: 'simulateEvm',
     signature: 'simulateEvm(req: EvmSimulateRequest): Promise<EvmSimulateResponse>',
     description: 'Run an EVM transaction through the sidecar policy engine before signing.',
-    example: `import { BastionSidecar } from "@zkos-labs/bastion-sdk";
+    example: `import { BastionSidecar } from "@zkos-labs/bastion-agentique";
 
 const sidecar = new BastionSidecar({ baseUrl: SIDECAR_URL });
 const result = await sidecar.simulateEvm({
@@ -129,7 +129,7 @@ console.log(result.decision, result.risk_score);`,
     method: 'verifyVerdict',
     signature: 'verifyVerdict(verdict: Verdict, attestation: VerdictAttestation): Promise<boolean>',
     description: 'ERC-8354: verify a confidential verdict signature against the agent key.',
-    example: `import { verifyVerdict } from "@zkos-labs/bastion-sdk";
+    example: `import { verifyVerdict } from "@zkos-labs/bastion-agentique";
 
 const ok = await verifyVerdict(verdict, attestation);`,
   },
@@ -137,7 +137,7 @@ const ok = await verifyVerdict(verdict, attestation);`,
     method: 'computeCapabilityCommitment',
     signature: 'computeCapabilityCommitment(inputs: CapabilityInputs): Hex',
     description: 'ERC-8380: derive the unclonable capability commitment for an agent credential.',
-    example: `import { computeCapabilityCommitment } from "@zkos-labs/bastion-sdk";
+    example: `import { computeCapabilityCommitment } from "@zkos-labs/bastion-agentique";
 
 const commitment = computeCapabilityCommitment({
   agentId,
@@ -284,7 +284,7 @@ export default function ApiReference() {
       </div>
 
       {/* SDK Methods */}
-      <p className="font-sans text-xs font-medium mb-3" style={{ color: 'var(--accent)' }}>TypeScript SDK (@zkos-labs/bastion-sdk)</p>
+      <p className="font-sans text-xs font-medium mb-3" style={{ color: 'var(--accent)' }}>TypeScript SDK (@zkos-labs/bastion-agentique)</p>
 
       <div className="space-y-2">
         {METHODS.map((m) => (

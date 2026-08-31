@@ -114,8 +114,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @zkos-labs/bastion-sdk build
-      - run: pnpm --filter @zkos-labs/bastion-sdk test
+      - run: pnpm --filter @zkos-labs/bastion-agentique build
+      - run: pnpm --filter @zkos-labs/bastion-agentique test
 
   # ── Web2 SDK ────────────────────────────────────────────────
   web2-sdk:
