@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write   # required for npm provenance
+      id-token: write   # required for npm Trusted Publishing (OIDC) + provenance
 
     steps:
       - uses: actions/checkout@v4
@@ -61,7 +61,13 @@ jobs:
       - name: Build
         run: pnpm --filter "${{ steps.pkg.outputs.name }}" build
 
+      # No NODE_AUTH_TOKEN / long-lived npm token here on purpose. This relies
+      # entirely on npm's Trusted Publishing (OIDC) -- pnpm exchanges the
+      # `id-token: write` OIDC token above for a short-lived npm publish
+      # token automatically when the package has a Trusted Publisher
+      # configured on npmjs.com pointing at this exact repo + workflow file
+      # (Settings -> Trusted Publisher, on each package's npmjs.com page).
+      # That configuration is a one-time, per-package, npm-account-side step
+      # this workflow can't do on its own.
       - name: Publish
         run: pnpm --filter "${{ steps.pkg.outputs.name }}" publish --no-git-checks --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
