@@ -295,7 +295,11 @@ impl bastion_core::adapter::TrustAdapter for EvmSimulator {
             from: tx.from.as_str().to_string(),
             to: tx.to.as_str().to_string(),
             value: Some(format!("0x{:x}", tx.amount)),
-            data: tx.metadata.get("data").and_then(|v| v.as_str()).map(ToString::to_string),
+            data: tx
+                .metadata
+                .get("data")
+                .and_then(|v| v.as_str())
+                .map(ToString::to_string),
             gas: None,
             gas_price: None,
             max_fee_per_gas: None,
@@ -309,7 +313,11 @@ impl bastion_core::adapter::TrustAdapter for EvmSimulator {
         let result = tokio::task::block_in_place(|| EvmSimulate::simulate_evm_tx(self, &evm_tx))
             .map_err(|e| bastion_core::TrustAdapterError::SimulationFailed(e.to_string()))?;
         Ok(bastion_core::adapter::SimulationOutcome {
-            balance_changes: result.balance_changes.iter().map(|(k, v)| (k.clone(), *v)).collect(),
+            balance_changes: result
+                .balance_changes
+                .iter()
+                .map(|(k, v)| (k.clone(), *v))
+                .collect(),
             logs: result.logs,
             success: result.error.is_none(),
         })

@@ -64,24 +64,23 @@ async fn main() {
     // in a context where blocking is not allowed") once a second client is built
     // while the first is still alive. Building them all inside `spawn_blocking`
     // runs the construction on the blocking thread pool instead, which is safe.
-    let evm_simulators: HashMap<String, Arc<EvmSimulator>> =
-        tokio::task::spawn_blocking(|| {
-            let mut sims: HashMap<String, Arc<EvmSimulator>> = HashMap::new();
-            for (chain, env_var) in bastion_sidecar::simulation_evm::EVM_CHAIN_ENV_VARS {
-                if let Ok(url) = env::var(env_var)
-                    && !url.is_empty()
-                {
-                    eprintln!("[bastion] EVM simulator enabled for {chain}: {url}");
-                    sims.insert(
-                        (*chain).to_string(),
-                        Arc::new(EvmSimulator::for_chain(*chain, url)),
-                    );
-                }
+    let evm_simulators: HashMap<String, Arc<EvmSimulator>> = tokio::task::spawn_blocking(|| {
+        let mut sims: HashMap<String, Arc<EvmSimulator>> = HashMap::new();
+        for (chain, env_var) in bastion_sidecar::simulation_evm::EVM_CHAIN_ENV_VARS {
+            if let Ok(url) = env::var(env_var)
+                && !url.is_empty()
+            {
+                eprintln!("[bastion] EVM simulator enabled for {chain}: {url}");
+                sims.insert(
+                    (*chain).to_string(),
+                    Arc::new(EvmSimulator::for_chain(*chain, url)),
+                );
             }
-            sims
-        })
-        .await
-        .expect("build EVM simulators");
+        }
+        sims
+    })
+    .await
+    .expect("build EVM simulators");
     if evm_simulators.is_empty() {
         eprintln!(
             "[bastion] No EVM simulators configured (set ETH_RPC_URL / BASE_RPC_URL / CELO_RPC_URL / ZKSYNC_RPC_URL / ROBINHOOD_RPC_URL / ETH_SEPOLIA_RPC_URL to enable)"

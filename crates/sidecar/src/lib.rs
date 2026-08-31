@@ -42,8 +42,8 @@ use audit::{
     AuditEntry, AuditLogger, AuditResult, Decision, TransactionDetails, current_timestamp,
     hash_transaction_payload,
 };
-use grond_oracle::GrondOracle;
 use bastion_core::TrustAdapter as _;
+use grond_oracle::GrondOracle;
 use policy::{Policy, PolicyEngine};
 use simulation::SimulationResult;
 use simulation_evm::{EvmSimulate, EvmSimulateRequest, EvmSimulateResponse, EvmSimulator};
@@ -1148,10 +1148,7 @@ async fn simulate_solana_handler(
         bastion_core::transaction::Chain::Solana,
     );
     if let Some(ser) = req.transaction.clone() {
-        tx = tx.with_metadata(
-            "solana_tx",
-            serde_json::Value::String(ser),
-        );
+        tx = tx.with_metadata("solana_tx", serde_json::Value::String(ser));
     }
 
     let outcome = match adapter.verify(&tx).await {
@@ -1808,10 +1805,7 @@ pub fn build_app(
         .route("/api/v2/evaluate", post(evaluate_v2))
         .route("/api/v2/evaluate-web2", post(evaluate_web2))
         .route("/api/v2/simulate-evm", post(simulate_evm_handler))
-        .route(
-            "/api/v2/simulate-solana",
-            post(simulate_solana_handler),
-        )
+        .route("/api/v2/simulate-solana", post(simulate_solana_handler))
         .route("/agents/:did/delegate", post(post_agent_delegate))
         .route(
             "/agents/:did/delegation/:child_did",

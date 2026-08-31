@@ -19,9 +19,9 @@ use serde::Deserialize;
 use std::collections::HashMap;
 use std::env;
 
+use bastion_core::TrustAdapter;
 use bastion_core::adapter::{SimulationOutcome, TrustAdapterError};
 use bastion_core::transaction::{Address, AgentId, Chain, NormalizedTransaction};
-use bastion_core::TrustAdapter;
 
 use crate::audit::AuditLogger;
 
@@ -83,10 +83,7 @@ impl SolanaAdapter {
 
     /// Simulate a serialized (base58) Solana transaction via `simulateTransaction`.
     /// Returns a coarse success/log projection (no VM-level balance accounting).
-    async fn simulate_transaction(
-        &self,
-        tx: &str,
-    ) -> Result<SimulationOutcome, TrustAdapterError> {
+    async fn simulate_transaction(&self, tx: &str) -> Result<SimulationOutcome, TrustAdapterError> {
         let body = serde_json::json!({
             "jsonrpc": "2.0", "id": 1, "method": "simulateTransaction",
             "params": [tx, { "replaceRecentBlockhash": true }]
@@ -97,10 +94,16 @@ impl SolanaAdapter {
             .json(&body)
             .send()
             .await
-            .map_err(|e| TrustAdapterError::SimulationFailed(format!("simulateTransaction failed: {e}")))?
+            .map_err(|e| {
+                TrustAdapterError::SimulationFailed(format!("simulateTransaction failed: {e}"))
+            })?
             .json::<RpcEnvelope<serde_json::Value>>()
             .await
-            .map_err(|e| TrustAdapterError::SimulationFailed(format!("simulateTransaction parse failed: {e}")))?;
+            .map_err(|e| {
+                TrustAdapterError::SimulationFailed(format!(
+                    "simulateTransaction parse failed: {e}"
+                ))
+            })?;
 
         if let Some(err) = resp.error {
             return Ok(SimulationOutcome {
@@ -122,12 +125,15 @@ impl SolanaAdapter {
 
 #[async_trait]
 impl TrustAdapter for SolanaAdapter {
-    async fn authenticate(&self, address: &Address) -> Result<bastion_core::adapter::AgentIdentity, TrustAdapterError> {
+    async fn authenticate(
+        &self,
+        address: &Address,
+    ) -> Result<bastion_core::adapter::AgentIdentity, TrustAdapterError> {
         // Validate it is a well-formed base58 pubkey; the agent is looked up from
         // the off-chain Sled registry by the caller. We do not require RPC for auth.
-        let _pk = bs58::decode(address.as_str())
-            .into_vec()
-            .map_err(|e| TrustAdapterError::AuthenticationFailed(format!("invalid base58 pubkey: {e}")))?;
+        let _pk = bs58::decode(address.as_str()).into_vec().map_err(|e| {
+            TrustAdapterError::AuthenticationFailed(format!("invalid base58 pubkey: {e}"))
+        })?;
         if _pk.len() != 32 {
             return Err(TrustAdapterError::AuthenticationFailed(format!(
                 "Solana pubkey must be 32 bytes, got {}",
@@ -201,7 +207,10 @@ impl TrustAdapter for SolanaAdapter {
         })
     }
 
-    async fn settle(&self, _receipt: &bastion_core::adapter::ExecutionReceipt) -> Result<(), TrustAdapterError> {
+    async fn settle(
+        &self,
+        _receipt: &bastion_core::adapter::ExecutionReceipt,
+    ) -> Result<(), TrustAdapterError> {
         let _ = &self.logger;
         Ok(())
     }
@@ -286,7 +295,10 @@ mod tests {
         let valid = Address::new("11111111111111111111111111111111");
         let identity = futures::executor::block_on(adapter.authenticate(&valid)).unwrap();
         assert_eq!(identity.chain, Chain::Solana);
-        assert_eq!(identity.address.as_str(), "11111111111111111111111111111111");
+        assert_eq!(
+            identity.address.as_str(),
+            "11111111111111111111111111111111"
+        );
 
         let invalid = Address::new("not-a-base58-pubkey");
         assert!(futures::executor::block_on(adapter.authenticate(&invalid)).is_err());
