@@ -12,18 +12,18 @@ RUN cargo build --release -p bastion-sidecar && \
     cp target/release/bastion-sidecar /bastion-sidecar
 
 # Build stage — Node.js MCP server
-FROM node:20-slim AS mcp-builder
+FROM node:22-slim AS mcp-builder
 
 WORKDIR /app
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY packages/mcp-server/ packages/mcp-server/
 
-RUN corepack enable && corepack prepare pnpm@9 --activate && \
+RUN corepack enable && corepack prepare pnpm@11 --activate && \
     pnpm install --frozen-lockfile && \
-    pnpm --filter @bastion/mcp-server build
+    pnpm --filter @zkos-labs/mcp-server build
 
 # Runtime stage
-FROM node:20-slim
+FROM node:22-slim
 
 RUN apt-get update && apt-get install -y ca-certificates curl && \
     rm -rf /var/lib/apt/lists/*
@@ -39,7 +39,6 @@ COPY config.toml /etc/bastion/config.toml
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-ENV HELIUS_API_KEY=""
 ENV SOLANA_RPC_URL="https://api.devnet.solana.com"
 ENV BASTION_AGENT_STORE_PATH="/data/bastion/agent_store"
 
