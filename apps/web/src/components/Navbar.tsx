@@ -54,6 +54,14 @@ export function Navbar() {
         </button>
 
         <Link
+          to="/agents/deploy"
+          className="font-sans nav-link no-underline hidden sm:inline"
+          style={{ fontSize: '14px', color: 'var(--text-muted)' }}
+        >
+          Launchpad
+        </Link>
+
+        <Link
           to="/integrate"
           className="rounded-full px-6 py-2.5 text-sm font-medium font-sans transition-transform duration-150 hover:scale-[1.03] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
           style={{ background: 'var(--text-primary)', color: 'var(--bg)', textDecoration: 'none' }}

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAgents, type TrackedAgent } from '../hooks/useAgents';
 import { useAccount } from 'wagmi';
+import { SETTLEMENT_CHAINS, chainFromDid, chainColor } from '../lib/settlementChains';
 
 type Filter = 'all' | 'parents' | 'children' | 'swaps' | 'transfers' | 'stakers';
 
@@ -39,6 +40,7 @@ function AgentCard({ agent }: { agent: any }) {
   const name = agent.name || `Agent-${(agent.authority || '').slice(0, 8)}`;
   const did = agent.did || '';
   const staked = agent.staked_lamports ?? 0;
+  const chain = chainFromDid(did);
 
   return (
     <button
@@ -57,6 +59,12 @@ function AgentCard({ agent }: { agent: any }) {
           </p>
         </div>
         <div className="flex gap-1 shrink-0">
+          <span
+            className="font-mono text-[8px] px-1.5 py-0.5 rounded uppercase"
+            style={{ background: `${chainColor(chain)}20`, color: chainColor(chain) }}
+          >
+            {chain}
+          </span>
           {isParent && (
             <span className="font-mono text-[8px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(139,92,246,0.15)', color: '#a78bfa' }}>PARENT</span>
           )}
@@ -102,6 +110,9 @@ export default function AgentList() {
   const { agents: trackedAgents, fetchAgents, loading: sidecarLoading } = useAgents();
   const { isConnected: connected } = useAccount();
   const [filter, setFilter] = useState<Filter>('all');
+  // Multichain by default: 'all' shows agents across every chain. Narrowing
+  // to one chain is opt-in, not the default.
+  const [chainFilter, setChainFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -111,17 +122,25 @@ export default function AgentList() {
   }, [fetchAgents]);
 
   const filtered = useCallback(() => {
-    switch (filter) {
-      case 'parents': return trackedAgents.filter(a => (a as any).is_delegator || (a as any).child_dids?.length > 0);
-      case 'children': return trackedAgents.filter(a => !!(a as any).parent_did);
-      case 'transfers': return trackedAgents.filter(a => a.capability_bitmask & 0b00000001);
-      case 'swaps': return trackedAgents.filter(a => a.capability_bitmask & 0b00000010);
-      case 'stakers': return trackedAgents.filter(a => a.capability_bitmask & 0b00000100);
-      default: return trackedAgents;
-    }
-  }, [filter, trackedAgents]);
+    const byCategory = (() => {
+      switch (filter) {
+        case 'parents': return trackedAgents.filter(a => (a as any).is_delegator || (a as any).child_dids?.length > 0);
+        case 'children': return trackedAgents.filter(a => !!(a as any).parent_did);
+        case 'transfers': return trackedAgents.filter(a => a.capability_bitmask & 0b00000001);
+        case 'swaps': return trackedAgents.filter(a => a.capability_bitmask & 0b00000010);
+        case 'stakers': return trackedAgents.filter(a => a.capability_bitmask & 0b00000100);
+        default: return trackedAgents;
+      }
+    })();
+    if (chainFilter === 'all') return byCategory;
+    return byCategory.filter(a => chainFromDid(a.did) === chainFilter);
+  }, [filter, chainFilter, trackedAgents]);
 
   const agents = filtered();
+  const chainCounts = SETTLEMENT_CHAINS.reduce<Record<string, number>>((acc, c) => {
+    acc[c.id] = trackedAgents.filter(a => chainFromDid(a.did) === c.id).length;
+    return acc;
+  }, {});
   const parentCount = trackedAgents.filter(a => (a as any).is_delegator || (a as any).child_dids?.length > 0).length;
   const childCount = trackedAgents.filter(a => !!(a as any).parent_did).length;
 
@@ -135,7 +154,7 @@ export default function AgentList() {
             {trackedAgents.length} agents ({parentCount} parents, {childCount} children)
           </span>
           {connected && (
-            <Link to="/integrate" className="font-sans text-xs text-blue-400 hover:underline">Register New Agent</Link>
+            <Link to="/agents/deploy" className="font-sans text-xs text-blue-400 hover:underline">Register New Agent</Link>
           )}
         </div>
       </nav>
@@ -150,17 +169,31 @@ export default function AgentList() {
         </div>
 
         {/* Filters */}
-        <div className="flex gap-1 mb-6 p-1 rounded-lg w-fit" style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.04)' }}>
-          {FILTERS.map(f => (
-            <button
-              key={f.id}
-              onClick={() => setFilter(f.id)}
-              className="px-4 py-1.5 rounded-md font-sans text-xs font-medium transition-colors"
-              style={filter === f.id ? { background: '#fff', color: '#000' } : { background: 'transparent', color: '#71717a' }}
-            >
-              {f.label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <div className="flex gap-1 p-1 rounded-lg w-fit" style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.04)' }}>
+            {FILTERS.map(f => (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id)}
+                className="px-4 py-1.5 rounded-md font-sans text-xs font-medium transition-colors"
+                style={filter === f.id ? { background: '#fff', color: '#000' } : { background: 'transparent', color: '#71717a' }}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          <select
+            value={chainFilter}
+            onChange={(e) => setChainFilter(e.target.value)}
+            className="px-3 py-2 rounded-lg font-mono text-xs outline-none"
+            style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.06)', color: '#fff' }}
+            aria-label="Filter by chain"
+          >
+            <option value="all">All chains ({trackedAgents.length})</option>
+            {SETTLEMENT_CHAINS.map(c => (
+              <option key={c.id} value={c.id}>{c.label} ({chainCounts[c.id] ?? 0})</option>
+            ))}
+          </select>
         </div>
 
         {/* Agent grid */}
@@ -176,7 +209,7 @@ export default function AgentList() {
             </p>
             {trackedAgents.length === 0 && (
               <button
-                onClick={() => navigate('/integrate')}
+                onClick={() => navigate('/agents/deploy')}
                 className="px-6 py-2 rounded-full text-sm font-medium font-sans"
                 style={{ background: 'var(--text-primary)', color: 'var(--bg)' }}
               >

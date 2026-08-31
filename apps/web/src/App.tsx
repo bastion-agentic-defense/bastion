@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '@rainbow-me/rainbowkit/styles.css';
 
 import { ThemeProvider } from './context/ThemeContext';
-import { ChainProvider } from './context/ChainContext';
+import { SolanaWalletContextProvider } from './context/SolanaWalletContext';
 import { RouteErrorBoundary } from './components/RouteErrorBoundary';
 import { SmoothScroll } from './components/SmoothScroll';
 import { config } from './lib/evmConfig';
@@ -41,7 +41,7 @@ export function App() {
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>
           <ThemeProvider>
-            <ChainProvider>
+            <SolanaWalletContextProvider>
               <BrowserRouter>
                 <SmoothScroll>
                   <RouteErrorBoundary>
@@ -49,7 +49,7 @@ export function App() {
                   </RouteErrorBoundary>
                 </SmoothScroll>
               </BrowserRouter>
-            </ChainProvider>
+            </SolanaWalletContextProvider>
           </ThemeProvider>
         </RainbowKitProvider>
       </QueryClientProvider>

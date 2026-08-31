@@ -18,3 +18,4 @@ graphify-out/
 
 # local OpenCode editor workspace
 .opencode/
+.gstack/

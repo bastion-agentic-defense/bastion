@@ -59,6 +59,11 @@ pub struct AuditEntry {
     pub simulation_logs: Vec<String>,
     #[serde(default)]
     pub transaction_details: Option<TransactionDetails>,
+    /// Settlement chain this entry applies to (e.g. "base", "solana"), when
+    /// known. `#[serde(default)]` so entries persisted before this field
+    /// existed still deserialize as `None` rather than failing to load.
+    #[serde(default)]
+    pub chain: Option<String>,
 }
 
 pub fn hash_transaction_payload(payload: &str) -> String {
@@ -116,11 +121,13 @@ impl AuditLogger {
         Ok(logs)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn get_logs_filtered(
         &self,
         transaction_id: Option<&str>,
         signature: Option<&str>,
         result: Option<AuditResult>,
+        chain: Option<&str>,
         offset: usize,
         limit: usize,
     ) -> Result<Vec<AuditEntry>> {
@@ -155,6 +162,13 @@ impl AuditLogger {
                 }
             }
 
+            #[allow(clippy::collapsible_if)]
+            if let Some(chain) = chain {
+                if entry.chain.as_deref() != Some(chain) {
+                    continue;
+                }
+            }
+
             logs.push(entry);
         }
 
@@ -163,11 +177,11 @@ impl AuditLogger {
     }
 
     pub fn get_logs_by_transaction_id(&self, transaction_id: &str) -> Result<Vec<AuditEntry>> {
-        self.get_logs_filtered(Some(transaction_id), None, None, 0, usize::MAX)
+        self.get_logs_filtered(Some(transaction_id), None, None, None, 0, usize::MAX)
     }
 
     pub fn get_logs_by_signature(&self, signature: &str) -> Result<Vec<AuditEntry>> {
-        self.get_logs_filtered(None, Some(signature), None, 0, usize::MAX)
+        self.get_logs_filtered(None, Some(signature), None, None, 0, usize::MAX)
     }
 
     /// Return total count of entries (optionally filtered by result).
@@ -216,6 +230,7 @@ impl AuditLogger {
         transaction_id: Option<&str>,
         signature: Option<&str>,
         result: Option<AuditResult>,
+        chain: Option<&str>,
     ) -> Result<usize> {
         let mut count = 0usize;
         for item in self.db.iter() {
@@ -238,6 +253,12 @@ impl AuditLogger {
             #[allow(clippy::collapsible_if)]
             if let Some(r) = result {
                 if entry.result != r {
+                    continue;
+                }
+            }
+            #[allow(clippy::collapsible_if)]
+            if let Some(c) = chain {
+                if entry.chain.as_deref() != Some(c) {
                     continue;
                 }
             }
@@ -327,6 +348,7 @@ mod tests {
             reasoning: String::new(),
             simulation_logs: vec![],
             transaction_details: None,
+            chain: None,
         }
     }
 
@@ -374,7 +396,7 @@ mod tests {
         assert_eq!(by_sig[0].transaction_signature.as_deref(), Some("sig-c"));
 
         let allowed = logger
-            .get_logs_filtered(None, None, Some(AuditResult::Allowed), 0, 10)
+            .get_logs_filtered(None, None, Some(AuditResult::Allowed), None, 0, 10)
             .expect("query allowed");
         assert_eq!(allowed.len(), 2);
         assert!(
@@ -385,7 +407,7 @@ mod tests {
         assert!(allowed[0].timestamp >= allowed[1].timestamp);
 
         let paginated = logger
-            .get_logs_filtered(None, None, None, 1, 1)
+            .get_logs_filtered(None, None, None, None, 1, 1)
             .expect("paginated query");
         assert_eq!(paginated.len(), 1);
         assert_eq!(paginated[0].timestamp, 2);

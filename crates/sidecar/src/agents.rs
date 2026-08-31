@@ -23,6 +23,11 @@ pub(crate) fn decode_hex(s: &str) -> Option<Vec<u8>> {
         .collect()
 }
 
+/// Extract the chain segment from a Bastion DID (`did:bastion:{chain}:{pubkey}`).
+pub(crate) fn chain_from_did(did: &str) -> Option<String> {
+    did.split(':').nth(2).map(str::to_string)
+}
+
 /// Parse a stored authority pubkey (hex) into an Ed25519 [`ed25519_dalek::VerifyingKey`].
 pub(crate) fn authority_verifying_key(authority: &str) -> Result<ed25519_dalek::VerifyingKey, ()> {
     let bytes = decode_hex(authority).ok_or(())?;
@@ -61,6 +66,13 @@ pub struct TrackedAgent {
     // ── Connectivity ──
     pub sidecar_endpoint: Option<String>,
     pub on_chain_verified: bool,
+
+    /// Settlement chain this agent's DID identifies it on (e.g. "evm",
+    /// "solana"), extracted from `did:bastion:{chain}:{pubkey}` at
+    /// registration time. `#[serde(default)]` so agents persisted before
+    /// this field existed still deserialize as `None`.
+    #[serde(default)]
+    pub chain: Option<String>,
 
     // ── Physical / Robot Identity ──
     #[serde(default)]
@@ -163,6 +175,7 @@ impl AgentStore {
             stake_unlock_at: 0,
             sidecar_endpoint,
             on_chain_verified: true,
+            chain: chain_from_did(did),
             parent_did: None,
             delegation_depth: Some(0),
             child_dids: Vec::new(),

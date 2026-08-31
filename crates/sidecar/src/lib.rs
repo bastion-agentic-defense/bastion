@@ -177,6 +177,7 @@ struct LogsQuery {
     transaction_id: Option<String>,
     signature: Option<String>,
     result: Option<AuditResult>,
+    chain: Option<String>,
 }
 
 #[derive(serde::Deserialize)]
@@ -322,10 +323,16 @@ async fn proxy_mcp(req: AxumRequest) -> impl IntoResponse {
                 .map(|v| v.contains("text/event-stream"))
                 .unwrap_or(false);
 
-            let mut builder = axum::response::Response::builder().status(status.as_u16()).header(
-                "content-type",
-                if is_sse { "text/event-stream" } else { "application/json" },
-            );
+            let mut builder = axum::response::Response::builder()
+                .status(status.as_u16())
+                .header(
+                    "content-type",
+                    if is_sse {
+                        "text/event-stream"
+                    } else {
+                        "application/json"
+                    },
+                );
             if is_sse {
                 builder = builder
                     .header("cache-control", "no-cache")
@@ -512,6 +519,7 @@ fn build_audit_entry(
         reasoning,
         simulation_logs,
         transaction_details,
+        chain: None,
     }
 }
 
@@ -660,33 +668,36 @@ async fn get_logs(
         transaction_id,
         signature,
         result,
+        chain,
     } = query;
 
     let offset = offset.unwrap_or(0);
     let limit = limit.unwrap_or(100);
 
-    let total =
-        match state
-            .logger
-            .count_filtered(transaction_id.as_deref(), signature.as_deref(), result)
-        {
-            Ok(t) => t,
-            Err(err) => {
-                return (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(ErrorResponse {
-                        error: format!("Failed to count logs: {err}"),
-                        block_id: None,
-                    }),
-                )
-                    .into_response();
-            }
-        };
+    let total = match state.logger.count_filtered(
+        transaction_id.as_deref(),
+        signature.as_deref(),
+        result,
+        chain.as_deref(),
+    ) {
+        Ok(t) => t,
+        Err(err) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrorResponse {
+                    error: format!("Failed to count logs: {err}"),
+                    block_id: None,
+                }),
+            )
+                .into_response();
+        }
+    };
 
     match state.logger.get_logs_filtered(
         transaction_id.as_deref(),
         signature.as_deref(),
         result,
+        chain.as_deref(),
         offset,
         limit,
     ) {
@@ -841,6 +852,7 @@ async fn engage_circuit_breaker(State(state): State<AppState>) -> Json<CircuitBr
         reasoning: "Circuit breaker engaged - all transactions paused".into(),
         simulation_logs: vec![],
         transaction_details: None,
+        chain: None,
     });
     Json(CircuitBreakerStatus { engaged: true })
 }
@@ -862,6 +874,7 @@ async fn disengage_circuit_breaker(State(state): State<AppState>) -> Json<Circui
         reasoning: "Circuit breaker disengaged - transactions resumed".into(),
         simulation_logs: vec![],
         transaction_details: None,
+        chain: None,
     });
     Json(CircuitBreakerStatus { engaged: false })
 }
@@ -1032,6 +1045,7 @@ async fn simulate_evm_handler(
         Ok(r) => r,
         Err(err) => {
             let entry = AuditEntry {
+                chain: Some(chain.clone()),
                 ..build_audit_entry(
                     None,
                     Decision::Blocked(format!("EVM simulation failed: {err}")),
@@ -1077,6 +1091,7 @@ async fn simulate_evm_handler(
     });
 
     let entry = AuditEntry {
+        chain: Some(chain.clone()),
         ..build_audit_entry(
             transaction_id.clone(),
             if has_error {
@@ -1159,6 +1174,7 @@ async fn simulate_solana_handler(
         Ok(o) => o,
         Err(err) => {
             let entry = AuditEntry {
+                chain: Some("solana".to_string()),
                 ..build_audit_entry(
                     None,
                     Decision::Blocked(format!("Solana simulation failed: {err}")),
@@ -1190,6 +1206,7 @@ async fn simulate_solana_handler(
     let sim_result = adapter_solana::project_solana_outcome(&outcome, &to);
 
     let entry = AuditEntry {
+        chain: Some("solana".to_string()),
         ..build_audit_entry(
             None,
             if allowed {
@@ -1274,8 +1291,21 @@ struct AgentAuditQuery {
     offset: Option<usize>,
 }
 
-async fn get_agents(State(state): State<AppState>) -> Json<AgentListResponse> {
-    let agents = state.agent_store.list_agents().unwrap_or_default();
+#[derive(serde::Deserialize)]
+struct AgentListQuery {
+    /// Optional settlement chain filter (e.g. "evm", "solana"). Omitted or
+    /// absent returns agents across every chain -- multichain by default.
+    chain: Option<String>,
+}
+
+async fn get_agents(
+    State(state): State<AppState>,
+    Query(query): Query<AgentListQuery>,
+) -> Json<AgentListResponse> {
+    let mut agents = state.agent_store.list_agents().unwrap_or_default();
+    if let Some(chain) = query.chain.as_deref() {
+        agents.retain(|a| a.chain.as_deref() == Some(chain));
+    }
     let total = agents.len();
     Json(AgentListResponse { agents, total })
 }
@@ -1576,12 +1606,12 @@ async fn get_agent_audit(
     // Fetch audit entries filtered by the agent's authority
     let entries = state
         .logger
-        .get_logs_filtered(Some(&agent.authority), None, None, offset, limit)
+        .get_logs_filtered(Some(&agent.authority), None, None, None, offset, limit)
         .unwrap_or_default();
 
     let total = state
         .logger
-        .count_filtered(Some(&agent.authority), None, None)
+        .count_filtered(Some(&agent.authority), None, None, None)
         .unwrap_or(0);
 
     Ok(Json(serde_json::json!({

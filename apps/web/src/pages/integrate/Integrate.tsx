@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAccount } from 'wagmi';
 import { Navbar } from '../../components/Navbar';
+import AgentWizard from '../../components/AgentWizard';
 import InstallSection from './InstallSection';
 import ReputationSection from './ReputationSection';
 import QuickStartSection from './QuickStartSection';
@@ -101,6 +102,24 @@ EVM (Celo / Base / Sepolia) · Solana (RPC simulation)
         {/* Sections */}
         <div className="space-y-20 pb-20" id="install">
           <InstallSection />
+
+          {/* Guided Setup: interactive walkthrough, EVM or Solana */}
+          <section aria-labelledby="guided-setup-heading">
+            <h3
+              id="guided-setup-heading"
+              className="font-sans text-sm uppercase tracking-wider mb-4"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              Guided Setup
+            </h3>
+            <div
+              className="rounded-xl p-6"
+              style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
+            >
+              <AgentWizard />
+            </div>
+          </section>
+
           <QuickStartSection />
           <ReputationSection />
           <McpSection />

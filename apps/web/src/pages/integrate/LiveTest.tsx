@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSidecar } from '../../hooks/useSidecar';
+import { SETTLEMENT_CHAINS } from '../../lib/settlementChains';
 
 export default function LiveTest() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
@@ -195,17 +196,20 @@ export default function LiveTest() {
               color: 'var(--text-primary)',
             }}
           />
-          <input
+          <select
             value={simChain}
             onChange={(e) => setSimChain(e.target.value)}
-            placeholder="Chain (e.g. base, celo, ethereum, monad, polygon, arbitrum, solana)"
             className="w-full p-3 rounded-lg font-mono text-sm"
             style={{
               background: 'var(--bg-subtle)',
               border: '1px solid var(--border)',
               color: 'var(--text-primary)',
             }}
-          />
+          >
+            {SETTLEMENT_CHAINS.map((c) => (
+              <option key={c.id} value={c.id}>{c.label}</option>
+            ))}
+          </select>
           {isSolana && (
             <p className="font-sans text-xs" style={{ color: 'var(--text-muted)' }}>
               Solana mode: "to" must be a base58-encoded address, not a 0x-hex EVM address.

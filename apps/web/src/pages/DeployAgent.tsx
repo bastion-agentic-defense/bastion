@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAccount } from 'wagmi';
+import { SolanaWalletButton, useSolanaWallet } from '../context/SolanaWalletContext';
 
 const TEMPLATES = [
   {
@@ -47,20 +48,24 @@ const TEMPLATES = [
 
 export default function DeployAgent() {
   const { address, isConnected: connected } = useAccount();
+  const { publicKey: solanaPublicKey, connected: solanaConnected } = useSolanaWallet();
   const navigate = useNavigate();
+  const [chain, setChain] = useState<'evm' | 'solana'>('evm');
   const [selected, setSelected] = useState<string | null>(null);
   const [agentName, setAgentName] = useState('');
   const [deploying, setDeploying] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
   const tpl = TEMPLATES.find(t => t.id === selected);
+  const authorityPubkey = chain === 'evm' ? address : solanaPublicKey?.toBase58();
+  const canDeploy = chain === 'evm' ? connected && !!address : solanaConnected && !!solanaPublicKey;
 
   async function handleDeploy() {
-    if (!tpl || !connected || !address) return;
+    if (!tpl || !canDeploy || !authorityPubkey) return;
     setDeploying(true);
     setResult(null);
     try {
-      // Register agent on the EVM via the sidecar (POST /agents).
+      // Register the agent via the sidecar (POST /agents).
       const res = await fetch(`${import.meta.env.VITE_SIDECAR_URL || 'https://bastion-agentique.fly.dev/'}/agents`, {
         method: 'POST',
         headers: {
@@ -68,8 +73,8 @@ export default function DeployAgent() {
           'X-Api-Key': import.meta.env.VITE_BASTION_API_KEY || '',
         },
         body: JSON.stringify({
-          did: `did:bastion:evm:${address}`,
-          authority_pubkey: address,
+          did: `did:bastion:${chain}:${authorityPubkey}`,
+          authority_pubkey: authorityPubkey,
           sidecar_endpoint: null,
           name: agentName || tpl.name,
         }),
@@ -96,9 +101,37 @@ export default function DeployAgent() {
 
       <main className="pt-32 px-6 pb-8 max-w-4xl mx-auto">
         <h1 className="font-serif text-2xl mb-2">Deploy an Agent</h1>
-        <p className="font-sans text-xs text-zinc-500 mb-8">
+        <p className="font-sans text-xs text-zinc-500 mb-6">
           Choose a pre-configured template. Bastion sets up the policy and capabilities - your agent is ready in seconds.
         </p>
+
+        {/* Chain toggle + wallet connect */}
+        <div className="flex flex-wrap items-center gap-3 mb-8">
+          <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+            {(['evm', 'solana'] as const).map(c => (
+              <button
+                key={c}
+                onClick={() => setChain(c)}
+                className="px-4 py-2 font-mono text-xs transition-colors"
+                style={{
+                  background: chain === c ? '#fff' : 'transparent',
+                  color: chain === c ? '#000' : '#a1a1aa',
+                }}
+              >
+                {c === 'evm' ? 'EVM' : 'Solana'}
+              </button>
+            ))}
+          </div>
+          {chain === 'evm' ? (
+            connected ? (
+              <span className="font-mono text-[11px] text-zinc-500">{address?.slice(0, 6)}...{address?.slice(-4)} connected</span>
+            ) : (
+              <span className="font-mono text-[11px] text-red-400">Connect an EVM wallet (top of dashboard) to deploy</span>
+            )
+          ) : (
+            <SolanaWalletButton />
+          )}
+        </div>
 
         {/* Template grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
@@ -148,15 +181,17 @@ export default function DeployAgent() {
               />
               <button
                 onClick={handleDeploy}
-                disabled={deploying || !connected}
+                disabled={deploying || !canDeploy}
                 className="px-6 py-2.5 rounded-lg font-mono text-sm font-medium transition-colors disabled:opacity-50"
                 style={{ background: tpl?.color, color: '#000' }}
               >
                 {deploying ? 'Deploying...' : 'Deploy Agent'}
               </button>
             </div>
-            {!connected && (
-              <p className="font-sans text-[10px] text-red-400">Connect your EVM wallet to deploy.</p>
+            {!canDeploy && (
+              <p className="font-sans text-[10px] text-red-400">
+                Connect your {chain === 'evm' ? 'EVM' : 'Solana'} wallet to deploy.
+              </p>
             )}
             {result && (
               <div

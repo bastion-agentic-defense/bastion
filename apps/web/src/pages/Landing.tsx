@@ -178,6 +178,19 @@ function Nav() {
               {label}
             </a>
           ))}
+          {[
+            ['Dashboard', '/dashboard'],
+            ['Launchpad', '/agents/deploy'],
+          ].map(([label, to]) => (
+            <Link
+              key={label}
+              to={to}
+              className="font-sans no-underline nav-link"
+              style={{ fontSize: '14px', color: 'var(--text-secondary)' }}
+            >
+              {label}
+            </Link>
+          ))}
         </div>
 
         <Link

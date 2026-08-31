@@ -22,7 +22,7 @@ function formatDate(ts: number): string {
 
 export default function AgentDetail() {
   const { did } = useParams<{ did: string }>();
-  const { fetchAgent, fetchAgentAudit, stakeLamports, requestUnstake, claimUnstake } = useAgents();
+  const { fetchAgent, fetchAgentAudit } = useAgents();
   const [agent, setAgent] = useState<any>(null);
   const [audit, setAudit] = useState<AgentAuditResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -84,15 +84,7 @@ export default function AgentDetail() {
           </div>
 
           {/* Stats grid */}
-          <div className="grid grid-cols-5 gap-3 mb-4">
-
-            <div className="rounded-lg p-3" style={{ background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.15)' }}>
-              <p className="font-sans text-[9px] uppercase tracking-wider text-zinc-500 mb-1">Staked</p>
-              <p className="font-mono text-sm font-bold" style={{ color: '#f59e0b' }}>{(agent.staked_lamports ?? 0).toLocaleString()} SOL</p>
-              {agent.stake_unlock_at > 0 && (
-                <p className="font-mono text-[8px] text-orange-400 mt-0.5">Unlock: {formatDate(agent.stake_unlock_at)}</p>
-              )}
-            </div>
+          <div className="grid grid-cols-4 gap-3 mb-4">
 
             <div className="rounded-lg p-3" style={{ background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.15)' }}>
               <p className="font-sans text-[9px] uppercase tracking-wider text-zinc-500 mb-1">Reputation</p>
@@ -214,65 +206,6 @@ export default function AgentDetail() {
               )}
             </div>
           )}
-        </div>
-
-        {/* Staking Actions */}
-        <div className="rounded-xl p-4 mb-6" style={{ background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.15)' }}>
-          <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500 mb-3">Staking</p>
-          <div className="flex gap-2">
-            <button
-              onClick={async () => {
-                const amt = prompt('Enter SOL amount to stake:');
-                if (amt && agent) {
-                  const lamports = Math.floor(parseFloat(amt) * 1_000_000_000);
-                  if (lamports > 0) {
-                    const ok = await stakeLamports(agent.did, agent.authority, lamports);
-                    if (ok) { alert(`${amt} SOL staked successfully!`); window.location.reload(); }
-                    else { alert('Staking failed. Ensure the sidecar is running.'); }
-                  }
-                }
-              }}
-              className="px-4 py-2 rounded-lg font-mono text-xs font-medium transition-colors hover:opacity-80"
-              style={{ background: '#f59e0b', color: '#000' }}
-            >
-              Stake SOL
-            </button>
-            {agent.staked_lamports > 0 && (
-              <button
-                onClick={async () => {
-                  if (agent) {
-                    const ok = await requestUnstake(agent.did, agent.authority);
-                    if (ok) { alert('Unstake requested! 7-day cooldown started.'); window.location.reload(); }
-                    else { alert('Unstake request failed.'); }
-                  }
-                }}
-                className="px-4 py-2 rounded-lg font-mono text-xs font-medium transition-colors hover:opacity-80"
-                style={{ background: 'rgba(245,158,11,0.2)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.3)' }}
-              >
-                Request Unstake
-              </button>
-            )}
-            {agent.stake_unlock_at > 0 && agent.stake_unlock_at * 1000 < Date.now() && (
-              <button
-                onClick={async () => {
-                  if (agent) {
-                    const ok = await claimUnstake(agent.did, agent.authority);
-                    if (ok) { alert('SOL claimed!'); window.location.reload(); }
-                    else { alert('Claim failed.'); }
-                  }
-                }}
-                className="px-4 py-2 rounded-lg font-mono text-xs font-medium transition-colors hover:opacity-80"
-                style={{ background: '#22c55e', color: '#000' }}
-              >
-                Claim SOL
-              </button>
-            )}
-          </div>
-          <div className="mt-3 space-y-1 font-mono text-[9px] text-zinc-600">
-            <p>Min stake duration: 48 hours</p>
-            <p>Unstake cooldown: 7 days</p>
-            <p>Stake-weighted policy: higher stake = higher transaction limits</p>
-          </div>
         </div>
 
         {/* Audit Timeline */}

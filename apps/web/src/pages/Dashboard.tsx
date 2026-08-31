@@ -7,6 +7,7 @@ import { useAgents, type TrackedAgent } from '../hooks/useAgents';
 import AgentFloor from '../components/AgentFloor';
 import EvmStatusPanel from '../components/EvmStatusPanel';
 import { useAgentEvents } from '../hooks/useAgentEvents';
+import { SETTLEMENT_CHAINS, chainFromDid, chainColor } from '../lib/settlementChains';
 
 const DECISION_COLORS: Record<string, string> = { ALLOWED: '#22c55e', BLOCKED: '#ef4444', PENDING: '#f59e0b' };
 
@@ -79,6 +80,12 @@ function TimeSeries({ data, width, height, color }: { data: number[]; width: num
 }
 
 function DonutChart({ segments, size }: { segments: { label: string; value: number; color: string }[]; size: number }) {
+  // Guard against NaN/negative inputs (e.g. a stat that hasn't loaded yet)
+  // producing NaN arc coordinates below.
+  segments = segments.map((seg) => ({
+    ...seg,
+    value: Number.isFinite(seg.value) && seg.value > 0 ? seg.value : 0,
+  }));
   const total = segments.reduce((s, seg) => s + seg.value, 0) || 1;
   let cumulative = -Math.PI / 2;
   const r = size / 2 - 4;
@@ -375,14 +382,16 @@ export default function Dashboard() {
           </div>
           <div className="rounded-xl p-4 flex flex-col items-center" style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.06)' }}>
             <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500 mb-2">Source Chain</p>
-            <DonutChart size={100} segments={trackedAgents.length > 0 ? (() => {
-              const evmCount = trackedAgents.filter(a => a.did.includes(':base:') || a.did.includes(':celo:') || a.did.includes(':eth:') || a.did.includes(':zksync:') || a.did.includes(':robinhood:') || a.did.includes(':monad:') || a.did.includes(':polygon:') || a.did.includes(':arbitrum:')).length;
-              const solanaCount = trackedAgents.filter(a => a.did.includes(':solana:')).length;
-              const segs: { label: string; value: number; color: string }[] = [];
-              if (evmCount > 0) segs.push({ label: 'EVM', value: evmCount, color: '#3b82f6' });
-              if (solanaCount > 0) segs.push({ label: 'Solana', value: solanaCount, color: '#9945FF' });
-              return segs.length > 0 ? segs : [{ label: 'EVM', value: stats.total, color: '#3b82f6' }];
-            })() : [{ label: 'EVM', value: stats.total, color: '#3b82f6' }]} />
+            <DonutChart size={100} segments={(() => {
+              const segs = SETTLEMENT_CHAINS
+                .map(c => ({
+                  label: c.label,
+                  value: trackedAgents.filter(a => chainFromDid(a.did) === c.id).length,
+                  color: c.color,
+                }))
+                .filter(s => s.value > 0);
+              return segs.length > 0 ? segs : [{ label: 'No agents yet', value: 1, color: '#3f3f46' }];
+            })()} />
           </div>
         </div>
 
@@ -390,12 +399,20 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto mb-4 rounded-xl p-4" style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.06)' }}>
           <div className="flex items-center justify-between mb-3">
             <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500">Registered Agents ({trackedAgents.length})</p>
+            <button
+              onClick={() => navigate('/agents/deploy')}
+              className="font-mono text-[10px] px-3 py-1.5 rounded-lg transition-colors hover:opacity-80"
+              style={{ background: 'rgba(255,255,255,0.06)', color: '#fff' }}
+            >
+              + Deploy new agent
+            </button>
           </div>
           {trackedAgents.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {trackedAgents.map((agent) => {
                 const scorePct = Math.min(agent.reputation_score / 100, 1);
                 const scoreColor = scorePct > 0.7 ? '#22c55e' : scorePct > 0.4 ? '#f59e0b' : '#ef4444';
+                const chain = chainFromDid(agent.did);
                 return (
                   <button
                     key={agent.did}
@@ -404,10 +421,16 @@ export default function Dashboard() {
                     style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', minWidth: 200 }}
                   >
                     <div className="w-2 h-2 rounded-full shrink-0" style={{ background: scoreColor }} />
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="font-mono text-[11px] text-zinc-200 truncate">{agent.name}</p>
                       <p className="font-mono text-[8px] text-zinc-600 truncate">{agent.did.split(':').pop()?.slice(0, 12)}...</p>
                     </div>
+                    <span
+                      className="font-mono text-[7px] px-1.5 py-0.5 rounded uppercase shrink-0"
+                      style={{ background: `${chainColor(chain)}20`, color: chainColor(chain) }}
+                    >
+                      {chain}
+                    </span>
                   </button>
                 );
               })}
