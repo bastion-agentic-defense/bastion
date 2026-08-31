@@ -1,4 +1,4 @@
-export type ChainId = 'evm';
+export type ChainId = 'evm' | 'solana';
 
 export interface ChainConfig {
   id: ChainId;
@@ -17,9 +17,17 @@ export const CHAINS: Record<ChainId, ChainConfig> = {
     shortName: 'EVM',
     icon: '',
     color: '#627EEA',
-    // Sepolia testnet by default (see docs/EVM_READINESS.md - testnet-only pre-audit).
     rpcUrl: import.meta.env.VITE_EVM_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com',
     explorerUrl: import.meta.env.VITE_EVM_EXPLORER_URL || 'https://sepolia.etherscan.io',
+  },
+  solana: {
+    id: 'solana',
+    name: 'Solana (RPC simulation)',
+    shortName: 'Solana',
+    icon: '',
+    color: '#9945FF',
+    rpcUrl: import.meta.env.VITE_SOLANA_RPC_URL || '',
+    explorerUrl: import.meta.env.VITE_SOLANA_EXPLORER_URL || 'https://solscan.io',
   },
 };
 

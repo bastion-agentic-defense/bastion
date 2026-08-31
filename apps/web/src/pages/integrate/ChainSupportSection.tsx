@@ -26,6 +26,19 @@ const WEB2_SUPPORT = {
   status: 'In Progress',
 } as const;
 
+const SOLANA_SUPPORT = {
+  walletLabel: 'Connection',
+  connection: 'RPC simulation only',
+  rpc: 'Solana RPC (Read-After-Write simulation)',
+  features: [
+    'Transaction simulation via TrustAdapter',
+    'PDA-based account resolution',
+    'SPL Token program support',
+    'LiveTest playground (no wallet required)',
+  ],
+  status: 'In Progress',
+} as const;
+
 export default function ChainSupportSection() {
   return (
     <section className="max-w-3xl mx-auto" aria-labelledby="chains-heading">
@@ -37,7 +50,7 @@ export default function ChainSupportSection() {
         Chain Support
       </h3>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* EVM */}
         <div
           className="rounded-xl p-6"
@@ -71,6 +84,49 @@ export default function ChainSupportSection() {
               <span className="font-sans text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Features</span>
               <ul className="mt-2 space-y-1">
                 {EVM_SUPPORT.features.map((f) => (
+                  <li key={f} className="font-sans text-sm flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                    <span style={{ color: 'var(--accent)' }}>+</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Solana */}
+        <div
+          className="rounded-xl p-6"
+          style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <span style={{ color: '#9945FF', fontSize: '1.5em' }}></span>
+            <div>
+              <h4 className="font-sans font-semibold text-base" style={{ color: 'var(--text-primary)' }}>
+                Solana
+              </h4>
+              <span
+                className="inline-block font-mono text-xs px-2 py-0.5 rounded-full mt-0.5"
+                style={{ background: 'rgba(234,179,8,0.1)', color: '#eab308', border: '1px solid rgba(234,179,8,0.25)' }}
+              >
+                {SOLANA_SUPPORT.status}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <span className="font-sans text-xs font-medium" style={{ color: 'var(--text-muted)' }}>{SOLANA_SUPPORT.walletLabel}</span>
+              <p className="font-sans text-sm mt-1" style={{ color: 'var(--text-primary)' }}>{SOLANA_SUPPORT.connection}</p>
+            </div>
+            <div>
+              <span className="font-sans text-xs font-medium" style={{ color: 'var(--text-muted)' }}>RPC</span>
+              <p className="font-sans text-sm mt-1" style={{ color: 'var(--text-primary)' }}>{SOLANA_SUPPORT.rpc}</p>
+            </div>
+            <div>
+              <span className="font-sans text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Features</span>
+              <ul className="mt-2 space-y-1">
+                {SOLANA_SUPPORT.features.map((f) => (
                   <li key={f} className="font-sans text-sm flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                     <span style={{ color: 'var(--accent)' }}>+</span>
                     {f}

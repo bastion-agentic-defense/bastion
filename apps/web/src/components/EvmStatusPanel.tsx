@@ -48,7 +48,7 @@ export default function EvmStatusPanel() {
   if (!deployed) {
     return (
       <div className="max-w-7xl mx-auto mb-4 rounded-xl p-6" style={CARD}>
-        <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500 mb-2">EVM Networks (Sepolia / Base / Celo)</p>
+        <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500 mb-2">EVM Networks (Sepolia / Base / Celo) · Solana (RPC simulation in LiveTest)</p>
         <p className="font-sans text-sm text-zinc-400">Bastion contracts are not yet deployed on this frontend.</p>
         <p className="font-sans text-xs text-zinc-600 mt-1">
           Set <code className="text-zinc-500">VITE_BASTION_AUDIT_ADDRESS</code> (and the policy / firewall / registry

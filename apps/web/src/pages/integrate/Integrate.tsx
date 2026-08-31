@@ -83,8 +83,8 @@ export default function Integrate() {
           >
             <div className="flex items-center gap-3 mb-2">
               <span className="font-sans text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                EVM (Celo / Base / Sepolia)
-              </span>
+EVM (Celo / Base / Sepolia) · Solana (RPC simulation)
+            </span>
               <span
                 className="font-mono text-[9px] px-2 py-0.5 rounded-full ml-auto"
                 style={{ background: 'rgba(234,179,8,0.1)', color: '#eab308', border: '1px solid rgba(234,179,8,0.25)' }}

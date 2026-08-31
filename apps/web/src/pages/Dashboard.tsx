@@ -376,8 +376,12 @@ export default function Dashboard() {
           <div className="rounded-xl p-4 flex flex-col items-center" style={{ background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.06)' }}>
             <p className="font-sans text-[10px] uppercase tracking-wider text-zinc-500 mb-2">Source Chain</p>
             <DonutChart size={100} segments={trackedAgents.length > 0 ? (() => {
-              const evmCount = trackedAgents.filter(a => a.did.includes(':base:') || a.did.includes(':celo:') || a.did.includes(':eth:') || a.did.includes(':zksync:') || a.did.includes(':robinhood:') || a.did.includes(':monad:')).length;
-              return [{ label: 'EVM', value: evmCount > 0 ? evmCount : stats.total, color: '#3b82f6' }];
+              const evmCount = trackedAgents.filter(a => a.did.includes(':base:') || a.did.includes(':celo:') || a.did.includes(':eth:') || a.did.includes(':zksync:') || a.did.includes(':robinhood:') || a.did.includes(':monad:') || a.did.includes(':polygon:') || a.did.includes(':arbitrum:')).length;
+              const solanaCount = trackedAgents.filter(a => a.did.includes(':solana:')).length;
+              const segs: { label: string; value: number; color: string }[] = [];
+              if (evmCount > 0) segs.push({ label: 'EVM', value: evmCount, color: '#3b82f6' });
+              if (solanaCount > 0) segs.push({ label: 'Solana', value: solanaCount, color: '#9945FF' });
+              return segs.length > 0 ? segs : [{ label: 'EVM', value: stats.total, color: '#3b82f6' }];
             })() : [{ label: 'EVM', value: stats.total, color: '#3b82f6' }]} />
           </div>
         </div>
@@ -508,7 +512,7 @@ export default function Dashboard() {
 
         {/* Footer */}
         <footer className="max-w-7xl mx-auto pt-6 border-t border-white/[0.06] text-center">
-          <p className="font-sans text-[10px] text-zinc-600">Built by ZKOS Labs. Bastion v0.3.0. Apache 2.0. Auto-refresh: 30s. Multi-chain: <span style={{ color: '#627EEA' }}>Ethereum</span> <span className="text-zinc-700">+ Base + Celo + zkSync + Robinhood + Monad</span>.</p>
+          <p className="font-sans text-[10px] text-zinc-600">Built by ZKOS Labs. Bastion v0.3.0. Apache 2.0. Auto-refresh: 30s. Multi-chain: <span style={{ color: '#627EEA' }}>Ethereum</span> <span className="text-zinc-700">+ Base + Celo + zkSync + Robinhood + Monad</span>. <span style={{ color: '#9945FF' }}>Solana</span> <span className="text-zinc-700">(RPC simulation)</span>.</p>
         </footer>
       </main>
     </div>

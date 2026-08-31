@@ -305,7 +305,7 @@ export default function Landing() {
           <div className="marquee" aria-label="Runs on: Ethereum, Monad, Base, Celo, zkSync, Robinhood.">
             <div className="marquee-track marquee-track--reverse" aria-hidden="true">
               {Array.from({ length: 6 }).flatMap(() =>
-                ['Ethereum', 'Monad', 'Base', 'Celo', 'zkSync', 'Robinhood'],
+                ['Ethereum', 'Monad', 'Base', 'Celo', 'zkSync', 'Robinhood', 'Solana'],
               ).map((chain, i) => (
                 <span key={i} className="inline-flex items-center gap-10">
                   <span
