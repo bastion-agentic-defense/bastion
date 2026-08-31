@@ -1,6 +1,6 @@
 //! Chain-agnostic sidecar API tests: homepage discovery, policy management, and
-//! EVM simulation routing. Solana/Helius/Arcium simulation paths were retired
-//! with the full-EVM pivot, so only EVM-facing surface is exercised here.
+//! EVM + Solana simulation routing. Simulation paths are network-opt-in (per-chain
+//! RPC env vars), so the unconfigured-path 503 behavior is what's exercised here.
 
 use axum::{
     body::{Body, to_bytes},
@@ -201,6 +201,32 @@ async fn simulate_evm_defaults_to_celo_when_chain_omitted() {
     let body = String::from_utf8(body.to_vec()).expect("utf8");
     assert!(body.contains("celo"), "defaults to celo: {body}");
     assert!(body.contains("CELO_RPC_URL"), "names celo env var: {body}");
+}
+
+#[tokio::test]
+async fn simulate_solana_unconfigured_returns_503_with_enable_hint() {
+    let (app, _tmp) = test_app();
+
+    let response = app
+        .oneshot(json_request(
+            "/api/v2/simulate-solana",
+            serde_json::json!({
+                "to": "11111111111111111111111111111111",
+                "amount": 1000,
+            }),
+        ))
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+    let body = to_bytes(response.into_body(), usize::MAX)
+        .await
+        .expect("body");
+    let body = String::from_utf8(body.to_vec()).expect("utf8");
+    assert!(
+        body.contains("SOLANA_RPC_URL"),
+        "message names the env var: {body}"
+    );
 }
 
 // Note: the positive routing path (a configured chain actually reaching its

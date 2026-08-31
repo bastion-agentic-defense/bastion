@@ -52,6 +52,9 @@ pub const EVM_CHAIN_ENV_VARS: &[(&str, &str)] = &[
     ("zksync_sepolia", "ZKSYNC_SEPOLIA_RPC_URL"),
     ("robinhood", "ROBINHOOD_RPC_URL"),
     ("robinhood_testnet", "ROBINHOOD_TESTNET_RPC_URL"),
+    ("polygon", "POLYGON_RPC_URL"),
+    ("arbitrum", "ARBITRUM_RPC_URL"),
+    ("monad", "MONAD_RPC_URL"),
 ];
 
 /// The RPC env var name for a chain, e.g. `evm_rpc_env_var("ethereum") == "ETH_RPC_URL"`.
@@ -247,6 +250,94 @@ pub struct EvmSimulateResponse {
     pub simulation_result: Option<SimulationResult>,
     pub risk_score: Option<u8>,
     pub risk_summary: Option<String>,
+}
+
+/// Map a normalized EVM chain label to its `Chain` variant.
+pub fn chain_from_label(label: &str) -> bastion_core::transaction::Chain {
+    match label {
+        "base" => bastion_core::transaction::Chain::Base,
+        "polygon" => bastion_core::transaction::Chain::Polygon,
+        "arbitrum" => bastion_core::transaction::Chain::Arbitrum,
+        "celo" => bastion_core::transaction::Chain::Celo,
+        "zksync" | "zksync_sepolia" => bastion_core::transaction::Chain::ZkSync,
+        "robinhood" | "robinhood_testnet" => bastion_core::transaction::Chain::Robinhood,
+        // "ethereum", "sepolia", and any unrecognized label default to Ethereum.
+        _ => bastion_core::transaction::Chain::Ethereum,
+    }
+}
+
+#[async_trait::async_trait]
+impl bastion_core::adapter::TrustAdapter for EvmSimulator {
+    async fn authenticate(
+        &self,
+        address: &bastion_core::transaction::Address,
+    ) -> Result<bastion_core::adapter::AgentIdentity, bastion_core::TrustAdapterError> {
+        // EVM addresses are are 0x + 40 hex chars; validate structurally without RPC.
+        let s = address.as_str();
+        if !s.starts_with("0x") || s.len() != 42 {
+            return Err(bastion_core::TrustAdapterError::AuthenticationFailed(
+                format!("invalid EVM address: {s}"),
+            ));
+        }
+        Ok(bastion_core::adapter::AgentIdentity {
+            agent_id: bastion_core::transaction::AgentId::new(s),
+            chain: chain_from_label(&self.chain_label),
+            address: address.clone(),
+            reputation: None,
+        })
+    }
+
+    async fn verify(
+        &self,
+        tx: &bastion_core::transaction::NormalizedTransaction,
+    ) -> Result<bastion_core::adapter::SimulationOutcome, bastion_core::TrustAdapterError> {
+        let evm_tx = EvmTxParams {
+            from: tx.from.as_str().to_string(),
+            to: tx.to.as_str().to_string(),
+            value: Some(format!("0x{:x}", tx.amount)),
+            data: tx.metadata.get("data").and_then(|v| v.as_str()).map(ToString::to_string),
+            gas: None,
+            gas_price: None,
+            max_fee_per_gas: None,
+            max_priority_fee_per_gas: None,
+            nonce: None,
+        };
+        let result = EvmSimulate::simulate_evm_tx(self, &evm_tx)
+            .map_err(|e| bastion_core::TrustAdapterError::SimulationFailed(e.to_string()))?;
+        Ok(bastion_core::adapter::SimulationOutcome {
+            balance_changes: result.balance_changes.iter().map(|(k, v)| (k.clone(), *v)).collect(),
+            logs: result.logs,
+            success: result.error.is_none(),
+        })
+    }
+
+    async fn execute(
+        &self,
+        _tx: &bastion_core::transaction::NormalizedTransaction,
+    ) -> Result<bastion_core::adapter::ExecutionReceipt, bastion_core::TrustAdapterError> {
+        // The EVM adapter simulates but does not broadcast; real execution paths are
+        // handled by the agent's own wallet/SDK. Return a simulated receipt.
+        Ok(bastion_core::adapter::ExecutionReceipt {
+            tx_hash: format!("evm:simulated:{}", self.chain_label),
+            block_number: None,
+            success: true,
+        })
+    }
+
+    async fn settle(
+        &self,
+        _receipt: &bastion_core::adapter::ExecutionReceipt,
+    ) -> Result<(), bastion_core::TrustAdapterError> {
+        Ok(())
+    }
+
+    fn chain_name(&self) -> &str {
+        &self.chain_label
+    }
+
+    fn chain(&self) -> bastion_core::transaction::Chain {
+        chain_from_label(&self.chain_label)
+    }
 }
 
 #[cfg(test)]

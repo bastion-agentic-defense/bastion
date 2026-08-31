@@ -133,11 +133,13 @@ Different execution environments serve different purposes.
 | On-chain policy + audit       | EVM (Monad, Sepolia, Base, Celo, zkSync, Robinhood) | 🟡 contracts written & tested; testnet-only, mainnet 🚧 behind audit gate |
 | Confidential policy verdicts  | EVM      | 🚧 ERC-8354 (draft) — see [`docs/ERCS.md`](docs/ERCS.md) |
 | Unclonable agent credentials  | EVM      | 🚧 ERC-8380 (draft) — see [`docs/ERCS.md`](docs/ERCS.md) |
-| Trust anchoring & settlement  | Ethereum | 🟡 per-chain sim wired (`settlement:"ethereum" | "base" | "celo" | "zksync" | "robinhood" | "monad"`) |
+| Trust anchoring & settlement  | Ethereum, Solana | 🟡 per-chain sim wired (`settlement:"ethereum" | "base" | "celo" | "zksync" | "robinhood" | "monad" | "polygon" | "arbitrum" | "solana"`) |
 | Payment guarantees            | Pact Network | 🚧 planned - on-chain refunds for x402 agent payments |
 
-> **Retired:** Solana and Arcium are archived (see [`docs/ARCHIVE.md`](docs/ARCHIVE.md)).
-> Bastion is now full-EVM.
+> **Retired:** the legacy Solana on-chain Anchor audit program and Arcium are
+> archived (see [`docs/ARCHIVE.md`](docs/ARCHIVE.md)). Solana *settlement*
+> (RPC-based simulation via `TrustAdapter`) is active — Bastion is multichain
+> (EVM + Solana), not EVM-only.
 
 Applications interact with Bastion-not individual blockchains.
 

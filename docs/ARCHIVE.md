@@ -1,10 +1,19 @@
-# Archive — Retired Solana & Arcium Surface
+# Archive — Retired Solana On-Chain Program & Arcium Surface
 
-Bastion has pivoted to **full EVM**. This document records what was retired,
-where the code still lives, and why. Nothing here was deleted from the
-repository or from git history — it was **un-wired from the active product**
-(workspace, CI, dashboard, SDK, sidecar runtime) and is kept on disk + history
-as the archive.
+Bastion is **multichain** (EVM + Solana), per `PROJECT_PLAN.md`. This document
+records two specific pieces of surface that were retired — the legacy Solana
+on-chain Anchor audit program and the Arcium confidential-compute stub — where
+the code still lives, and why. Nothing here was deleted from the repository or
+from git history — it was **un-wired from the active product** (workspace, CI)
+and is kept on disk + history as the archive.
+
+> **Not part of this archive:** Solana *settlement* (transaction simulation)
+> was restored as a first-class `TrustAdapter` in
+> `crates/sidecar/src/adapter_solana.rs` — a lightweight RPC-based client
+> (`bs58` + `reqwest`, no `solana-sdk`/Anchor), exposed via
+> `POST /api/v2/simulate-solana` and `BastionSidecar.simulateSolana()` in the
+> SDK. That code is active, tested, and maintained; only the two items below
+> are retired.
 
 > Status: the items below are **archived / retired**, not maintained. Do not add
 > new features to them. If you need the Solana program or the Arcium stub for

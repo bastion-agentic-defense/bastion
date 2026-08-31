@@ -36,38 +36,68 @@ export default function LiveTest() {
     }
   }
 
+  const isSolana = simChain.trim().toLowerCase() === 'solana';
+
   async function handleSimulate() {
     setSimStatus('loading');
     setSimResult(null);
     try {
-      let tx: { from: string; to: string; value?: string; data?: string };
+      let parsed: Record<string, unknown>;
       try {
-        tx = JSON.parse(simTx.trim());
+        parsed = JSON.parse(simTx.trim());
       } catch {
         setSimStatus('error');
         setSimResult({
           passed: false,
           decision: 'ERROR',
-          reasoning: 'Invalid JSON. Expected { "from": "0x..", "to": "0x..", "value": "0x0", "data": "0x" }',
+          reasoning: isSolana
+            ? 'Invalid JSON. Expected { "to": "<base58 pubkey>", "amount": 1000000 }'
+            : 'Invalid JSON. Expected { "from": "0x..", "to": "0x..", "value": "0x0", "data": "0x" }',
           logs: [],
         });
         return;
       }
-      if (!tx.from || !tx.to) {
-        setSimStatus('error');
-        setSimResult({
-          passed: false,
-          decision: 'ERROR',
-          reasoning: 'Missing required fields "from" and "to".',
-          logs: [],
-        });
-        return;
+
+      let result;
+      if (isSolana) {
+        const to = parsed.to;
+        if (typeof to !== 'string' || !to) {
+          setSimStatus('error');
+          setSimResult({
+            passed: false,
+            decision: 'ERROR',
+            reasoning: 'Missing required field "to" (base58 Solana address).',
+            logs: [],
+          });
+          return;
+        }
+        result = await sidecar.simulateSolana(
+          {
+            to,
+            amount: typeof parsed.amount === 'number' ? parsed.amount : undefined,
+            transaction: typeof parsed.transaction === 'string' ? parsed.transaction : undefined,
+          },
+          simIntent.trim() || undefined,
+        );
+      } else {
+        const tx = parsed as { from?: string; to?: string; value?: string; data?: string };
+        if (!tx.from || !tx.to) {
+          setSimStatus('error');
+          setSimResult({
+            passed: false,
+            decision: 'ERROR',
+            reasoning: 'Missing required fields "from" and "to".',
+            logs: [],
+          });
+          return;
+        }
+        result = await sidecar.simulateEvm(
+          tx as { from: string; to: string; value?: string; data?: string },
+          simIntent.trim() || undefined,
+          simChain.trim() || 'base',
+        );
       }
-      const result = await sidecar.simulateEvm(
-        tx,
-        simIntent.trim() || undefined,
-        simChain.trim() || 'base',
-      );
+
       if (!result) {
         setSimStatus('error');
         setSimResult({
@@ -143,14 +173,20 @@ export default function LiveTest() {
           Simulate Transaction
         </h4>
         <p className="font-sans text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-          Paste an EVM transaction (JSON) and run it through the Bastion sidecar firewall.
+          {isSolana
+            ? 'Paste a Solana transaction request (JSON) and run it through the Bastion sidecar firewall.'
+            : 'Paste an EVM transaction (JSON) and run it through the Bastion sidecar firewall.'}
         </p>
 
         <div className="space-y-3 mb-4">
           <textarea
             value={simTx}
             onChange={(e) => setSimTx(e.target.value)}
-            placeholder='{ "from": "0x..", "to": "0x..", "value": "0x0", "data": "0x" }'
+            placeholder={
+              isSolana
+                ? '{ "to": "<base58 pubkey>", "amount": 1000000 }'
+                : '{ "from": "0x..", "to": "0x..", "value": "0x0", "data": "0x" }'
+            }
             rows={3}
             className="w-full p-3 rounded-lg font-mono text-sm resize-y"
             style={{
@@ -162,7 +198,7 @@ export default function LiveTest() {
           <input
             value={simChain}
             onChange={(e) => setSimChain(e.target.value)}
-            placeholder="Chain (e.g. base, celo, ethereum, monad)"
+            placeholder="Chain (e.g. base, celo, ethereum, monad, polygon, arbitrum, solana)"
             className="w-full p-3 rounded-lg font-mono text-sm"
             style={{
               background: 'var(--bg-subtle)',
@@ -170,6 +206,11 @@ export default function LiveTest() {
               color: 'var(--text-primary)',
             }}
           />
+          {isSolana && (
+            <p className="font-sans text-xs" style={{ color: 'var(--text-muted)' }}>
+              Solana mode: "to" must be a base58-encoded address, not a 0x-hex EVM address.
+            </p>
+          )}
           <input
             value={simIntent}
             onChange={(e) => setSimIntent(e.target.value)}

@@ -13,7 +13,7 @@ export interface ChainConfig {
 export const CHAINS: Record<ChainId, ChainConfig> = {
   evm: {
     id: 'evm',
-    name: 'EVM (Ethereum / Base / Celo / zkSync / Robinhood / Monad)',
+    name: 'EVM (Ethereum / Base / Celo / zkSync / Robinhood / Monad / Polygon / Arbitrum)',
     shortName: 'EVM',
     icon: '',
     color: '#627EEA',

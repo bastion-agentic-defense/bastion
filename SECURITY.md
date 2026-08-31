@@ -73,8 +73,11 @@ yet covered by an external audit. The `"ERC-1953/..."` domain-separator tag
 strings in ERC-8380 are frozen for compatibility.
 
 > **Retired:** the Solana SDK transitive-advisory allowlist was removed when the
-> Solana crates left the workspace (see `docs/ARCHIVE.md`). `cargo audit` now
-> fails on any advisory present in the (EVM-only) dependency graph.
+> legacy `solana-sdk`/Anchor-dependent `crates/solana` crate left the workspace
+> (see `docs/ARCHIVE.md`). Solana *settlement* was restored separately via a
+> lightweight `bs58` + `reqwest` RPC client (no `solana-sdk`), so the dependency
+> graph stays small. `cargo audit` now fails on any advisory present in the
+> (EVM + lightweight Solana RPC) dependency graph.
 
 ## Threat Model
 

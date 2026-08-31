@@ -9,6 +9,8 @@ import type {
   CircuitBreakerStatus,
   EvmSimulateRequest,
   EvmSimulateResponse,
+  SolanaSimulateRequest,
+  SolanaSimulateResponse,
   ScanResult,
   ScanResultsResponse,
 } from "./types";
@@ -105,6 +107,14 @@ export class BastionSidecar {
 
   simulateEvm(req: EvmSimulateRequest): Promise<EvmSimulateResponse> {
     return this.request<EvmSimulateResponse>("POST", "/api/v2/simulate-evm", req);
+  }
+
+  simulateSolana(req: SolanaSimulateRequest): Promise<SolanaSimulateResponse> {
+    return this.request<SolanaSimulateResponse>(
+      "POST",
+      "/api/v2/simulate-solana",
+      req
+    );
   }
 
   events(): BastionEventStream {

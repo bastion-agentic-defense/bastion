@@ -57,6 +57,19 @@ describe("Bastion.execute - EVM settlement", () => {
     expect(res.settlement).toBe("monad");
   });
 
+  it("supports polygon settlement (EVM)", async () => {
+    const bastion = makeBastion({
+      simulateEvm: async () => ({ allowed: true, decision: "allowed" }),
+    });
+    const res = await bastion.execute({
+      action: "bridge",
+      settlement: "polygon",
+      transaction: EVM_TX,
+    });
+    expect(res.decision).toBe("pass");
+    expect(res.settlement).toBe("polygon");
+  });
+
   it("requires an EvmTxParams object", async () => {
     const bastion = makeBastion({});
     await expect(
@@ -82,5 +95,47 @@ describe("Bastion.execute - confidential privacy guard", () => {
         transaction: EVM_TX,
       }),
     ).rejects.toThrow(/Confidential execution is retired/);
+  });
+});
+
+describe("Bastion.execute - Solana settlement", () => {
+  it("returns pass when the Solana simulation is allowed", async () => {
+    const bastion = makeBastion({
+      simulateSolana: async () => ({ allowed: true, decision: "passed" }),
+    });
+    const res = await bastion.execute({
+      action: "transfer",
+      settlement: "solana",
+      solanaTx: { to: "11111111111111111111111111111111", amount: 1000 },
+    });
+    expect(res.decision).toBe("pass");
+    expect(res.settlement).toBe("solana");
+  });
+
+  it("returns block when the Solana simulation is not allowed", async () => {
+    const bastion = makeBastion({
+      simulateSolana: async () => ({
+        allowed: false,
+        decision: "blocked",
+        reason: "insufficient lamports",
+      }),
+    });
+    const res = await bastion.execute({
+      action: "transfer",
+      settlement: "solana",
+      solanaTx: { to: "11111111111111111111111111111111" },
+    });
+    expect(res.decision).toBe("block");
+    expect(res.reason).toBe("insufficient lamports");
+  });
+
+  it("requires a solanaTx object", async () => {
+    const bastion = makeBastion({});
+    await expect(
+      bastion.execute({
+        action: "transfer",
+        settlement: "solana",
+      }),
+    ).rejects.toThrow(/solanaTx/);
   });
 });

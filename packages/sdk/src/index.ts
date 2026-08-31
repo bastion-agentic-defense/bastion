@@ -1,9 +1,11 @@
-// Bastion SDK — EVM + HTTP client for the Bastion Programmable Trust Runtime.
+// Bastion SDK — multichain client for the Bastion Programmable Trust Runtime.
 //
-// The SDK is EVM-only after the full-EVM pivot: the Solana Anchor program client
-// (`BastionClient`, `idl.json`) was removed. EVM contract access is via
-// `BastionEVMClient` (viem); policy evaluation/simulation/audit via the HTTP
-// `BastionSidecar`; durable execution via `BastionWorkflow`.
+// Settles across EVM chains (via `BastionEVMClient` + `simulateEvm`) and Solana
+// (via `simulateSolana` over the sidecar's TrustAdapter). The retired Solana
+// Anchor *program client* (`BastionClient`, `idl.json`) is not revived; Solana
+// execution has been re-added as a real settlement target through the HTTP
+// sidecar. Policy evaluation/simulation/audit via `BastionSidecar`; durable
+// execution via `BastionWorkflow`.
 
 // Recompute verification (trustless-ai compatible)
 export * as verify from "./verify";
@@ -34,6 +36,8 @@ export type {
   EvmTxParams,
   EvmSimulateRequest,
   EvmSimulateResponse,
+  SolanaSimulateRequest,
+  SolanaSimulateResponse,
   SidecarAuditEntry,
   LogsQuery,
   LogsResponse,

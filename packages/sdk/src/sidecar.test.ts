@@ -24,6 +24,24 @@ describe("BastionSidecar", () => {
     });
   });
 
+  describe("simulateSolana", () => {
+    it("constructs request with correct fields", () => {
+      const sidecar = new BastionSidecar({ baseUrl: "http://localhost:3000" });
+      const req = {
+        to: "11111111111111111111111111111111",
+        amount: 1000,
+        intent: "transfer USDC on Solana",
+        agentId: "agent-1",
+      };
+
+      expect(req.to).toBe("11111111111111111111111111111111");
+      expect(req.amount).toBe(1000);
+      expect(req.intent).toBe("transfer USDC on Solana");
+      expect(req.agentId).toBe("agent-1");
+      expect(sidecar).toBeDefined();
+    });
+  });
+
   describe("events", () => {
     it("returns a BastionEventStream instance", () => {
       const sidecar = new BastionSidecar({ baseUrl: "http://localhost:3000" });

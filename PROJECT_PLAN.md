@@ -12,19 +12,20 @@ Agent Framework (LangGraph, CrewAI, ElizaOS, OpenAI Agents SDK)
    Policy + Identity + HITL + Simulation + Audit
         |
         v
-Ethereum | Monad | zkSync | Base | Celo | Arbitrum | Robinhood
+Ethereum | Monad | zkSync | Base | Celo | Arbitrum | Polygon | Robinhood | Solana
 ```
 
 Bastion does not build agents. Bastion does not orchestrate multi-agent workflows. Bastion answers one question: **can this action execute safely under the trust policies in place?**
 
 ## Current State
 
-The core is a working transaction firewall on EVM (testnet). Agents submit intended actions, Bastion evaluates them against programmable policy (11 rule types), simulates them against live chain state, applies human-in-the-loop review when required, and writes a verifiable audit record on-chain. Solana and Arcium are retired (see `docs/ARCHIVE.md`).
+The core is a multichain transaction firewall (EVM testnets + Solana). Agents submit intended actions, Bastion evaluates them against programmable policy (11 rule types) via the chain-agnostic `TrustAdapter` abstraction, simulates them against live chain state, applies human-in-the-loop review when required, and writes a verifiable audit record. The legacy Solana on-chain Anchor audit program and the Arcium MPC stub are retired in favor of EVM contracts and ERC-8354 respectively (see `docs/ARCHIVE.md`) — Solana *settlement* itself is active, via RPC-based simulation.
 
 | Capability | Status |
 |-----------|--------|
 | Programmable policy engine (11 rules) | Shipped |
 | Transaction simulation (EVM) | Shipped |
+| Transaction simulation (Solana, RPC-based) | Shipped |
 | Human-in-the-loop approvals | Shipped |
 | Verifiable on-chain audit (EIP-712) | Shipped |
 | ERC-8004 agent identity + delegation | Shipped |

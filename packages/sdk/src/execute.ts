@@ -1,5 +1,9 @@
 import { BastionSidecar } from "./sidecar";
-import type { EvmTxParams, EvmSimulateResponse } from "./types";
+import type {
+  EvmTxParams,
+  EvmSimulateResponse,
+  SolanaSimulateResponse,
+} from "./types";
 
 /**
  * The unified Bastion runtime facade.
@@ -9,21 +13,24 @@ import type { EvmTxParams, EvmSimulateResponse } from "./types";
  * firewall primitives - simulation, policy evaluation, and audit - behind a
  * single `execute()` call.
  *
- * This is a thin composition over {@link BastionSidecar} for EVM settlement; it
- * introduces no new backend.
+ * This is a thin composition over {@link BastionSidecar} for EVM + Solana
+ * settlement; it introduces no new backend.
  */
 
 /** Privacy guarantee requested for an action. */
 export type Privacy = "public" | "confidential";
 
-/** Settlement network for an action. EVM chains only. */
+/** Settlement network for an action. */
 export type Settlement =
   | "ethereum"
   | "base"
   | "celo"
   | "zksync"
   | "robinhood"
-  | "monad";
+  | "monad"
+  | "polygon"
+  | "arbitrum"
+  | "solana";
 
 const EVM_SETTLEMENTS: readonly Settlement[] = [
   "ethereum",
@@ -32,6 +39,8 @@ const EVM_SETTLEMENTS: readonly Settlement[] = [
   "zksync",
   "robinhood",
   "monad",
+  "polygon",
+  "arbitrum",
 ];
 
 export interface BastionRuntimeConfig {
@@ -50,8 +59,17 @@ export interface ExecuteRequest {
   /** Named policy to evaluate against (reserved; currently informational -
    *  the sidecar applies its configured policy set). */
   policy?: string;
-  /** The concrete EVM transaction payload to evaluate. */
-  transaction: EvmTxParams;
+  /** The concrete EVM transaction payload. Required for EVM settlements. */
+  transaction?: EvmTxParams;
+  /** Solana operation details. Required when `settlement === "solana"`. */
+  solanaTx?: {
+    /** Destination pubkey. */
+    to: string;
+    /** Amount in lamports. */
+    amount?: number;
+    /** Optional serialized (base58) transaction for `simulateTransaction`. */
+    transaction?: string;
+  };
   /** Optional agent identifier attributed to the action. */
   agentId?: string;
 }
@@ -69,7 +87,7 @@ export interface ExecuteResult {
   /** Approval id to resolve a human-in-the-loop hold (when pending_hitl). */
   approvalId?: string;
   /** Raw simulation payload from the underlying firewall, when available. */
-  simulation?: EvmSimulateResponse;
+  simulation?: EvmSimulateResponse | SolanaSimulateResponse;
 }
 
 interface SidecarError {
@@ -104,10 +122,47 @@ export class Bastion {
       );
     }
 
+    if (req.settlement === "solana") {
+      return this.executeSolana(req, privacy);
+    }
     if (!EVM_SETTLEMENTS.includes(req.settlement)) {
       throw new Error(`Unsupported settlement network: ${req.settlement}`);
     }
     return this.executeEvm(req, privacy);
+  }
+
+  private async executeSolana(
+    req: ExecuteRequest,
+    privacy: Privacy,
+  ): Promise<ExecuteResult> {
+    if (!req.solanaTx) {
+      throw new Error(
+        "Solana settlement requires a `solanaTx` object (to, amount?)",
+      );
+    }
+    const simulation = await this.sidecar.simulateSolana({
+      ...req.solanaTx,
+      intent: req.action,
+      agentId: req.agentId,
+    });
+    const decision = this.decisionFrom(simulation.allowed, simulation.decision);
+    return {
+      decision,
+      action: req.action,
+      settlement: req.settlement,
+      privacy,
+      reason: simulation.reason,
+      simulation,
+    };
+  }
+
+  private decisionFrom(
+    allowed: boolean,
+    decisionText?: string,
+  ): ExecuteDecision {
+    if (allowed) return "pass";
+    if (decisionText?.toLowerCase().includes("pend")) return "pending_hitl";
+    return "block";
   }
 
   private async executeEvm(
@@ -119,20 +174,18 @@ export class Bastion {
         "EVM settlement requires an EvmTxParams object, not a string",
       );
     }
+    if (!req.transaction) {
+      throw new Error(
+        "EVM settlement requires a `transaction` (EvmTxParams) object",
+      );
+    }
     const simulation = await this.sidecar.simulateEvm({
       transaction: req.transaction,
       intent: req.action,
       chain: req.settlement,
       agentId: req.agentId,
     });
-    let decision: ExecuteDecision;
-    if (simulation.allowed) {
-      decision = "pass";
-    } else if (simulation.decision?.toLowerCase().includes("pend")) {
-      decision = "pending_hitl";
-    } else {
-      decision = "block";
-    }
+    const decision = this.decisionFrom(simulation.allowed, simulation.decision);
     return {
       decision,
       action: req.action,

@@ -1,7 +1,7 @@
 {
   "name": "@zkos-labs/bastion-sdk",
-  "version": "1.0.0",
-  "description": "EVM + HTTP TypeScript SDK for the Bastion Programmable Trust Runtime - identity, policy, execution, and observability for autonomous systems.",
+  "version": "1.1.0",
+  "description": "Multichain TypeScript SDK for the Bastion Programmable Trust Runtime - EVM + Solana settlement, identity, policy, execution, and observability for autonomous systems.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

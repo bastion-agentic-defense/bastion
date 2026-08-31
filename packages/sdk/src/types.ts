@@ -149,6 +149,33 @@ export interface EvmSimulateResponse {
   risk_summary?: string;
 }
 
+// ── Solana Simulation types (multichain settlement) ──────────────────────────
+
+export interface SolanaSimulateRequest {
+  /** Destination pubkey. */
+  to: string;
+  /** Amount in lamports. */
+  amount?: number;
+  /** Optional serialized (base58) Solana transaction for `simulateTransaction`. */
+  transaction?: string;
+  intent?: string;
+  agentId?: string;
+}
+
+export interface SolanaSimulateResponse {
+  allowed: boolean;
+  decision: string;
+  reason?: string;
+  simulation_result?: {
+    logs: string[];
+    error?: unknown;
+    balance_changes?: Record<string, number>;
+    simulation_hash?: number[];
+  };
+  risk_score?: number;
+  risk_summary?: string;
+}
+
 // ── SSE Events ────────────────────────────────────────────────────────────────
 
 export interface SseEvent {

@@ -170,6 +170,44 @@ export function useSidecar() {
     [],
   );
 
+  const simulateSolana = useCallback(
+    async (
+      solanaTx: { to: string; amount?: number; transaction?: string },
+      intent?: string,
+    ): Promise<EvmSimulationResult | null> => {
+      try {
+        const res = await fetch(`${SIDECAR_URL}/api/v2/simulate-solana`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...solanaTx, intent }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          return {
+            allowed: false,
+            decision: 'blocked',
+            reason: data.error || 'Solana simulation request failed',
+            logs: [],
+          };
+        }
+        return {
+          allowed: data.allowed,
+          decision: data.decision,
+          reason: data.reason,
+          logs: data.simulation_result?.logs ?? [],
+        };
+      } catch (e) {
+        return {
+          allowed: false,
+          decision: 'blocked',
+          reason: `Network error: ${String(e)}`,
+          logs: [],
+        };
+      }
+    },
+    [],
+  );
+
   const fetchPending = useCallback(async (): Promise<PendingApproval[]> => {
     try {
       const res = await fetch(`${SIDECAR_URL}/pending`);
@@ -232,9 +270,10 @@ export function useSidecar() {
     fetchPolicy,
     updatePolicy,
     simulateEvm,
+    simulateSolana,
     fetchPending,
     overrideBlock,
     fetchCircuitBreakerStatus,
     toggleCircuitBreaker,
-  }), [fetchHealth, fetchStats, fetchLogs, fetchPolicy, updatePolicy, simulateEvm, fetchPending, overrideBlock, fetchCircuitBreakerStatus, toggleCircuitBreaker]);
+  }), [fetchHealth, fetchStats, fetchLogs, fetchPolicy, updatePolicy, simulateEvm, simulateSolana, fetchPending, overrideBlock, fetchCircuitBreakerStatus, toggleCircuitBreaker]);
 }

@@ -118,8 +118,10 @@ POLYGON_RPC_URL=https://polygon-rpc.com
 
 For the sidecar, set the per-chain EVM RPC env vars (e.g. `ETH_RPC_URL`,
 `BASE_RPC_URL`, `CELO_RPC_URL`, `ZKSYNC_RPC_URL`, `ROBINHOOD_RPC_URL`,
-`ETH_SEPOLIA_RPC_URL`, `MONAD_RPC_URL`) to enable EVM simulation. No Helius/Solana
-key is required.
+`ETH_SEPOLIA_RPC_URL`, `MONAD_RPC_URL`, `POLYGON_RPC_URL`, `ARBITRUM_RPC_URL`)
+to enable EVM simulation. Set `SOLANA_RPC_URL` to additionally enable Solana
+settlement (`POST /api/v2/simulate-solana`) — a lightweight RPC-based
+`TrustAdapter`, not the legacy Helius/Anchor client. No Solana key is required.
 
 ---
 
@@ -205,13 +207,17 @@ Agent Operator (policy config, HITL review)
 
 3. **`evm/`**, Solidity contracts implementing the ERC-7579 validator module, policy engine, immutable EIP-712 audit trail, agent registry, ERC-8004 identity, sidecar oracle, plus the **ERC-8354** confidential-verdict and **ERC-8380** unclonable-credential contracts (see `docs/ERCS.md`).
 
-4. **`apps/web/`**, React dashboard with EVM (RainbowKit/wagmi) wallet connection across Sepolia/Base/Celo/zkSync/Robinhood/Monad. Shows audit logs, policy settings, stats.
+4. **`apps/web/`**, React dashboard with EVM (RainbowKit/wagmi) wallet connection across Sepolia/Base/Celo/zkSync/Robinhood/Monad/Polygon/Arbitrum. Its live-simulate playground also supports Solana via the sidecar's RPC-based adapter (no Solana wallet connection yet — see below).
 
-5. **`packages/sdk/`**, TypeScript SDK (`@zkos-labs/bastion-sdk`) — viem EVM contract client + chain-agnostic HTTP layer + ERC-8354/8380 wrappers.
+5. **`packages/sdk/`**, TypeScript SDK (`@zkos-labs/bastion-sdk`) — viem EVM contract client + chain-agnostic HTTP layer (EVM + Solana settlement) + ERC-8354/8380 wrappers.
 
-> **Archived:** Solana (Anchor program + wallet stack) and Arcium are retired —
-> see [`docs/ARCHIVE.md`](docs/ARCHIVE.md). Their files remain on disk for history
-> but are not part of the active workspace/CI.
+> **Archived:** the legacy Solana on-chain Anchor audit program
+> (`crates/solana/programs/bastion-audit`) and the Arcium MPC stub
+> (`crates/arcium/`) are retired — see [`docs/ARCHIVE.md`](docs/ARCHIVE.md).
+> Their files remain on disk for history but are not part of the active
+> workspace/CI. Solana *settlement* (RPC-based simulation via `TrustAdapter`,
+> `crates/sidecar/src/adapter_solana.rs`) is active and is not part of this
+> archive. A Solana wallet-connect UI in the dashboard is not yet implemented.
 
 ---
 
@@ -459,4 +465,4 @@ by wagmi/RainbowKit.
 - **License:** Apache-2.0
 - **Security policy:** `SECURITY.md`
 - **Protocols:** ERC-7579 (validator module), ERC-4337 (account abstraction), ERC-8004 (agent identity), ERC-7812 (evidence), EIP-712 (typed structured data), ERC-8354 (draft), ERC-8380 (draft)
-- **Retired:** Solana + Arcium — see [`docs/ARCHIVE.md`](docs/ARCHIVE.md)
+- **Retired:** Solana on-chain Anchor program + Arcium — see [`docs/ARCHIVE.md`](docs/ARCHIVE.md). Solana settlement (RPC-based simulation) is active.

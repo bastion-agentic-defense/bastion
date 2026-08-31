@@ -21,6 +21,7 @@ use tokio_stream::StreamExt;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::services::ServeDir;
 
+pub mod adapter_solana;
 pub mod agents;
 pub mod audit;
 mod auth;
@@ -42,6 +43,7 @@ use audit::{
     hash_transaction_payload,
 };
 use grond_oracle::GrondOracle;
+use bastion_core::TrustAdapter as _;
 use policy::{Policy, PolicyEngine};
 use simulation::SimulationResult;
 use simulation_evm::{EvmSimulate, EvmSimulateRequest, EvmSimulateResponse, EvmSimulator};
@@ -65,6 +67,9 @@ pub(crate) struct AppState {
     /// "base", "celo", "sepolia"). Populated from per-chain RPC env vars; a chain
     /// absent from the map has no configured RPC and yields a 503 on request.
     evm_simulators: Arc<HashMap<String, Arc<EvmSimulator>>>,
+    /// Solana trust adapter (from `SOLANA_RPC_URL`). `None` when no RPC is
+    /// configured; `POST /api/v2/simulate-solana` then returns 503.
+    solana_adapter: Option<Arc<adapter_solana::SolanaAdapter>>,
     event_tx: broadcast::Sender<String>,
     started_at: std::time::Instant,
     did_cache: Arc<RwLock<HashMap<String, did::DidResolveResult>>>,
@@ -1096,6 +1101,125 @@ async fn simulate_evm_handler(
     .into_response()
 }
 
+// ── Solana Simulation Handler (multichain settlement) ──
+
+async fn simulate_solana_handler(
+    State(state): State<AppState>,
+    Json(req): Json<adapter_solana::SolanaSimulateRequest>,
+) -> impl IntoResponse {
+    let adapter = match &state.solana_adapter {
+        Some(a) => a.clone(),
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(adapter_solana::SolanaSimulateResponse {
+                    allowed: false,
+                    decision: "blocked".to_string(),
+                    reason: Some(
+                        "Solana simulation not configured (set SOLANA_RPC_URL to enable).".into(),
+                    ),
+                    simulation_result: None,
+                    risk_score: None,
+                    risk_summary: None,
+                }),
+            )
+                .into_response();
+        }
+    };
+
+    let from = req.agent_id.clone().unwrap_or_default();
+    let to = req.to.clone();
+    let amount = req.amount.unwrap_or(0);
+
+    let mut tx = bastion_core::transaction::NormalizedTransaction::new(
+        &from,
+        &from,
+        &to,
+        amount,
+        "SOL",
+        bastion_core::transaction::TxType::Transfer,
+        bastion_core::transaction::Chain::Solana,
+    );
+    if let Some(ser) = req.transaction.clone() {
+        tx = tx.with_metadata(
+            "solana_tx",
+            serde_json::Value::String(ser),
+        );
+    }
+
+    let outcome = match adapter.verify(&tx).await {
+        Ok(o) => o,
+        Err(err) => {
+            let entry = AuditEntry {
+                ..build_audit_entry(
+                    None,
+                    Decision::Blocked(format!("Solana simulation failed: {err}")),
+                    AuditResult::Blocked,
+                    format!("Solana simulation failed: {err}"),
+                    None,
+                    req.intent.clone(),
+                    None,
+                )
+            };
+            let _ = state.logger.log(entry);
+            return (
+                StatusCode::BAD_GATEWAY,
+                Json(adapter_solana::SolanaSimulateResponse {
+                    allowed: false,
+                    decision: "blocked".to_string(),
+                    reason: Some(format!("Simulation failed: {err}")),
+                    simulation_result: None,
+                    risk_score: None,
+                    risk_summary: None,
+                }),
+            )
+                .into_response();
+        }
+    };
+
+    let allowed = outcome.success;
+    let decision = if allowed { "passed" } else { "blocked" };
+    let sim_result = adapter_solana::project_solana_outcome(&outcome, &to);
+
+    let entry = AuditEntry {
+        ..build_audit_entry(
+            None,
+            if allowed {
+                Decision::Allowed
+            } else {
+                Decision::Blocked("Solana simulation did not succeed".into())
+            },
+            if allowed {
+                AuditResult::Allowed
+            } else {
+                AuditResult::Blocked
+            },
+            format!(
+                "Solana simulation chain=solana agent={:?} intent={:?}",
+                req.agent_id, req.intent
+            ),
+            Some(sim_result.clone()),
+            req.intent.clone(),
+            None,
+        )
+    };
+    let _ = state.logger.log(entry);
+
+    Json(adapter_solana::SolanaSimulateResponse {
+        allowed,
+        decision: decision.to_string(),
+        reason: if allowed {
+            Some("Solana simulation passed".to_string())
+        } else {
+            Some("Solana simulation did not succeed (flagged for HITL)".to_string())
+        },
+        simulation_result: Some(sim_result),
+        risk_score: None,
+        risk_summary: None,
+    })
+    .into_response()
+}
+
 // ── DID Resolution Handler ──
 
 #[derive(serde::Deserialize)]
@@ -1561,12 +1685,30 @@ pub fn build_app(
         },
     ]));
 
+    // Solana trust adapter (from `SOLANA_RPC_URL`). When the RPC var is unset the
+    // adapter is absent and `POST /api/v2/simulate-solana` returns 503 rather than
+    // simulating against an unknown network. The sidecar always boots clean.
+    let solana_adapter = match std::env::var("SOLANA_RPC_URL") {
+        Ok(url) if !url.is_empty() => {
+            eprintln!("[bastion] Solana adapter enabled: {url}");
+            Some(Arc::new(adapter_solana::SolanaAdapter::new(
+                url,
+                logger.clone(),
+            )))
+        }
+        _ => {
+            eprintln!("[bastion] Solana adapter disabled (set SOLANA_RPC_URL to enable)");
+            None
+        }
+    };
+
     let app_state = AppState {
         policy_engine: Arc::new(RwLock::new(PolicyEngine::new(policy))),
         logger,
         pending_approvals: Arc::new(RwLock::new(HashMap::new())),
         grond_oracle,
         evm_simulators,
+        solana_adapter,
         event_tx,
         started_at: std::time::Instant::now(),
         did_cache: Arc::new(RwLock::new(HashMap::new())),
@@ -1659,6 +1801,10 @@ pub fn build_app(
         .route("/api/v2/evaluate", post(evaluate_v2))
         .route("/api/v2/evaluate-web2", post(evaluate_web2))
         .route("/api/v2/simulate-evm", post(simulate_evm_handler))
+        .route(
+            "/api/v2/simulate-solana",
+            post(simulate_solana_handler),
+        )
         .route("/agents/:did/delegate", post(post_agent_delegate))
         .route(
             "/agents/:did/delegation/:child_did",

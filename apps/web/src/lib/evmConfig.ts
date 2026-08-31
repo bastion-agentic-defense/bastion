@@ -90,13 +90,41 @@ const monad = defineChain({
   },
 });
 
+const polygon = defineChain({
+  id: 137,
+  name: 'Polygon',
+  nativeCurrency: { name: 'Polygon MATIC', symbol: 'POL', decimals: 18 },
+  rpcUrls: {
+    default: {
+      http: [import.meta.env.VITE_POLYGON_RPC_URL || 'https://polygon-rpc.com'],
+    },
+  },
+  blockExplorers: {
+    default: { name: 'Polygonscan', url: 'https://polygonscan.com' },
+  },
+});
+
+const arbitrum = defineChain({
+  id: 42_161,
+  name: 'Arbitrum One',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: {
+    default: {
+      http: [import.meta.env.VITE_ARBITRUM_RPC_URL || 'https://arb1.arbitrum.io/rpc'],
+    },
+  },
+  blockExplorers: {
+    default: { name: 'Arbiscan', url: 'https://arbiscan.io' },
+  },
+});
+
 export const config = getDefaultConfig({
   appName: 'Bastion',
   projectId:
     import.meta.env.VITE_WALLETCONNECT_PROJECT_ID ||
     // Placeholder - replace with your project ID from https://cloud.walletconnect.com
     '00000000000000000000000000000000',
-  chains: [sepolia, base, celo, zksync, robinhood, monad],
+  chains: [sepolia, base, celo, zksync, robinhood, monad, polygon, arbitrum],
   transports: {
     [sepolia.id]: http(sepolia.rpcUrls.default.http[0]),
     [base.id]: http(base.rpcUrls.default.http[0]),
@@ -104,6 +132,8 @@ export const config = getDefaultConfig({
     [zksync.id]: http(zksync.rpcUrls.default.http[0]),
     [robinhood.id]: http(robinhood.rpcUrls.default.http[0]),
     [monad.id]: http(monad.rpcUrls.default.http[0]),
+    [polygon.id]: http(polygon.rpcUrls.default.http[0]),
+    [arbitrum.id]: http(arbitrum.rpcUrls.default.http[0]),
   },
   ssr: false,
 });
