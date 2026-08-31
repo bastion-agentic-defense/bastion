@@ -1,5 +1,5 @@
 # Build stage — Rust sidecar
-FROM rust:1.87-slim-bookworm AS rust-builder
+FROM rust:1.97.1-slim-bookworm AS rust-builder
 
 RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
 
