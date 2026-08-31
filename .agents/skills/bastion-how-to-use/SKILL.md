@@ -320,7 +320,7 @@ Start the MCP server for browser-native SSE access:
 
 ```bash
 BASTION_SIDECAR_URL=https://bastion-agentique.fly.dev/ \
-pnpm --filter @bastion/mcp-server dev:http
+pnpm --filter @zkos-labs/mcp-server dev:http
 ```
 
 Endpoints:

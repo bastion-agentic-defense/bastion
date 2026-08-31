@@ -322,19 +322,23 @@ async fn proxy_mcp(req: AxumRequest) -> impl IntoResponse {
                 .map(|v| v.contains("text/event-stream"))
                 .unwrap_or(false);
 
-            let bytes = resp.bytes().await.unwrap_or_default();
-
-            let mut builder = axum::response::Response::builder().status(status.as_u16());
-            builder = builder.header("content-type", "application/json");
-
+            let mut builder = axum::response::Response::builder().status(status.as_u16()).header(
+                "content-type",
+                if is_sse { "text/event-stream" } else { "application/json" },
+            );
             if is_sse {
                 builder = builder
-                    .header("content-type", "text/event-stream")
                     .header("cache-control", "no-cache")
                     .header("connection", "keep-alive");
             }
 
-            builder.body(Body::from(bytes)).unwrap()
+            // Stream the body through as it arrives instead of buffering it
+            // via `resp.bytes().await` -- that never resolves for a real SSE
+            // response, since an SSE body is designed to stay open
+            // indefinitely and push events over time rather than complete.
+            builder
+                .body(Body::from_stream(resp.bytes_stream()))
+                .unwrap()
         }
         Err(e) => axum::response::Response::builder()
             .status(502)

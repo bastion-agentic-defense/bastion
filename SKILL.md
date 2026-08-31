@@ -63,7 +63,7 @@ Start the MCP HTTP server for browser-native agent access:
 
 ```bash
 BASTION_SIDECAR_URL=https://bastion-agentique.fly.dev/ \
-pnpm --filter @bastion/mcp-server dev:http
+pnpm --filter @zkos-labs/mcp-server dev:http
 ```
 
 Endpoints:
@@ -74,7 +74,7 @@ Endpoints:
 
 For stdio transport (Claude Desktop / Cursor / Codex):
 ```bash
-pnpm --filter @bastion/mcp-server dev
+pnpm --filter @zkos-labs/mcp-server dev
 ```
 
 ## Pricing

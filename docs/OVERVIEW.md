@@ -158,11 +158,11 @@ MCP is now **bundled in Docker** and proxied through the sidecar at `/mcp/*`. No
 
 # Local development (stdio transport, Claude Desktop / Cursor / Codex)
 BASTION_SIDECAR_URL=http://localhost:3000 \
-pnpm --filter @bastion/mcp-server dev
+pnpm --filter @zkos-labs/mcp-server dev
 
 # Local development (SSE transport, browser agents)
 BASTION_SIDECAR_URL=http://localhost:3000 \
-pnpm --filter @bastion/mcp-server dev:http
+pnpm --filter @zkos-labs/mcp-server dev:http
 ```
 
 ### Use the SDK

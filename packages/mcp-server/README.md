@@ -19,7 +19,7 @@ BASTION_SIDECAR_URL=https://bastion-agentique.fly.dev \
 npx @zkos-labs/mcp-server dev:http
 
 # stdio transport for Claude Desktop / Cursor / Codex
-pnpm --filter @bastion/mcp-server dev
+pnpm --filter @zkos-labs/mcp-server dev
 ```
 
 ## Endpoints
