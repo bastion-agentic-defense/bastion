@@ -1,0 +1,23 @@
+version: 2
+updates:
+  # Active Cargo workspace (root Cargo.toml `members`). Deliberately does NOT
+  # cover crates/solana/programs/bastion-audit — that Anchor program is
+  # archived, excluded from workspace members, and never built by CI (see
+  # docs/ARCHIVE.md). Its Cargo.lock advisories are dismissed, not fixed.
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # pnpm workspace (apps/*, packages/*) — single root manifest covers all.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

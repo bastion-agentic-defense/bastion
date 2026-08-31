@@ -1,6 +1,31 @@
 packages:
   - "packages/*"
   - "apps/*"
+overrides:
+  # Pinned with caret ranges (not >=) to stay within the same major version
+  # as the patched fix -- an unbounded >= let pnpm resolve to the newest
+  # available major (e.g. @babel/core 7->8, @hono/node-server 1->2,
+  # js-yaml 3->5, nanoid 3->6, brace-expansion 1->5), which is a much
+  # bigger, riskier jump than the advisory actually requires.
+  "@babel/core": "^7.29.6"
+  "@hono/node-server": "^1.19.15"
+  axios: "^1.18.0"
+  body-parser: "^2.3.0"
+  brace-expansion: "^1.1.18"
+  fast-uri: "^3.1.5"
+  form-data: "^4.0.6"
+  hono: "^4.12.34"
+  ip-address: "^10.3.1"
+  js-yaml: "^3.15.1"
+  nanoid: "^3.3.18"
+  postcss: "^8.5.23"
+  shell-quote: "^1.9.0"
+  socket.io-parser: "^4.2.7"
+  ua-parser-js: "^2.0.10"
+  # No same-major patch exists for uuid (fixed only at 11.1.1+); pinned to
+  # the minimum patched major rather than accepting an unbounded jump.
+  uuid: "^11.1.1"
+  ws: "^8.21.0"
 allowBuilds:
   blake-hash: false
   bufferutil: false
