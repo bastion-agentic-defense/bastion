@@ -5,14 +5,14 @@
 
 ## Programmable Trust Runtime
 
-[![npm](https://img.shields.io/npm/v/@zkos-labs/sdk?label=sdk)](https://www.npmjs.com/package/@zkos-labs/sdk)
-[![npm](https://img.shields.io/npm/v/@zkos-labs/web2-sdk?label=web2-sdk)](https://www.npmjs.com/package/@zkos-labs/web2-sdk)
+[![npm](https://img.shields.io/npm/v/@zkos-labs/bastion-sdk?label=sdk)](https://www.npmjs.com/package/@zkos-labs/bastion-sdk)
+[![npm](https://img.shields.io/npm/v/@zkos-labs/bastion-web2?label=web2-sdk)](https://www.npmjs.com/package/@zkos-labs/bastion-web2)
 
 > Bastion is in alpha testing. Use with caution in production environments.
 
 Bastion is a **Programmable Trust Runtime** for autonomous systems. It provides the identity, policy, execution, and observability layer that AI agents and applications rely on to act safely across programmable networks. Every transaction an agent intends to submit passes through Bastion's policy engine, simulation, and human-in-the-loop review before being signed - with every decision recorded as a verifiable audit record.
 
-A Web2 API adapter extends Bastion's policy engine to HTTP API calls made by AI agents to providers like OpenAI, Stripe, Slack, and GitHub. See `@zkos-labs/web2-sdk` and `docs/WEB2_EXPANSION_PLAN.md`.
+A Web2 API adapter extends Bastion's policy engine to HTTP API calls made by AI agents to providers like OpenAI, Stripe, Slack, and GitHub. See `@zkos-labs/bastion-web2` and `docs/WEB2_EXPANSION_PLAN.md`.
 
 ## Table of Contents
 
@@ -95,7 +95,7 @@ Bastion intercepts transaction requests, simulates them via Helius Simulation AP
 | CORS Support | Browser-native access via SSE with `Access-Control-Allow-Origin: *` |
 | SOL Staking | AgentStake PDA, stake SOL for higher transaction limits via StakeWeighted policy |
 | Emergency Pause | Circuit breaker for protocol |
-| Web2 API Firewall | In progress. Proxy engine for API calls to OpenAI, Stripe, Slack, GitHub, and AWS. See `@zkos-labs/web2-sdk` |
+| Web2 API Firewall | In progress. Proxy engine for API calls to OpenAI, Stripe, Slack, GitHub, and AWS. See `@zkos-labs/bastion-web2` |
 
 ## Architecture
 
@@ -175,7 +175,7 @@ pnpm test
 ```
 
 ```typescript
-import { BastionClient, AGENT_CAPABILITIES } from "@zkos-labs/sdk";
+import { BastionClient, AGENT_CAPABILITIES } from "@zkos-labs/bastion-sdk";
 
 const client = new BastionClient({
   connection: new Connection("https://api.devnet.solana.com")
@@ -320,16 +320,16 @@ pnpm --filter bastion-dashboard dev
 
 ## SDK
 
-### @zkos-labs/sdk, Solana + EVM Chain Firewall
+### @zkos-labs/bastion-sdk, Solana + EVM Chain Firewall
 
-TypeScript SDK for on-chain agent security. [npm → @zkos-labs/sdk](https://www.npmjs.com/package/@zkos-labs/sdk)
+TypeScript SDK for on-chain agent security. [npm → @zkos-labs/bastion-sdk](https://www.npmjs.com/package/@zkos-labs/bastion-sdk)
 
 ```bash
-npm install @zkos-labs/sdk
+npm install @zkos-labs/bastion-sdk
 ```
 
 ```typescript
-import { BastionClient, BastionSidecar, AGENT_CAPABILITIES } from "@zkos-labs/sdk";
+import { BastionClient, BastionSidecar, AGENT_CAPABILITIES } from "@zkos-labs/bastion-sdk";
 
 // On-chain client
 const client = new BastionClient({
@@ -360,14 +360,14 @@ for await (const event of stream) {
 
 TypeScript SDK for AI agent API call security. Proxy engine inspects every HTTP call before reaching providers.
 
-[npm → @zkos-labs/web2-sdk](https://www.npmjs.com/package/@zkos-labs/web2-sdk)
+[npm → @zkos-labs/bastion-web2](https://www.npmjs.com/package/@zkos-labs/bastion-web2)
 
 ```bash
-npm install @zkos-labs/web2-sdk
+npm install @zkos-labs/bastion-web2
 ```
 
 ```typescript
-import { BastionWeb2Client } from "@zkos-labs/web2-sdk";
+import { BastionWeb2Client } from "@zkos-labs/bastion-web2";
 
 const client = new BastionWeb2Client({ proxyUrl: "http://localhost:4000" });
 
@@ -418,8 +418,8 @@ See [`evm/README.md`](evm/README.md) for deployment details.
 | Web2 Firewall | Rust (bastion-web2-firewall), OpenAPI parser |
 | MCP Server | TypeScript, @modelcontextprotocol/sdk, SSE |
 | Payments | USDT/USDC (optional paid backend calls) |
-| SDK | TypeScript (@zkos-labs/sdk) |
-| Web2 SDK | TypeScript (@zkos-labs/web2-sdk) |
+| SDK | TypeScript (@zkos-labs/bastion-sdk) |
+| Web2 SDK | TypeScript (@zkos-labs/bastion-web2) |
 | Dashboard | React, Vite, TailwindCSS |
 | Agent Skills | 48 blockint/Web2 skills (.agents/skills/) |
 

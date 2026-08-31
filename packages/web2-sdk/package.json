@@ -1,6 +1,6 @@
 {
-  "name": "@zkos-labs/web2-sdk",
-  "version": "0.2.2",
+  "name": "@zkos-labs/bastion-web2",
+  "version": "0.3.0",
   "description": "Web2 adapter for the Bastion Programmable Trust Runtime - policy-enforced API calls for autonomous systems.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

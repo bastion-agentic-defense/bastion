@@ -131,7 +131,7 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @zkos-labs/web2-sdk build
+      - run: pnpm --filter @zkos-labs/bastion-web2 build
 
   # ── MCP Server ──────────────────────────────────────────────
   mcp-server:

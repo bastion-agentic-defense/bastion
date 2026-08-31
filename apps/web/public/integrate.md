@@ -6,13 +6,13 @@ Programmable Trust Runtime into your application.
 ## Install the SDK
 
 ```bash
-npm install @zkos-labs/sdk
+npm install @zkos-labs/bastion-sdk
 ```
 
 ## Basic Usage (SDK)
 
 ```typescript
-import { BastionClient } from "@zkos-labs/sdk";
+import { BastionClient } from "@zkos-labs/bastion-sdk";
 
 const client = new BastionClient({ baseUrl: "https://bastion-agentique.fly.dev/" });
 
@@ -69,5 +69,5 @@ curl -X POST https://bastion-agentique.fly.dev/override \
 
 ## Links
 
-- **NPM**: https://www.npmjs.com/package/@zkos-labs/sdk
+- **NPM**: https://www.npmjs.com/package/@zkos-labs/bastion-sdk
 - **API Reference**: https://github.com/zkos-labs/bastion#readme

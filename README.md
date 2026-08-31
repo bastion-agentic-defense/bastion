@@ -3,7 +3,7 @@
 > **The Programmable Trust Runtime for Autonomous Systems.**
 
 [![npm](https://img.shields.io/npm/v/@zkos-labs/bastion-sdk?label=bastion-sdk)](https://www.npmjs.com/package/@zkos-labs/bastion-sdk)
-[![npm](https://img.shields.io/npm/v/@zkos-labs/web2-sdk?label=web2-sdk)](https://www.npmjs.com/package/@zkos-labs/web2-sdk)
+[![npm](https://img.shields.io/npm/v/@zkos-labs/bastion-web2?label=web2-sdk)](https://www.npmjs.com/package/@zkos-labs/bastion-web2)
 
 > ⚠️ **Alpha Software** - APIs and runtime behavior may change before the first stable release.
 > This document marks what ships today vs. what is planned. **No component is on mainnet with

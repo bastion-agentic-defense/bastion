@@ -5,14 +5,14 @@ Web2 adapter for the Bastion Programmable Trust Runtime. Policy-enforced API cal
 ## Installation
 
 ```bash
-npm install @zkos-labs/web2-sdk
-pnpm add @zkos-labs/web2-sdk
+npm install @zkos-labs/bastion-web2
+pnpm add @zkos-labs/bastion-web2
 ```
 
 ## Quick Start
 
 ```typescript
-import { BastionWeb2Client } from "@zkos-labs/web2-sdk";
+import { BastionWeb2Client } from "@zkos-labs/bastion-web2";
 
 const client = new BastionWeb2Client({
   proxyUrl: "http://localhost:3000",

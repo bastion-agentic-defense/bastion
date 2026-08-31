@@ -358,7 +358,7 @@ Triggers on push/PR to `main` (ignoring `.md` and `docs/`).
 | `evm` | Checkout submodules, `forge build`, `forge test -vvv` |
 | `web` | `pnpm install`, `pnpm --filter bastion-dashboard build` |
 | `sdk` | `pnpm install`, `pnpm --filter @zkos-labs/bastion-sdk build` + test |
-| `web2-sdk` | `pnpm install`, `pnpm --filter @zkos-labs/web2-sdk build` |
+| `web2-sdk` | `pnpm install`, `pnpm --filter @zkos-labs/bastion-web2 build` |
 | `mcp-server` | `pnpm install`, `pnpm --filter @zkos-labs/mcp-server build` |
 
 ---

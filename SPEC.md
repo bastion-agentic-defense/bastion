@@ -41,7 +41,7 @@ It intercepts every transaction request and every HTTP API call, **Simulates** t
 - Rate limiting per provider
 - OpenAPI spec auto-configuration (parses OpenAPI 3.0 specs into allowlists)
 - Provider adapters (OpenAI, Stripe, Slack, GitHub, AWS)
-- TypeScript SDK (@zkos-labs/web2-sdk v0.1.0)
+- TypeScript SDK (@zkos-labs/bastion-web2 v0.1.0)
 - Rust policy engine (bastion-web2-firewall crate)
 
 ### SIEM & Correlation (Partially shipped: event ingest in MCP server, full correlation engine planned)

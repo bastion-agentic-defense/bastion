@@ -55,7 +55,7 @@ Agent → Bastion Proxy (crates/web2-firewall) → Target API
 ## SDK Quick Start
 
 ```typescript
-import { BastionWeb2Client } from "@zkos-labs/web2-sdk";
+import { BastionWeb2Client } from "@zkos-labs/bastion-web2";
 
 const client = new BastionWeb2Client({
   proxyUrl: "http://localhost:4000",
