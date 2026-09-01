@@ -4,7 +4,7 @@ import { useAgents, type TrackedAgent } from '../hooks/useAgents';
 import { useAccount } from 'wagmi';
 import { SETTLEMENT_CHAINS, chainFromDid, chainColor } from '../lib/settlementChains';
 
-type Filter = 'all' | 'parents' | 'children' | 'swaps' | 'transfers' | 'stakers';
+type Filter = 'all' | 'parents' | 'children' | 'swaps' | 'transfers' | 'trusted';
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: 'all', label: 'All' },
@@ -12,7 +12,7 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: 'children', label: 'Sub-Agents' },
   { id: 'transfers', label: 'Transfers' },
   { id: 'swaps', label: 'Swaps' },
-  { id: 'stakers', label: 'Stakers' },
+  { id: 'trusted', label: 'Trusted' },
 ];
 
 const CAPABILITY_LABELS: Record<number, string> = {
@@ -39,7 +39,6 @@ function AgentCard({ agent }: { agent: any }) {
   const isChild = !!agent.parent_did;
   const name = agent.name || `Agent-${(agent.authority || '').slice(0, 8)}`;
   const did = agent.did || '';
-  const staked = agent.staked_lamports ?? 0;
   const chain = chainFromDid(did);
 
   return (
@@ -86,9 +85,6 @@ function AgentCard({ agent }: { agent: any }) {
           )}
         </div>
         <span className="text-zinc-500">{agent.reputation_score}/100</span>
-        {agent.staked_lamports > 0 && (
-          <span className="text-amber-400">{agent.staked_lamports.toLocaleString()} ETH</span>
-        )}
       </div>
 
       {isParent && (
@@ -128,7 +124,7 @@ export default function AgentList() {
         case 'children': return trackedAgents.filter(a => !!(a as any).parent_did);
         case 'transfers': return trackedAgents.filter(a => a.capability_bitmask & 0b00000001);
         case 'swaps': return trackedAgents.filter(a => a.capability_bitmask & 0b00000010);
-        case 'stakers': return trackedAgents.filter(a => a.capability_bitmask & 0b00000100);
+        case 'trusted': return trackedAgents.filter(a => a.reputation_score >= 70);
         default: return trackedAgents;
       }
     })();
