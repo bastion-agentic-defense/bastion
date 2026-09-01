@@ -66,7 +66,7 @@ export default function DeployAgent() {
     setResult(null);
     try {
       // Register the agent via the sidecar (POST /agents).
-      const res = await fetch(`${import.meta.env.VITE_SIDECAR_URL || 'https://bastion-agentique.fly.dev/'}/agents`, {
+      const res = await fetch(`${import.meta.env.VITE_SIDECAR_URL || 'https://bastion-agentique.fly.dev'}/agents`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

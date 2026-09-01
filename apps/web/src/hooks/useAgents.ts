@@ -1,6 +1,6 @@
 import { useCallback, useState, useMemo } from 'react';
 
-const SIDECAR_URL = import.meta.env.VITE_SIDECAR_URL || 'https://bastion-agentique.fly.dev/';
+const SIDECAR_URL = import.meta.env.VITE_SIDECAR_URL || 'https://bastion-agentique.fly.dev';
 
 export interface TrackedAgent {
   did: string;
