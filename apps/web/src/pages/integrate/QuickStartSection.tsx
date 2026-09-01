@@ -48,9 +48,16 @@ const policyRes = await fetch("${SIDECAR}/policy/full", {
 });
 
 // ── Step 5: Simulate an EVM transaction ─────────────
+// Protected route - reuse the DID auth headers from Step 3
+// (request a fresh nonce first; nonces are one-time use)
 const simRes = await fetch("${SIDECAR}/api/v2/simulate-evm", {
   method: "POST",
-  headers: { "Content-Type": "application/json" },
+  headers: {
+    "Content-Type": "application/json",
+    "X-DID": did,
+    "X-DID-Nonce": nonce,
+    "X-DID-Signature": signature,
+  },
   body: JSON.stringify({
     chain: "base",
     transaction: {

@@ -57,7 +57,7 @@ export default function AgentDetail() {
     );
   }
 
-  const capabilities = getCapabilityLabels(agent.capability_bitmask);
+  const capabilities = getCapabilityLabels((agent as any).capability_bitmask ?? 0);
   const scorePct = Math.min(agent.reputation_score / 100, 1);
 
   return (
@@ -100,7 +100,7 @@ export default function AgentDetail() {
             </div>
             <div className="rounded-lg p-3" style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.15)' }}>
               <p className="font-sans text-[9px] uppercase tracking-wider text-zinc-500 mb-1">Authority</p>
-              <p className="font-mono text-[10px] break-all text-zinc-300">{agent.authority.slice(0, 16)}...</p>
+              <p className="font-mono text-[10px] break-all text-zinc-300">{(agent as any).authority?.slice(0, 16) ?? '?'}...</p>
             </div>
             <div className="rounded-lg p-3" style={{ background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.15)' }}>
               <p className="font-sans text-[9px] uppercase tracking-wider text-zinc-500 mb-1">Registered</p>

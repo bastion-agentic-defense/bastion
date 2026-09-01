@@ -136,11 +136,8 @@ export default function Dashboard() {
   const { agents: trackedAgents, fetchAgents: fetchSidecarAgents } = useAgents();
   const [history, setHistory] = useState<number[]>(Array(30).fill(0));
   const [dataSource, setDataSource] = useState<'network' | 'sidecar'>('network');
-  const [onChainAgents, setOnChainAgents] = useState<any[]>([]);
-  const [onChainAudits, setOnChainAudits] = useState<AuditEntryData[]>([]);
   const [loadingAgents, setLoadingAgents] = useState(false);
   const networkLastFetch = useRef(0);
-  const [onChainStats, setOnChainStats] = useState<StatsData | null>(null);
 
   const [activeTab, setActiveTab] = useState<'overview' | 'logs' | 'policy'>('overview');
   const [logs, setLogs] = useState<AuditEntryData[]>([]);
@@ -169,7 +166,7 @@ export default function Dashboard() {
         fetchSidecarAgents(), // Registered Agents panel isn't gated by dataSource - always load it
       ]);
       if (stats) { setStats(stats); setHistory((h) => [...h.slice(-29), stats.total]); }
-      if (audits) { setOnChainAudits(audits); setLogs(audits); }
+      if (audits) setLogs(audits);
       networkLastFetch.current = now;
     } finally {
       setLoadingAgents(false);
@@ -243,17 +240,6 @@ export default function Dashboard() {
 
   // Build agent floor data from tracked agents (sidecar registry)
   const agentEntities = useMemo(() => {
-    if (dataSource === 'network' && onChainAgents.length > 0) {
-      return onChainAgents.map((a: any, i: number) => ({
-        id: a.did || `agent-${i}`,
-        name: a.name?.slice(0, 12) || a.authority?.slice(0, 8) || `?`,
-        x: (i * 3 + 2) % 24,
-        y: Math.floor(i / 6) * 3 + 2,
-        status: ((a.capabilityBitmask || 0) & 0b00000010 ? 'walking' as const : 'idle' as const),
-        intent: a.name || '',
-        reputation: a.reputationScore || 0,
-      }));
-    }
     if (trackedAgents.length > 0) {
       return trackedAgents.map((a: TrackedAgent, i: number) => ({
         id: a.did,
@@ -276,7 +262,7 @@ export default function Dashboard() {
         intent: l.intent || '',
         reputation: l.decision === 'ALLOWED' ? 85 : 40,
       }));
-  }, [dataSource, onChainAgents, trackedAgents, sseEvents, logs]);
+  }, [trackedAgents, sseEvents, logs]);
 
   const inputStyle = (editable: boolean) => ({
     background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', opacity: editable ? 1 : 0.6,
@@ -320,7 +306,7 @@ export default function Dashboard() {
           </div>
           <StatWidget label="Allowed" value={stats.allowed} color="#22c55e" />
           <StatWidget label="Blocked" value={stats.blocked} color="#ef4444" />
-          <StatWidget label="Total Staked" value={`${trackedAgents.reduce((s, a) => s + (a.staked_lamports || 0), 0).toLocaleString()} ETH`} color="#f59e0b" />
+          <StatWidget label="Total Staked" value={trackedAgents.reduce((s, a) => s + (a.staked_lamports || 0), 0).toLocaleString()} color="#f59e0b" />
         </div>
 
         {/* Pending approvals */}
@@ -368,7 +354,7 @@ export default function Dashboard() {
                     { label: 'Critical', value: trackedAgents.filter(a => a.reputation_score < 40).length, color: '#ef4444' },
                   ]
                 : [
-                    { label: 'Agents', value: onChainAgents.length || 1, color: '#3b82f6' },
+                    { label: 'Agents', value: 1, color: '#3b82f6' },
                   ]
             } />
           </div>

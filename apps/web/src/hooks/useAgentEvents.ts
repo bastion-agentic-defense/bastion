@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 interface AgentEvent {
   agent_id: string;
@@ -15,9 +15,13 @@ export function useAgentEvents() {
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const esRef = useRef<EventSource | null>(null);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const connect = useCallback(() => {
     try {
       const es = new EventSource(`${SIDECAR_URL}/events`);
+      esRef.current = es;
 
       es.onopen = () => {
         setConnected(true);
@@ -41,7 +45,7 @@ export function useAgentEvents() {
         setConnected(false);
         setError('Event stream disconnected. Retrying...');
         es.close();
-        setTimeout(connect, 5000);
+        reconnectTimeoutRef.current = setTimeout(connect, 5000);
       };
 
       return es;
@@ -52,8 +56,11 @@ export function useAgentEvents() {
   }, []);
 
   useEffect(() => {
-    const es = connect();
-    return () => { es?.close(); };
+    connect();
+    return () => {
+      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+      esRef.current?.close();
+    };
   }, [connect]);
 
   return { events, connected, error };

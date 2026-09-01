@@ -1,6 +1,8 @@
 import { useCallback, useState, useMemo } from 'react';
 
 const SIDECAR_URL = import.meta.env.VITE_SIDECAR_URL || 'https://bastion-agentique.fly.dev';
+const API_KEY = import.meta.env.VITE_BASTION_API_KEY as string | undefined;
+const AUTH_HEADERS: Record<string, string> = API_KEY ? { 'X-Api-Key': API_KEY } : {};
 
 export interface TrackedAgent {
   did: string;
@@ -57,7 +59,7 @@ export function useAgents() {
   const fetchAgents = useCallback(async (): Promise<TrackedAgent[]> => {
     setLoading(true);
     try {
-      const res = await fetch(`${SIDECAR_URL}/agents`);
+      const res = await fetch(`${SIDECAR_URL}/agents`, { headers: AUTH_HEADERS });
       if (!res.ok) return [];
       const data: AgentListResponse = await res.json();
       setAgents(data.agents);
@@ -71,7 +73,7 @@ export function useAgents() {
 
   const fetchAgent = useCallback(async (did: string): Promise<TrackedAgent | null> => {
     try {
-      const res = await fetch(`${SIDECAR_URL}/agents/${encodeURIComponent(did)}`);
+      const res = await fetch(`${SIDECAR_URL}/agents/${encodeURIComponent(did)}`, { headers: AUTH_HEADERS });
       if (!res.ok) return null;
       return await res.json() as TrackedAgent;
     } catch {
@@ -84,6 +86,7 @@ export function useAgents() {
       try {
         const res = await fetch(
           `${SIDECAR_URL}/agents/${encodeURIComponent(did)}/audit?limit=${limit}&offset=${offset}`,
+          { headers: AUTH_HEADERS },
         );
         if (!res.ok) return null;
         return await res.json() as AgentAuditResponse;
@@ -119,7 +122,7 @@ export function useAgents() {
 
         const res = await fetch(`${SIDECAR_URL}/agents`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...AUTH_HEADERS },
           body: JSON.stringify(body),
         });
         return res.ok;
@@ -132,7 +135,7 @@ export function useAgents() {
 
   const fetchAgentChildren = useCallback(async (did: string): Promise<TrackedAgent[]> => {
     try {
-      const res = await fetch(`${SIDECAR_URL}/agents/${encodeURIComponent(did)}/children`);
+      const res = await fetch(`${SIDECAR_URL}/agents/${encodeURIComponent(did)}/children`, { headers: AUTH_HEADERS });
       if (!res.ok) return [];
       const data = await res.json();
       return data.children ?? [];
@@ -143,7 +146,7 @@ export function useAgents() {
 
   const fetchAgentTree = useCallback(async (did: string): Promise<unknown | null> => {
     try {
-      const res = await fetch(`${SIDECAR_URL}/agents/${encodeURIComponent(did)}/tree`);
+      const res = await fetch(`${SIDECAR_URL}/agents/${encodeURIComponent(did)}/tree`, { headers: AUTH_HEADERS });
       if (!res.ok) return null;
       return await res.json();
     } catch {
@@ -163,7 +166,7 @@ export function useAgents() {
       try {
         const res = await fetch(`${SIDECAR_URL}/agents/${encodeURIComponent(parentDid)}/delegate`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...AUTH_HEADERS },
           body: JSON.stringify({
             child_did: childDid,
             child_name: childName,
@@ -185,7 +188,7 @@ export function useAgents() {
       try {
         const res = await fetch(
           `${SIDECAR_URL}/agents/${encodeURIComponent(parentDid)}/delegation/${encodeURIComponent(childDid)}`,
-          { method: 'DELETE' },
+          { method: 'DELETE', headers: AUTH_HEADERS },
         );
         return res.ok;
       } catch {
@@ -197,7 +200,7 @@ export function useAgents() {
 
   const fetchAgentStake = useCallback(async (did: string): Promise<{ staked_lamports: number; stake_unlock_at: number; authority: string } | null> => {
     try {
-      const res = await fetch(`${SIDECAR_URL}/agents/${encodeURIComponent(did)}/stake`);
+      const res = await fetch(`${SIDECAR_URL}/agents/${encodeURIComponent(did)}/stake`, { headers: AUTH_HEADERS });
       if (!res.ok) return null;
       return await res.json();
     } catch {
@@ -209,7 +212,7 @@ export function useAgents() {
     try {
       const res = await fetch(`${SIDECAR_URL}/agents/${encodeURIComponent(did)}/stake`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...AUTH_HEADERS },
         body: JSON.stringify({ authority_pubkey: authorityPubkey, amount }),
       });
       return res.ok;
@@ -222,7 +225,7 @@ export function useAgents() {
     try {
       const res = await fetch(`${SIDECAR_URL}/agents/${encodeURIComponent(did)}/stake/unstake`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...AUTH_HEADERS },
         body: JSON.stringify({ authority_pubkey: authorityPubkey }),
       });
       return res.ok;
@@ -235,7 +238,7 @@ export function useAgents() {
     try {
       const res = await fetch(`${SIDECAR_URL}/agents/${encodeURIComponent(did)}/stake/claim`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...AUTH_HEADERS },
         body: JSON.stringify({ authority_pubkey: authorityPubkey }),
       });
       return res.ok;

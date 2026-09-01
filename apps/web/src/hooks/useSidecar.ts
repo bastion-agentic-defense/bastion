@@ -1,6 +1,8 @@
 import { useCallback, useMemo } from 'react';
 
 const SIDECAR_URL = import.meta.env.VITE_SIDECAR_URL || 'https://bastion-agentique.fly.dev';
+const API_KEY = import.meta.env.VITE_BASTION_API_KEY as string | undefined;
+const AUTH_HEADERS: Record<string, string> = API_KEY ? { 'X-Api-Key': API_KEY } : {};
 
 interface AuditLogEntry {
   id: number;
@@ -69,7 +71,7 @@ export function useSidecar() {
 
   const fetchStats = useCallback(async (): Promise<SidecarStats | null> => {
     try {
-      const res = await fetch(`${SIDECAR_URL}/audit/stats`);
+      const res = await fetch(`${SIDECAR_URL}/audit/stats`, { headers: AUTH_HEADERS });
       if (!res.ok) return null;
       const data = await res.json();
       return {
@@ -87,6 +89,7 @@ export function useSidecar() {
       try {
         const res = await fetch(
           `${SIDECAR_URL}/logs?limit=${limit}&offset=${offset}`,
+          { headers: AUTH_HEADERS },
         );
         if (!res.ok) return null;
         return (await res.json()) as PaginatedLogs;
@@ -99,7 +102,7 @@ export function useSidecar() {
 
   const fetchPolicy = useCallback(async (): Promise<PolicyConfig | null> => {
     try {
-      const res = await fetch(`${SIDECAR_URL}/policy`);
+      const res = await fetch(`${SIDECAR_URL}/policy`, { headers: AUTH_HEADERS });
       if (!res.ok) return null;
       const data = await res.json();
       return {
@@ -120,7 +123,7 @@ export function useSidecar() {
       try {
         const res = await fetch(`${SIDECAR_URL}/policy/full`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...AUTH_HEADERS },
           body: JSON.stringify(policy),
         });
         return res.ok;
@@ -140,7 +143,7 @@ export function useSidecar() {
       try {
         const res = await fetch(`${SIDECAR_URL}/api/v2/simulate-evm`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...AUTH_HEADERS },
           body: JSON.stringify({ transaction: tx, intent, chain }),
         });
         const data = await res.json();
@@ -178,7 +181,7 @@ export function useSidecar() {
       try {
         const res = await fetch(`${SIDECAR_URL}/api/v2/simulate-solana`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...AUTH_HEADERS },
           body: JSON.stringify({ ...solanaTx, intent }),
         });
         const data = await res.json();
@@ -210,7 +213,7 @@ export function useSidecar() {
 
   const fetchPending = useCallback(async (): Promise<PendingApproval[]> => {
     try {
-      const res = await fetch(`${SIDECAR_URL}/pending`);
+      const res = await fetch(`${SIDECAR_URL}/pending`, { headers: AUTH_HEADERS });
       if (!res.ok) return [];
       return (await res.json()) as PendingApproval[];
     } catch {
@@ -223,7 +226,7 @@ export function useSidecar() {
       try {
         const res = await fetch(`${SIDECAR_URL}/override`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...AUTH_HEADERS },
           body: JSON.stringify({ block_id: blockId, action }),
         });
         return res.ok;
@@ -238,7 +241,7 @@ export function useSidecar() {
     engaged: boolean;
   } | null> => {
     try {
-      const res = await fetch(`${SIDECAR_URL}/circuit-breaker/status`);
+      const res = await fetch(`${SIDECAR_URL}/circuit-breaker/status`, { headers: AUTH_HEADERS });
       if (!res.ok) return null;
       return (await res.json()) as { engaged: boolean };
     } catch {
@@ -254,6 +257,7 @@ export function useSidecar() {
           : '/circuit-breaker/disengage';
         const res = await fetch(`${SIDECAR_URL}${endpoint}`, {
           method: 'POST',
+          headers: AUTH_HEADERS,
         });
         return res.ok;
       } catch {
