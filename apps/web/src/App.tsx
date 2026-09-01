@@ -29,7 +29,7 @@ function AppRoutes() {
       <Route path="/dashboard"     element={<Dashboard />} />
       <Route path="/agents"        element={<AgentList />} />
       <Route path="/agents/deploy" element={<DeployAgent />} />
-      <Route path="/agents/:id"    element={<AgentDetail />} />
+      <Route path="/agents/:did"   element={<AgentDetail />} />
       <Route path="*"              element={<Navigate to="/" replace />} />
     </Routes>
   );
