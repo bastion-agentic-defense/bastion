@@ -166,6 +166,7 @@ export default function Dashboard() {
       const [stats, audits] = await Promise.all([
         evm.fetchStats(),
         evm.fetchAuditEntries(15), // Reduced: 15 instead of 50 for network view
+        fetchSidecarAgents(), // Registered Agents panel isn't gated by dataSource - always load it
       ]);
       if (stats) { setStats(stats); setHistory((h) => [...h.slice(-29), stats.total]); }
       if (audits) { setOnChainAudits(audits); setLogs(audits); }
@@ -174,7 +175,7 @@ export default function Dashboard() {
       setLoadingAgents(false);
       setLoading(false);
     }
-  }, [evm]);
+  }, [evm, fetchSidecarAgents]);
 
   const loadSidecarData = useCallback(async () => {
     setLoading(true);
