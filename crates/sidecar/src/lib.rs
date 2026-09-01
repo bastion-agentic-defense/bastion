@@ -83,6 +83,10 @@ pub(crate) struct AppState {
     execution_plans: Arc<RwLock<HashMap<String, workflow_routes::TrackedPlan>>>,
     /// Most recent background trust scan result, served by `GET /scan/results`.
     last_scan: Arc<RwLock<Option<bastion_policy_engine::ScanResult>>>,
+    /// Governance/audit record of time-bound policy exceptions granted via
+    /// `POST /exceptions`. Matches `policy_stores` in durability (in-memory,
+    /// process-lifetime) — not consulted by policy evaluation itself.
+    exceptions: Arc<RwLock<Vec<trust_policy_handler::Exception>>>,
 }
 
 fn emit_event(tx: &broadcast::Sender<String>, event_type: &str, json_payload: &str) {
@@ -1321,6 +1325,45 @@ async fn get_agent(
         .ok_or(axum::http::StatusCode::NOT_FOUND)
 }
 
+/// Deregister an agent. Also detaches it from any parent/children so no
+/// dangling delegation references are left behind.
+async fn delete_agent_handler(
+    State(state): State<AppState>,
+    Path(did): Path<String>,
+) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
+    let agent = state.agent_store.get_agent(&did).ok_or((
+        axum::http::StatusCode::NOT_FOUND,
+        Json(serde_json::json!({"error":"Agent not found"})),
+    ))?;
+
+    if let Some(parent_did) = &agent.parent_did
+        && let Some(mut parent) = state.agent_store.get_agent(parent_did)
+    {
+        parent.child_dids.retain(|d| d != &did);
+        parent.is_delegator = !parent.child_dids.is_empty();
+        let _ = state.agent_store.save_agent(&parent);
+    }
+    for child_did in &agent.child_dids {
+        if let Some(mut child) = state.agent_store.get_agent(child_did) {
+            child.parent_did = None;
+            child.delegation_depth = Some(0);
+            child.delegation_expires_at = None;
+            let _ = state.agent_store.save_agent(&child);
+        }
+    }
+
+    state.agent_store.remove_agent(&did).map_err(|e| {
+        (
+            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({"error": e})),
+        )
+    })?;
+
+    Ok(Json(
+        serde_json::json!({ "status": "deregistered", "did": did }),
+    ))
+}
+
 async fn register_agent_handler(
     State(state): State<AppState>,
     Json(req): Json<agents::RegisterAgentRequest>,
@@ -1578,11 +1621,30 @@ async fn post_agent_delegate(
 }
 
 async fn delete_agent_delegation(
-    _state: State<AppState>,
+    State(state): State<AppState>,
     Path((parent_did, child_did)): Path<(String, String)>,
 ) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, Json<serde_json::Value>)> {
-    // For MVP: remove child from AgentStore
-    // Production: submit revokeDelegation on-chain
+    let mut parent = state.agent_store.get_agent(&parent_did).ok_or((
+        axum::http::StatusCode::NOT_FOUND,
+        Json(serde_json::json!({"error":"Parent agent not found"})),
+    ))?;
+    if !parent.child_dids.contains(&child_did) {
+        return Err((
+            axum::http::StatusCode::NOT_FOUND,
+            Json(serde_json::json!({"error":"Delegation not found"})),
+        ));
+    }
+    parent.child_dids.retain(|d| d != &child_did);
+    parent.is_delegator = !parent.child_dids.is_empty();
+    let _ = state.agent_store.save_agent(&parent);
+
+    if let Some(mut child) = state.agent_store.get_agent(&child_did) {
+        child.parent_did = None;
+        child.delegation_depth = Some(0);
+        child.delegation_expires_at = None;
+        let _ = state.agent_store.save_agent(&child);
+    }
+
     Ok(Json(serde_json::json!({
         "status": "delegation_revoked",
         "parent_did": parent_did,
@@ -1757,6 +1819,7 @@ pub fn build_app(
         workflow_engine: workflow_routes::build_workflow_engine(agent_store_path),
         execution_plans: Arc::new(RwLock::new(HashMap::new())),
         last_scan: Arc::new(RwLock::new(None)),
+        exceptions: Arc::new(RwLock::new(Vec::new())),
     };
 
     // Background trust scanner: sweeps for expired approvals, expired
@@ -1840,6 +1903,7 @@ pub fn build_app(
         .route("/api/v2/evaluate-web2", post(evaluate_web2))
         .route("/api/v2/simulate-evm", post(simulate_evm_handler))
         .route("/api/v2/simulate-solana", post(simulate_solana_handler))
+        .route("/agents/:did", axum::routing::delete(delete_agent_handler))
         .route("/agents/:did/delegate", post(post_agent_delegate))
         .route(
             "/agents/:did/delegation/:child_did",

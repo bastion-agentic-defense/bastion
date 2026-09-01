@@ -218,6 +218,19 @@ impl AgentStore {
         Ok(())
     }
 
+    /// Remove an agent by DID. Returns true if an agent was actually removed.
+    pub fn remove_agent(&self, did: &str) -> Result<bool, String> {
+        let existed = self
+            .db
+            .remove(did.as_bytes())
+            .map_err(|e| e.to_string())?
+            .is_some();
+        if existed {
+            self.db.flush().map_err(|e| e.to_string())?;
+        }
+        Ok(existed)
+    }
+
     /// List all tracked agents.
     pub fn list_agents(&self) -> Result<Vec<TrackedAgent>, String> {
         self.db

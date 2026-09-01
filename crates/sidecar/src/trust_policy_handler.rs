@@ -88,7 +88,7 @@ pub(crate) async fn get_trust_policy(
         "apiVersion": p.policy.api_version,
         "kind": p.policy.kind,
         "mode": format!("{:?}", p.current_mode),
-        "r#match": p.policy.spec.r#match,
+        "match": p.policy.spec.r#match,
         "validate": p.policy.spec.validate,
         "mutate": p.policy.spec.mutate,
         "exceptions": p.policy.spec.exceptions,
@@ -231,23 +231,60 @@ pub struct CreateExceptionRequest {
     pub approved_by: String,
 }
 
-pub(crate) async fn list_exceptions() -> Json<Vec<serde_json::Value>> {
-    Json(vec![])
+/// A time-bound governance record of a policy exception grant. This is an
+/// audit-trail registry (who approved what, why, until when) — it is not
+/// consulted by policy evaluation; per-policy `TrustPolicy.spec.exceptions`
+/// is the separate mechanism actually wired into the evaluator.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Exception {
+    pub id: String,
+    pub policy_name: String,
+    pub reason: String,
+    pub expires_in_hours: u64,
+    pub approved_by: String,
+    pub created_at: u64,
+    pub expires_at: u64,
+}
+
+pub(crate) async fn list_exceptions(State(state): State<AppState>) -> Json<Vec<Exception>> {
+    let now = crate::audit::current_timestamp();
+    let mut exceptions = state.exceptions.write().await;
+    exceptions.retain(|e| e.expires_at > now);
+    Json(exceptions.clone())
 }
 
 pub(crate) async fn create_exception(
+    State(state): State<AppState>,
     Json(req): Json<CreateExceptionRequest>,
-) -> Json<serde_json::Value> {
-    Json(serde_json::json!({
-        "status": "created",
-        "policy_name": req.policy_name,
-        "reason": req.reason,
-        "expires_in_hours": req.expires_in_hours,
-    }))
+) -> Json<Exception> {
+    let now = crate::audit::current_timestamp();
+    let exception = Exception {
+        id: uuid::Uuid::new_v4().to_string(),
+        policy_name: req.policy_name,
+        reason: req.reason,
+        expires_in_hours: req.expires_in_hours,
+        approved_by: req.approved_by,
+        created_at: now,
+        expires_at: now + req.expires_in_hours.saturating_mul(3600),
+    };
+    state.exceptions.write().await.push(exception.clone());
+    Json(exception)
 }
 
-pub(crate) async fn delete_exception(Path(_id): Path<String>) -> Json<serde_json::Value> {
-    Json(serde_json::json!({ "status": "deleted" }))
+pub(crate) async fn delete_exception(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+) -> Result<Json<serde_json::Value>, (axum::http::StatusCode, String)> {
+    let mut exceptions = state.exceptions.write().await;
+    let before = exceptions.len();
+    exceptions.retain(|e| e.id != id);
+    if exceptions.len() == before {
+        return Err((
+            axum::http::StatusCode::NOT_FOUND,
+            "Exception not found".into(),
+        ));
+    }
+    Ok(Json(serde_json::json!({ "status": "deleted" })))
 }
 
 pub(crate) async fn trigger_scan(State(state): State<AppState>) -> Json<serde_json::Value> {
